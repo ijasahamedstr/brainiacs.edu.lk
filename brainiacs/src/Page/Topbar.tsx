@@ -38,8 +38,8 @@ const Topbar: React.FC = () => {
         color: 'white',
         px: { xs: 2, sm: 4 },
         py: 2,
-        display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
+        display: { xs: 'none', sm: 'none', md: 'flex' }, // ✅ Show only on desktop
+        flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         gap: 1,
@@ -50,8 +50,8 @@ const Topbar: React.FC = () => {
       <Box
         sx={{
           display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'flex-start', sm: 'center' },
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: { xs: 1, sm: 3 },
           flexWrap: 'wrap',
           pl: { xs: 0, sm: 2, md: 8 },
@@ -100,9 +100,8 @@ const Topbar: React.FC = () => {
       <Box
         sx={{
           display: 'flex',
-          justifyContent: { xs: 'flex-start', md: 'flex-end' },
-          mt: { xs: 2, md: 0 },
-          pr: { xs: 0, sm: 2, md: 6 },
+          justifyContent: 'flex-end',
+          pr: { xs: 0, sm: 2, md: 20 },
         }}
       >
         <Button
