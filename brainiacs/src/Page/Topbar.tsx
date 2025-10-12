@@ -9,17 +9,17 @@ import {
 const contactInfo = [
   {
     icon: Phone,
-    text: '(+94) 770683809',
-    href: 'tel:+94770683809',
+    text: '(+94) 672260200',
+    href: 'tel:+94672260200',
   },
   {
     icon: Email,
-    text: 'Clicklanka97@gmail.com',
+    text: 'info@brainiacs.edu.lk',
     href: 'mailto:Clicklanka97@gmail.com',
   },
   {
     icon: LocationOn,
-    text: '55/1 Mathavan Road Kalmunai-03',
+    text: 'No. 100, Alivanniyar Road, Sammanthurai',
     href: null, // Not clickable
   },
 ];
