@@ -145,95 +145,103 @@ export default function Navbar() {
     >
       <Container maxWidth="xl">
         <Toolbar sx={{ justifyContent: 'space-between', py: 1.5 }}>
-          {/* --- Left Side (Logo + Drawer Icon) --- */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {!isDesktop && (
-              <IconButton onClick={handleDrawerToggle} color="inherit" sx={{ mr: 1 }}>
+          {/* --- Mobile View --- */}
+          {!isDesktop ? (
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <Box component={Link} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 50 }} />
+              </Box>
+
+              <IconButton onClick={handleDrawerToggle} color="inherit">
                 <MenuIcon />
               </IconButton>
-            )}
-            <Box component={Link} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-              <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 50 }} />
             </Box>
-          </Box>
+          ) : (
+            <>
+              {/* --- Desktop View --- */}
+              <Box component={Link} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+                <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 50 }} />
+              </Box>
 
-          {/* --- Center Nav (Desktop Only) --- */}
-          {isDesktop && (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {pages.map(({ label, path }) => (
-                <Button key={label} component={Link} to={path} sx={{ color: 'black', mx: 1, fontWeight: 500 }}>
-                  {label}
-                </Button>
-              ))}
-
-              {/* Faculties dropdown */}
-              <Button
-                onMouseEnter={handleOpenFacultiesMenu}
-                onMouseLeave={handleCloseFacultiesMenu}
-                endIcon={<ArrowDropDownIcon />}
-                sx={{ color: 'black', mx: 1, fontWeight: 500 }}
-              >
-                Faculties
-              </Button>
-              <Menu
-                anchorEl={anchorElFaculties}
-                open={Boolean(anchorElFaculties)}
-                onClose={handleCloseFacultiesMenu}
-                MenuListProps={{ onMouseLeave: handleCloseFacultiesMenu }}
-              >
-                {facultiesMenu.map(({ label, path }) => (
-                  <MenuItem key={label} component={Link} to={path} onClick={handleCloseFacultiesMenu}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {pages.map(({ label, path }) => (
+                  <Button key={label} component={Link} to={path} sx={{ color: 'black', mx: 1, fontWeight: 500 }}>
                     {label}
-                  </MenuItem>
+                  </Button>
                 ))}
-              </Menu>
 
-              {/* Programmes dropdown */}
-              <Button
-                onMouseEnter={handleOpenProgrammesMenu}
-                onMouseLeave={handleCloseProgrammesMenu}
-                endIcon={<ArrowDropDownIcon />}
-                sx={{ color: 'black', mx: 1, fontWeight: 500 }}
-              >
-                Programmes
-              </Button>
-              <Menu
-                anchorEl={anchorElProgrammes}
-                open={Boolean(anchorElProgrammes)}
-                onClose={handleCloseProgrammesMenu}
-                MenuListProps={{ onMouseLeave: handleCloseProgrammesMenu }}
-              >
-                {programmesMenu.map((group) => (
-                  <Box key={group.label}>
-                    <MenuItem disabled>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                        {group.label}
-                      </Typography>
+                <Button
+                  onMouseEnter={handleOpenFacultiesMenu}
+                  onMouseLeave={handleCloseFacultiesMenu}
+                  endIcon={<ArrowDropDownIcon />}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500 }}
+                >
+                  Faculties
+                </Button>
+                <Menu
+                  anchorEl={anchorElFaculties}
+                  open={Boolean(anchorElFaculties)}
+                  onClose={handleCloseFacultiesMenu}
+                  MenuListProps={{ onMouseLeave: handleCloseFacultiesMenu }}
+                >
+                  {facultiesMenu.map(({ label, path }) => (
+                    <MenuItem key={label} component={Link} to={path}>
+                      {label}
                     </MenuItem>
-                    {group.subItems.map(({ label, path }) => (
-                      <MenuItem key={label} component={Link} to={path} onClick={handleCloseProgrammesMenu} sx={{ pl: 4 }}>
-                        {label}
-                      </MenuItem>
-                    ))}
-                  </Box>
-                ))}
-              </Menu>
-            </Box>
-          )}
+                  ))}
+                </Menu>
 
-          {/* --- Right: Search --- */}
-          {isDesktop && (
-            <Search onSubmit={handleSearchSubmit}>
-              <SearchIconWrapper>
-                <SearchIcon />
-              </SearchIconWrapper>
-              <StyledInputBase placeholder="Search…" value={searchQuery} onChange={handleSearchChange} />
-            </Search>
+                <Button
+                  onMouseEnter={handleOpenProgrammesMenu}
+                  onMouseLeave={handleCloseProgrammesMenu}
+                  endIcon={<ArrowDropDownIcon />}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500 }}
+                >
+                  Programmes
+                </Button>
+                <Menu
+                  anchorEl={anchorElProgrammes}
+                  open={Boolean(anchorElProgrammes)}
+                  onClose={handleCloseProgrammesMenu}
+                  MenuListProps={{ onMouseLeave: handleCloseProgrammesMenu }}
+                >
+                  {programmesMenu.map((group) => (
+                    <Box key={group.label}>
+                      <MenuItem disabled>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                          {group.label}
+                        </Typography>
+                      </MenuItem>
+                      {group.subItems.map(({ label, path }) => (
+                        <MenuItem key={label} component={Link} to={path} sx={{ pl: 4 }}>
+                          {label}
+                        </MenuItem>
+                      ))}
+                    </Box>
+                  ))}
+                </Menu>
+              </Box>
+
+              {/* Right Search */}
+              <Search onSubmit={handleSearchSubmit}>
+                <SearchIconWrapper>
+                  <SearchIcon />
+                </SearchIconWrapper>
+                <StyledInputBase placeholder="Search…" value={searchQuery} onChange={handleSearchChange} />
+              </Search>
+            </>
           )}
         </Toolbar>
       </Container>
 
-      {/* --- Drawer for Mobile/Tablet --- */}
+      {/* --- Drawer --- */}
       <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle}>
         <Box
           sx={{
@@ -242,22 +250,26 @@ export default function Navbar() {
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            overflow: 'hidden',
           }}
         >
-          {/* --- Top Scrollable Section --- */}
-          <Box sx={{ flex: 1, overflowY: 'auto', p: 2, pb: 0 }}>
-            {/* Logo */}
-            <Box
-              component={Link}
-              to="/"
-              onClick={handleDrawerToggle}
-              sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}
-            >
-              <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 60 }} />
+          {/* --- Drawer Header with Logo --- */}
+          <Box
+            sx={{
+              p: 2,
+              borderBottom: '1px solid #ddd',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              bgcolor: '#f8f8f8',
+            }}
+          >
+            <Box component={Link} to="/" onClick={handleDrawerToggle}>
+              <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 50 }} />
             </Box>
+          </Box>
 
-            {/* Navigation List */}
+          {/* Scrollable Menu Section */}
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
             <List>
               {pages.map(({ label, path }) => (
                 <ListItemButton key={label} component={Link} to={path} onClick={handleDrawerToggle}>
@@ -265,7 +277,6 @@ export default function Navbar() {
                 </ListItemButton>
               ))}
 
-              {/* Faculties collapsible */}
               <ListItemButton onClick={() => setOpenFaculties(!openFaculties)}>
                 <ListItemText primary="Faculties" />
                 {openFaculties ? <ExpandLess /> : <ExpandMore />}
@@ -280,7 +291,6 @@ export default function Navbar() {
                 </List>
               </Collapse>
 
-              {/* Programmes collapsible */}
               <ListItemButton onClick={() => setOpenProgrammes(!openProgrammes)}>
                 <ListItemText primary="Programmes" />
                 {openProgrammes ? <ExpandLess /> : <ExpandMore />}
@@ -308,16 +318,17 @@ export default function Navbar() {
             </List>
           </Box>
 
-          {/* --- Bottom Fixed Section (Contact + Rounded Social Icons) --- */}
+          {/* --- Bottom Section --- */}
           <Box
             sx={{
               borderTop: '1px solid #ddd',
-              p: 2,
+              padding: '6px',
+              paddingTop: '10px',
+              paddingBottom: '15px',
               textAlign: 'center',
-              bgcolor: '#f8f8f8',
+              backgroundColor: '#f8f8f8',
             }}
           >
-            {/* Single-line contact info */}
             <Typography
               variant="body2"
               sx={{
@@ -327,7 +338,7 @@ export default function Navbar() {
                 gap: 1,
                 color: '#333',
                 fontWeight: 500,
-                fontSize: '0.6rem',
+                fontSize: '0.7rem',
                 flexWrap: 'wrap',
                 mb: 1,
               }}
@@ -335,63 +346,20 @@ export default function Navbar() {
               <PhoneIcon fontSize="small" /> (+94) 672260200 | <EmailIcon fontSize="small" /> info@brainiacs.edu.lk
             </Typography>
 
-            {/* Social Icons */}
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-              <IconButton
-                href="https://facebook.com"
-                target="_blank"
-                size="small"
-                sx={{
-                  bgcolor: '#fff',
-                  borderRadius: '50%',
-                  '&:hover': { bgcolor: '#3b5998', color: 'white' },
-                  color: '#3b5998',
-                }}
-              >
-                <FacebookIcon fontSize="small" />
-              </IconButton>
-
-              <IconButton
-                href="https://instagram.com"
-                target="_blank"
-                size="small"
-                sx={{
-                  bgcolor: '#fff',
-                  borderRadius: '50%',
-                  '&:hover': { bgcolor: '#E4405F', color: 'white' },
-                  color: '#E4405F',
-                }}
-              >
-                <InstagramIcon fontSize="small" />
-              </IconButton>
-
-              <IconButton
-                href="https://twitter.com"
-                target="_blank"
-                size="small"
-                sx={{
-                  bgcolor: '#fff',
-                  borderRadius: '50%',
-                  '&:hover': { bgcolor: '#1DA1F2', color: 'white' },
-                  color: '#1DA1F2',
-                }}
-              >
-                <TwitterIcon fontSize="small" />
-              </IconButton>
-
-              <IconButton
-                href="https://linkedin.com"
-                target="_blank"
-                size="small"
-                sx={{
-                  bgcolor: '#fff',
-                  borderRadius: '50%',
-                  '&:hover': { bgcolor: '#0077B5', color: 'white' },
-                  color: '#0077B5',
-                }}
-              >
-                <LinkedInIcon fontSize="small" />
-              </IconButton>
+              {[FacebookIcon, InstagramIcon, TwitterIcon, LinkedInIcon].map((Icon, i) => (
+                <IconButton
+                  key={i}
+                  size="small"
+                  sx={{
+                    bgcolor: '#fff',
+                    borderRadius: '50%',
+                    '&:hover': { bgcolor: '#000', color: 'white' },
+                  }}
+                >
+                  <Icon fontSize="small" />
+                </IconButton>
+              ))}
             </Box>
           </Box>
         </Box>
