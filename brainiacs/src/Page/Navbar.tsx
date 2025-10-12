@@ -145,7 +145,6 @@ export default function Navbar() {
     >
       <Container maxWidth="xl">
         <Toolbar sx={{ justifyContent: 'space-between', py: 1.5 }}>
-          {/* --- Mobile View --- */}
           {!isDesktop ? (
             <Box
               sx={{
@@ -165,14 +164,18 @@ export default function Navbar() {
             </Box>
           ) : (
             <>
-              {/* --- Desktop View --- */}
               <Box component={Link} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
                 <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 50 }} />
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 {pages.map(({ label, path }) => (
-                  <Button key={label} component={Link} to={path} sx={{ color: 'black', mx: 1, fontWeight: 500 }}>
+                  <Button
+                    key={label}
+                    component={Link}
+                    to={path}
+                    sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none' }}
+                  >
                     {label}
                   </Button>
                 ))}
@@ -181,7 +184,7 @@ export default function Navbar() {
                   onMouseEnter={handleOpenFacultiesMenu}
                   onMouseLeave={handleCloseFacultiesMenu}
                   endIcon={<ArrowDropDownIcon />}
-                  sx={{ color: 'black', mx: 1, fontWeight: 500 }}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none' }}
                 >
                   Faculties
                 </Button>
@@ -202,7 +205,7 @@ export default function Navbar() {
                   onMouseEnter={handleOpenProgrammesMenu}
                   onMouseLeave={handleCloseProgrammesMenu}
                   endIcon={<ArrowDropDownIcon />}
-                  sx={{ color: 'black', mx: 1, fontWeight: 500 }}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none' }}
                 >
                   Programmes
                 </Button>
@@ -229,7 +232,6 @@ export default function Navbar() {
                 </Menu>
               </Box>
 
-              {/* Right Search */}
               <Search onSubmit={handleSearchSubmit}>
                 <SearchIconWrapper>
                   <SearchIcon />
@@ -241,7 +243,7 @@ export default function Navbar() {
         </Toolbar>
       </Container>
 
-      {/* --- Drawer --- */}
+      {/* Drawer */}
       <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle}>
         <Box
           sx={{
@@ -252,7 +254,6 @@ export default function Navbar() {
             justifyContent: 'space-between',
           }}
         >
-          {/* --- Drawer Header with Logo --- */}
           <Box
             sx={{
               p: 2,
@@ -268,31 +269,30 @@ export default function Navbar() {
             </Box>
           </Box>
 
-          {/* Scrollable Menu Section */}
           <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
             <List>
               {pages.map(({ label, path }) => (
                 <ListItemButton key={label} component={Link} to={path} onClick={handleDrawerToggle}>
-                  <ListItemText primary={label} />
+                  <ListItemText primary={label} sx={{ textTransform: 'none' }} />
                 </ListItemButton>
               ))}
 
               <ListItemButton onClick={() => setOpenFaculties(!openFaculties)}>
-                <ListItemText primary="Faculties" />
+                <ListItemText primary="Faculties" sx={{ textTransform: 'none' }} />
                 {openFaculties ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
               <Collapse in={openFaculties} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                   {facultiesMenu.map(({ label, path }) => (
                     <ListItemButton key={label} sx={{ pl: 4 }} component={Link} to={path} onClick={handleDrawerToggle}>
-                      <ListItemText primary={label} />
+                      <ListItemText primary={label} sx={{ textTransform: 'none' }} />
                     </ListItemButton>
                   ))}
                 </List>
               </Collapse>
 
               <ListItemButton onClick={() => setOpenProgrammes(!openProgrammes)}>
-                <ListItemText primary="Programmes" />
+                <ListItemText primary="Programmes" sx={{ textTransform: 'none' }} />
                 {openProgrammes ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
               <Collapse in={openProgrammes} timeout="auto" unmountOnExit>
@@ -309,7 +309,7 @@ export default function Navbar() {
                         to={path}
                         onClick={handleDrawerToggle}
                       >
-                        <ListItemText primary={label} />
+                        <ListItemText primary={label} sx={{ textTransform: 'none' }} />
                       </ListItemButton>
                     ))}
                   </Box>
@@ -318,7 +318,7 @@ export default function Navbar() {
             </List>
           </Box>
 
-          {/* --- Bottom Section --- */}
+          {/* Drawer Bottom */}
           <Box
             sx={{
               borderTop: '1px solid #ddd',
