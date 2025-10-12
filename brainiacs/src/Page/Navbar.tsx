@@ -1,20 +1,35 @@
 import * as React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import AppBar from '@mui/material/AppBar';
-import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
-import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
-import InputBase from '@mui/material/InputBase';
+import {
+  AppBar,
+  Box,
+  Toolbar,
+  IconButton,
+  Typography,
+  Container,
+  Button,
+  Menu,
+  MenuItem,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemText,
+  Collapse,
+  InputBase,
+} from '@mui/material';
 import { alpha, styled, useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import PhoneIcon from '@mui/icons-material/Phone';
+import EmailIcon from '@mui/icons-material/Email';
 
 const pages = [
   { label: 'Products', path: '/products' },
@@ -89,7 +104,9 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function Navbar() {
-  const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
+  const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const [openFaculties, setOpenFaculties] = React.useState(false);
+  const [openProgrammes, setOpenProgrammes] = React.useState(false);
   const [anchorElFaculties, setAnchorElFaculties] = React.useState<null | HTMLElement>(null);
   const [anchorElProgrammes, setAnchorElProgrammes] = React.useState<null | HTMLElement>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -98,8 +115,7 @@ export default function Navbar() {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
 
-  const handleOpenNavMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElNav(e.currentTarget);
-  const handleCloseNavMenu = () => setAnchorElNav(null);
+  const handleDrawerToggle = () => setDrawerOpen((prev) => !prev);
   const handleOpenFacultiesMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElFaculties(e.currentTarget);
   const handleCloseFacultiesMenu = () => setAnchorElFaculties(null);
   const handleOpenProgrammesMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElProgrammes(e.currentTarget);
@@ -111,9 +127,8 @@ export default function Navbar() {
     console.log('Searching for:', searchQuery);
   };
 
-  // Auto-close menus when route changes
   React.useEffect(() => {
-    handleCloseNavMenu();
+    setDrawerOpen(false);
     handleCloseFacultiesMenu();
     handleCloseProgrammesMenu();
   }, [location]);
@@ -125,90 +140,38 @@ export default function Navbar() {
         backgroundColor: '#D0D3D4',
         color: 'black',
         boxShadow: 'none',
-        marginTop: { xs: 0, md: '65px' }
+        marginTop: { xs: 0, md: '65px' },
       }}
     >
       <Container maxWidth="xl">
-        <Toolbar
-          disableGutters
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'nowrap',
-            py: 1.5,
-          }}
-        >
-          {/* --- Left Side (Logo + Mobile Menu) --- */}
+        <Toolbar sx={{ justifyContent: 'space-between', py: 1.5 }}>
+          {/* --- Left Side (Logo + Drawer Icon) --- */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* Mobile Menu Icon */}
-            <Box sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }}>
-              <IconButton size="large" onClick={handleOpenNavMenu} color="inherit">
+            {!isDesktop && (
+              <IconButton onClick={handleDrawerToggle} color="inherit" sx={{ mr: 1 }}>
                 <MenuIcon />
               </IconButton>
-            </Box>
-
-            {/* Logo */}
-            <Box
-              component={Link}
-              to="/"
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                textDecoration: 'none',
-              }}
-            >
-              <img
-                src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
-                alt="Logo"
-                style={{ height: 50 }}
-              />
+            )}
+            <Box component={Link} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+              <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 50 }} />
             </Box>
           </Box>
 
-          {/* --- Center Section: Desktop Nav --- */}
-          <Box
-            sx={{
-              flexGrow: 1,
-              display: { xs: 'none', md: 'flex' },
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            {pages.map(({ label, path }) => (
-              <Button
-                key={label}
-                component={Link}
-                to={path}
-                sx={{
-                  my: 2,
-                  color: 'black',
-                  textTransform: 'none',
-                  mx: 1,
-                  fontSize: '1.05rem',
-                  fontWeight: 500,
-                }}
-              >
-                {label}
-              </Button>
-            ))}
+          {/* --- Center Nav (Desktop Only) --- */}
+          {isDesktop && (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {pages.map(({ label, path }) => (
+                <Button key={label} component={Link} to={path} sx={{ color: 'black', mx: 1, fontWeight: 500 }}>
+                  {label}
+                </Button>
+              ))}
 
-            {/* Faculties */}
-            <Box
-              onMouseEnter={isDesktop ? handleOpenFacultiesMenu : undefined}
-              onMouseLeave={isDesktop ? handleCloseFacultiesMenu : undefined}
-            >
+              {/* Faculties dropdown */}
               <Button
-                onClick={!isDesktop ? handleOpenFacultiesMenu : undefined}
+                onMouseEnter={handleOpenFacultiesMenu}
+                onMouseLeave={handleCloseFacultiesMenu}
                 endIcon={<ArrowDropDownIcon />}
-                sx={{
-                  my: 2,
-                  color: 'black',
-                  textTransform: 'none',
-                  mx: 1,
-                  fontSize: '1.05rem',
-                  fontWeight: 500,
-                }}
+                sx={{ color: 'black', mx: 1, fontWeight: 500 }}
               >
                 Faculties
               </Button>
@@ -216,38 +179,21 @@ export default function Navbar() {
                 anchorEl={anchorElFaculties}
                 open={Boolean(anchorElFaculties)}
                 onClose={handleCloseFacultiesMenu}
-                MenuListProps={{ onMouseLeave: isDesktop ? handleCloseFacultiesMenu : undefined }}
+                MenuListProps={{ onMouseLeave: handleCloseFacultiesMenu }}
               >
                 {facultiesMenu.map(({ label, path }) => (
-                  <MenuItem
-                    key={label}
-                    component={Link}
-                    to={path}
-                    onClick={handleCloseFacultiesMenu}
-                    sx={{ textTransform: 'none', fontSize: '0.95rem' }}
-                  >
+                  <MenuItem key={label} component={Link} to={path} onClick={handleCloseFacultiesMenu}>
                     {label}
                   </MenuItem>
                 ))}
               </Menu>
-            </Box>
 
-            {/* Programmes */}
-            <Box
-              onMouseEnter={isDesktop ? handleOpenProgrammesMenu : undefined}
-              onMouseLeave={isDesktop ? handleCloseProgrammesMenu : undefined}
-            >
+              {/* Programmes dropdown */}
               <Button
-                onClick={!isDesktop ? handleOpenProgrammesMenu : undefined}
+                onMouseEnter={handleOpenProgrammesMenu}
+                onMouseLeave={handleCloseProgrammesMenu}
                 endIcon={<ArrowDropDownIcon />}
-                sx={{
-                  my: 2,
-                  color: 'black',
-                  textTransform: 'none',
-                  mx: 1,
-                  fontSize: '1.05rem',
-                  fontWeight: 500,
-                }}
+                sx={{ color: 'black', mx: 1, fontWeight: 500 }}
               >
                 Programmes
               </Button>
@@ -255,26 +201,17 @@ export default function Navbar() {
                 anchorEl={anchorElProgrammes}
                 open={Boolean(anchorElProgrammes)}
                 onClose={handleCloseProgrammesMenu}
-                MenuListProps={{ onMouseLeave: isDesktop ? handleCloseProgrammesMenu : undefined }}
+                MenuListProps={{ onMouseLeave: handleCloseProgrammesMenu }}
               >
                 {programmesMenu.map((group) => (
                   <Box key={group.label}>
                     <MenuItem disabled>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ textTransform: 'none', fontSize: '1rem', fontWeight: 600 }}
-                      >
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                         {group.label}
                       </Typography>
                     </MenuItem>
                     {group.subItems.map(({ label, path }) => (
-                      <MenuItem
-                        key={label}
-                        component={Link}
-                        to={path}
-                        onClick={handleCloseProgrammesMenu}
-                        sx={{ pl: 4, textTransform: 'none', fontSize: '0.95rem' }}
-                      >
+                      <MenuItem key={label} component={Link} to={path} onClick={handleCloseProgrammesMenu} sx={{ pl: 4 }}>
                         {label}
                       </MenuItem>
                     ))}
@@ -282,40 +219,183 @@ export default function Navbar() {
                 ))}
               </Menu>
             </Box>
-          </Box>
+          )}
 
-          {/* --- Right Side: Search --- */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+          {/* --- Right: Search --- */}
+          {isDesktop && (
             <Search onSubmit={handleSearchSubmit}>
               <SearchIconWrapper>
                 <SearchIcon />
               </SearchIconWrapper>
-              <StyledInputBase
-                placeholder="Search…"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                inputProps={{ 'aria-label': 'search' }}
-              />
+              <StyledInputBase placeholder="Search…" value={searchQuery} onChange={handleSearchChange} />
             </Search>
-          </Box>
+          )}
         </Toolbar>
-
-        {/* --- Mobile Menu Drawer --- */}
-        <Menu
-          anchorEl={anchorElNav}
-          open={Boolean(anchorElNav)}
-          onClose={handleCloseNavMenu}
-          sx={{ display: { xs: 'block', md: 'none' } }}
-        >
-          {pages.map(({ label, path }) => (
-            <MenuItem key={label} component={Link} to={path} onClick={handleCloseNavMenu}>
-              <Typography textAlign="center">{label}</Typography>
-            </MenuItem>
-          ))}
-          <MenuItem onClick={handleOpenFacultiesMenu}>Faculties</MenuItem>
-          <MenuItem onClick={handleOpenProgrammesMenu}>Programmes</MenuItem>
-        </Menu>
       </Container>
+
+      {/* --- Drawer for Mobile/Tablet --- */}
+      <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle}>
+        <Box
+          sx={{
+            width: 280,
+            height: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            overflow: 'hidden',
+          }}
+        >
+          {/* --- Top Scrollable Section --- */}
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 2, pb: 0 }}>
+            {/* Logo */}
+            <Box
+              component={Link}
+              to="/"
+              onClick={handleDrawerToggle}
+              sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}
+            >
+              <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 60 }} />
+            </Box>
+
+            {/* Navigation List */}
+            <List>
+              {pages.map(({ label, path }) => (
+                <ListItemButton key={label} component={Link} to={path} onClick={handleDrawerToggle}>
+                  <ListItemText primary={label} />
+                </ListItemButton>
+              ))}
+
+              {/* Faculties collapsible */}
+              <ListItemButton onClick={() => setOpenFaculties(!openFaculties)}>
+                <ListItemText primary="Faculties" />
+                {openFaculties ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+              <Collapse in={openFaculties} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {facultiesMenu.map(({ label, path }) => (
+                    <ListItemButton key={label} sx={{ pl: 4 }} component={Link} to={path} onClick={handleDrawerToggle}>
+                      <ListItemText primary={label} />
+                    </ListItemButton>
+                  ))}
+                </List>
+              </Collapse>
+
+              {/* Programmes collapsible */}
+              <ListItemButton onClick={() => setOpenProgrammes(!openProgrammes)}>
+                <ListItemText primary="Programmes" />
+                {openProgrammes ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+              <Collapse in={openProgrammes} timeout="auto" unmountOnExit>
+                {programmesMenu.map((group) => (
+                  <Box key={group.label} sx={{ pl: 2 }}>
+                    <Typography variant="subtitle2" sx={{ pl: 1, pt: 1, fontWeight: 600 }}>
+                      {group.label}
+                    </Typography>
+                    {group.subItems.map(({ label, path }) => (
+                      <ListItemButton
+                        key={label}
+                        sx={{ pl: 4 }}
+                        component={Link}
+                        to={path}
+                        onClick={handleDrawerToggle}
+                      >
+                        <ListItemText primary={label} />
+                      </ListItemButton>
+                    ))}
+                  </Box>
+                ))}
+              </Collapse>
+            </List>
+          </Box>
+
+          {/* --- Bottom Fixed Section (Contact + Rounded Social Icons) --- */}
+          <Box
+            sx={{
+              borderTop: '1px solid #ddd',
+              p: 2,
+              textAlign: 'center',
+              bgcolor: '#f8f8f8',
+            }}
+          >
+            {/* Single-line contact info */}
+            <Typography
+              variant="body2"
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                color: '#333',
+                fontWeight: 500,
+                fontSize: '0.6rem',
+                flexWrap: 'wrap',
+                mb: 1,
+              }}
+            >
+              <PhoneIcon fontSize="small" /> (+94) 672260200 | <EmailIcon fontSize="small" /> info@brainiacs.edu.lk
+            </Typography>
+
+            {/* Social Icons */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+              <IconButton
+                href="https://facebook.com"
+                target="_blank"
+                size="small"
+                sx={{
+                  bgcolor: '#fff',
+                  borderRadius: '50%',
+                  '&:hover': { bgcolor: '#3b5998', color: 'white' },
+                  color: '#3b5998',
+                }}
+              >
+                <FacebookIcon fontSize="small" />
+              </IconButton>
+
+              <IconButton
+                href="https://instagram.com"
+                target="_blank"
+                size="small"
+                sx={{
+                  bgcolor: '#fff',
+                  borderRadius: '50%',
+                  '&:hover': { bgcolor: '#E4405F', color: 'white' },
+                  color: '#E4405F',
+                }}
+              >
+                <InstagramIcon fontSize="small" />
+              </IconButton>
+
+              <IconButton
+                href="https://twitter.com"
+                target="_blank"
+                size="small"
+                sx={{
+                  bgcolor: '#fff',
+                  borderRadius: '50%',
+                  '&:hover': { bgcolor: '#1DA1F2', color: 'white' },
+                  color: '#1DA1F2',
+                }}
+              >
+                <TwitterIcon fontSize="small" />
+              </IconButton>
+
+              <IconButton
+                href="https://linkedin.com"
+                target="_blank"
+                size="small"
+                sx={{
+                  bgcolor: '#fff',
+                  borderRadius: '50%',
+                  '&:hover': { bgcolor: '#0077B5', color: 'white' },
+                  color: '#0077B5',
+                }}
+              >
+                <LinkedInIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </Box>
+        </Box>
+      </Drawer>
     </AppBar>
   );
 }
