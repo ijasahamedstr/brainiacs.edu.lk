@@ -31,6 +31,7 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 
+// --- Pages & Menus ---
 const pages = [
   { label: 'Products', path: '/products' },
   { label: 'Pricing', path: '/pricing' },
@@ -67,15 +68,14 @@ const programmesMenu = [
   },
 ];
 
-// --- Styled search components ---
+// --- Styled Search ---
 const Search = styled('form')(({ theme }) => ({
   position: 'relative',
   borderRadius: '50px',
   backgroundColor: alpha(theme.palette.common.white, 0.15),
-  '&:hover': {
-    backgroundColor: alpha(theme.palette.common.white, 0.25),
-  },
+  '&:hover': { backgroundColor: alpha(theme.palette.common.white, 0.25) },
   border: `1px solid ${alpha(theme.palette.common.white, 0.3)}`,
+  flexShrink: 0,
 }));
 
 const SearchIconWrapper = styled('div')(({ theme }) => ({
@@ -96,9 +96,8 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
     transition: theme.transitions.create('width'),
     width: '100%',
-    [theme.breakpoints.up('md')]: {
-      width: '25ch',
-    },
+    [theme.breakpoints.up('sm')]: { width: '18ch' },
+    [theme.breakpoints.up('md')]: { width: '25ch' },
     borderRadius: '50px',
   },
 }));
@@ -113,25 +112,36 @@ export default function Navbar() {
   const location = useLocation();
 
   const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isDesktop = useMediaQuery('(min-width:1024px)');
+
+  // Specific sizes for margin-top 57px
+  const isMarginTop57px = useMediaQuery(
+    '(min-width:768px) and (max-width:1024px), (min-width:820px) and (max-width:1180px), (min-width:853px) and (max-width:1280px), (min-width:912px) and (max-width:1368px)'
+  );
+
+  // Specific sizes to remove search bar
+  const isRemoveSearch = useMediaQuery('(width:1024px) and (height:1366px), (width:1024px) and (height:600px)');
 
   const handleDrawerToggle = () => setDrawerOpen((prev) => !prev);
-  const handleOpenFacultiesMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElFaculties(e.currentTarget);
-  const handleCloseFacultiesMenu = () => setAnchorElFaculties(null);
-  const handleOpenProgrammesMenu = (e: React.MouseEvent<HTMLElement>) => setAnchorElProgrammes(e.currentTarget);
-  const handleCloseProgrammesMenu = () => setAnchorElProgrammes(null);
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value);
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Searching for:', searchQuery);
   };
 
+  const handleOpenFacultiesMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElFaculties(event.currentTarget);
+  const handleCloseFacultiesMenu = () => setAnchorElFaculties(null);
+
+  const handleOpenProgrammesMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElProgrammes(event.currentTarget);
+  const handleCloseProgrammesMenu = () => setAnchorElProgrammes(null);
+
   React.useEffect(() => {
     setDrawerOpen(false);
     handleCloseFacultiesMenu();
     handleCloseProgrammesMenu();
   }, [location]);
+
+  const marginTopValue = (isDesktop || isMarginTop57px) ? '57px' : '0px';
 
   return (
     <AppBar
@@ -140,51 +150,38 @@ export default function Navbar() {
         backgroundColor: '#D0D3D4',
         color: 'black',
         boxShadow: 'none',
-        marginTop: { xs: 0, md: '65px' },
+        transition: 'margin-top 0.3s ease',
+        marginTop: marginTopValue,
+        width: '100%',
+        overflowX: 'hidden',
       }}
     >
-      <Container maxWidth="xl">
-        <Toolbar sx={{ justifyContent: 'space-between', py: 1.5 }}>
-          {!isDesktop ? (
-            <Box
-              sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <Box component={Link} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 50 }} />
-              </Box>
+      <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
+        <Toolbar sx={{ justifyContent: 'space-between', py: 1.5, flexWrap: 'wrap' }}>
+          {/* Logo */}
+          <Box component={Link} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ maxHeight: 50, width: 'auto' }} />
+          </Box>
 
-              <IconButton onClick={handleDrawerToggle} color="inherit">
-                <MenuIcon />
-              </IconButton>
-            </Box>
-          ) : (
-            <>
-              <Box component={Link} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 50 }} />
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {pages.map(({ label, path }) => (
-                  <Button
-                    key={label}
-                    component={Link}
-                    to={path}
-                    sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none' }}
-                  >
-                    {label}
-                  </Button>
-                ))}
-
+          {isDesktop ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+              {pages.map(({ label, path }) => (
                 <Button
-                  onMouseEnter={handleOpenFacultiesMenu}
-                  onMouseLeave={handleCloseFacultiesMenu}
+                  key={label}
+                  component={Link}
+                  to={path}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto' }}
+                >
+                  {label}
+                </Button>
+              ))}
+
+              {/* Faculties Dropdown */}
+              <Box>
+                <Button
+                  onClick={handleOpenFacultiesMenu}
                   endIcon={<ArrowDropDownIcon />}
-                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none' }}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto' }}
                 >
                   Faculties
                 </Button>
@@ -192,20 +189,21 @@ export default function Navbar() {
                   anchorEl={anchorElFaculties}
                   open={Boolean(anchorElFaculties)}
                   onClose={handleCloseFacultiesMenu}
-                  MenuListProps={{ onMouseLeave: handleCloseFacultiesMenu }}
                 >
                   {facultiesMenu.map(({ label, path }) => (
-                    <MenuItem key={label} component={Link} to={path}>
+                    <MenuItem key={label} component={Link} to={path} onClick={handleCloseFacultiesMenu}>
                       {label}
                     </MenuItem>
                   ))}
                 </Menu>
+              </Box>
 
+              {/* Programmes Dropdown */}
+              <Box>
                 <Button
-                  onMouseEnter={handleOpenProgrammesMenu}
-                  onMouseLeave={handleCloseProgrammesMenu}
+                  onClick={handleOpenProgrammesMenu}
                   endIcon={<ArrowDropDownIcon />}
-                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none' }}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto' }}
                 >
                   Programmes
                 </Button>
@@ -213,7 +211,6 @@ export default function Navbar() {
                   anchorEl={anchorElProgrammes}
                   open={Boolean(anchorElProgrammes)}
                   onClose={handleCloseProgrammesMenu}
-                  MenuListProps={{ onMouseLeave: handleCloseProgrammesMenu }}
                 >
                   {programmesMenu.map((group) => (
                     <Box key={group.label}>
@@ -223,7 +220,7 @@ export default function Navbar() {
                         </Typography>
                       </MenuItem>
                       {group.subItems.map(({ label, path }) => (
-                        <MenuItem key={label} component={Link} to={path} sx={{ pl: 4 }}>
+                        <MenuItem key={label} component={Link} to={path} onClick={handleCloseProgrammesMenu} sx={{ pl: 4 }}>
                           {label}
                         </MenuItem>
                       ))}
@@ -232,40 +229,30 @@ export default function Navbar() {
                 </Menu>
               </Box>
 
-              <Search onSubmit={handleSearchSubmit}>
-                <SearchIconWrapper>
-                  <SearchIcon />
-                </SearchIconWrapper>
-                <StyledInputBase placeholder="Search…" value={searchQuery} onChange={handleSearchChange} />
-              </Search>
-            </>
+              {/* Search */}
+              {!isRemoveSearch && (
+                <Search onSubmit={handleSearchSubmit} sx={{ ml: 2, flexShrink: 1, minWidth: 120, maxWidth: 250 }}>
+                  <SearchIconWrapper>
+                    <SearchIcon />
+                  </SearchIconWrapper>
+                  <StyledInputBase placeholder="Search…" value={searchQuery} onChange={handleSearchChange} />
+                </Search>
+              )}
+            </Box>
+          ) : (
+            <IconButton onClick={handleDrawerToggle} color="inherit">
+              <MenuIcon />
+            </IconButton>
           )}
         </Toolbar>
       </Container>
 
       {/* Drawer */}
-      <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle}>
-        <Box
-          sx={{
-            width: 280,
-            height: '100vh',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Box
-            sx={{
-              p: 2,
-              borderBottom: '1px solid #ddd',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              bgcolor: '#f8f8f8',
-            }}
-          >
+      <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle} PaperProps={{ sx: { width: '80%', maxWidth: 280 } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Box sx={{ p: 2, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'center', bgcolor: '#f8f8f8' }}>
             <Box component={Link} to="/" onClick={handleDrawerToggle}>
-              <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ height: 50 }} />
+              <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ maxHeight: 50, width: 'auto' }} />
             </Box>
           </Box>
 
@@ -273,26 +260,26 @@ export default function Navbar() {
             <List>
               {pages.map(({ label, path }) => (
                 <ListItemButton key={label} component={Link} to={path} onClick={handleDrawerToggle}>
-                  <ListItemText primary={label} sx={{ textTransform: 'none' }} />
+                  <ListItemText primary={label} />
                 </ListItemButton>
               ))}
 
               <ListItemButton onClick={() => setOpenFaculties(!openFaculties)}>
-                <ListItemText primary="Faculties" sx={{ textTransform: 'none' }} />
+                <ListItemText primary="Faculties" />
                 {openFaculties ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
               <Collapse in={openFaculties} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                   {facultiesMenu.map(({ label, path }) => (
                     <ListItemButton key={label} sx={{ pl: 4 }} component={Link} to={path} onClick={handleDrawerToggle}>
-                      <ListItemText primary={label} sx={{ textTransform: 'none' }} />
+                      <ListItemText primary={label} />
                     </ListItemButton>
                   ))}
                 </List>
               </Collapse>
 
               <ListItemButton onClick={() => setOpenProgrammes(!openProgrammes)}>
-                <ListItemText primary="Programmes" sx={{ textTransform: 'none' }} />
+                <ListItemText primary="Programmes" />
                 {openProgrammes ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
               <Collapse in={openProgrammes} timeout="auto" unmountOnExit>
@@ -302,14 +289,8 @@ export default function Navbar() {
                       {group.label}
                     </Typography>
                     {group.subItems.map(({ label, path }) => (
-                      <ListItemButton
-                        key={label}
-                        sx={{ pl: 4 }}
-                        component={Link}
-                        to={path}
-                        onClick={handleDrawerToggle}
-                      >
-                        <ListItemText primary={label} sx={{ textTransform: 'none' }} />
+                      <ListItemButton key={label} sx={{ pl: 4 }} component={Link} to={path} onClick={handleDrawerToggle}>
+                        <ListItemText primary={label} />
                       </ListItemButton>
                     ))}
                   </Box>
@@ -318,17 +299,8 @@ export default function Navbar() {
             </List>
           </Box>
 
-          {/* Drawer Bottom */}
-          <Box
-            sx={{
-              borderTop: '1px solid #ddd',
-              padding: '6px',
-              paddingTop: '10px',
-              paddingBottom: '15px',
-              textAlign: 'center',
-              backgroundColor: '#f8f8f8',
-            }}
-          >
+          {/* Bottom Info */}
+          <Box sx={{ borderTop: '1px solid #ddd', p: 2, textAlign: 'center', bgcolor: '#f8f8f8' }}>
             <Typography
               variant="body2"
               sx={{
@@ -336,26 +308,19 @@ export default function Navbar() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 1,
-                color: '#333',
-                fontWeight: 500,
-                fontSize: '0.7rem',
                 flexWrap: 'wrap',
-                mb: 1,
+                fontSize: '0.7rem',
               }}
             >
               <PhoneIcon fontSize="small" /> (+94) 672260200 | <EmailIcon fontSize="small" /> info@brainiacs.edu.lk
             </Typography>
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 1 }}>
               {[FacebookIcon, InstagramIcon, TwitterIcon, LinkedInIcon].map((Icon, i) => (
                 <IconButton
                   key={i}
                   size="small"
-                  sx={{
-                    bgcolor: '#fff',
-                    borderRadius: '50%',
-                    '&:hover': { bgcolor: '#000', color: 'white' },
-                  }}
+                  sx={{ bgcolor: '#fff', borderRadius: '50%', '&:hover': { bgcolor: '#000', color: '#fff' } }}
                 >
                   <Icon fontSize="small" />
                 </IconButton>
