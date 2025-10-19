@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Topbar from "./Page/Topbar";
 import Products from './Page/Products';
 import Navbar from './Page/Navbar';
+import Slider from './Page/Slider';
+import CampusOffers from './Page/Campus_Offers';
 
 
 function App() {
@@ -9,6 +11,8 @@ function App() {
     <Router>
       <Topbar />
       <Navbar />
+      <Slider/>
+      <CampusOffers/>
       <Routes>
         <Route path="/products" element={<Products/>} />
         <Route path="/pricing" element={<div>Pricing Page</div>} />
