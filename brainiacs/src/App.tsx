@@ -4,6 +4,7 @@ import Products from './Page/Products';
 import Navbar from './Page/Navbar';
 import Slider from './Page/Slider';
 import CampusOffers from './Page/Campus_Offers';
+import About from './Page/About';
 
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
       <Navbar />
       <Slider/>
       <CampusOffers/>
+      <About/>
       <Routes>
         <Route path="/products" element={<Products/>} />
         <Route path="/pricing" element={<div>Pricing Page</div>} />

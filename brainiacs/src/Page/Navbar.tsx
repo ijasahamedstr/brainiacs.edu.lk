@@ -160,7 +160,15 @@ export default function Navbar() {
         <Toolbar sx={{ justifyContent: 'space-between', py: 1.5, flexWrap: 'wrap' }}>
           {/* Logo */}
           <Box component={Link} to="/" sx={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ maxHeight: 50, width: 'auto' }} />
+            <Box
+              component="img"
+              src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
+              alt="Logo"
+              sx={{
+                maxHeight: { xs: 40, sm: 50, md: 60 }, // increase for larger screens
+                width: 'auto',
+              }}
+            />
           </Box>
 
           {isDesktop ? (
