@@ -17,7 +17,7 @@ import {
   Collapse,
   InputBase,
 } from '@mui/material';
-import { alpha, styled, useTheme } from '@mui/material/styles';
+import { alpha, styled } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
@@ -111,16 +111,19 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = React.useState('');
   const location = useLocation();
 
-  const theme = useTheme();
   const isDesktop = useMediaQuery('(min-width:1024px)');
-
-  // Specific sizes for margin-top 57px
   const isMarginTop57px = useMediaQuery(
     '(min-width:768px) and (max-width:1024px), (min-width:820px) and (max-width:1180px), (min-width:853px) and (max-width:1280px), (min-width:912px) and (max-width:1368px)'
   );
-
-  // Specific sizes to remove search bar
   const isRemoveSearch = useMediaQuery('(width:1024px) and (height:1366px), (width:1024px) and (height:600px)');
+
+  React.useEffect(() => {
+    setDrawerOpen(false);
+    setAnchorElFaculties(null);
+    setAnchorElProgrammes(null);
+  }, [location]);
+
+  const marginTopValue = (isDesktop || isMarginTop57px) ? '57px' : '0px';
 
   const handleDrawerToggle = () => setDrawerOpen((prev) => !prev);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value);
@@ -128,20 +131,10 @@ export default function Navbar() {
     e.preventDefault();
     console.log('Searching for:', searchQuery);
   };
-
   const handleOpenFacultiesMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElFaculties(event.currentTarget);
   const handleCloseFacultiesMenu = () => setAnchorElFaculties(null);
-
   const handleOpenProgrammesMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorElProgrammes(event.currentTarget);
   const handleCloseProgrammesMenu = () => setAnchorElProgrammes(null);
-
-  React.useEffect(() => {
-    setDrawerOpen(false);
-    handleCloseFacultiesMenu();
-    handleCloseProgrammesMenu();
-  }, [location]);
-
-  const marginTopValue = (isDesktop || isMarginTop57px) ? '57px' : '0px';
 
   return (
     <AppBar
@@ -164,10 +157,7 @@ export default function Navbar() {
               component="img"
               src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
               alt="Logo"
-              sx={{
-                maxHeight: { xs: 40, sm: 50, md: 60 }, // increase for larger screens
-                width: 'auto',
-              }}
+              sx={{ maxHeight: { xs: 40, sm: 50, md: 60 }, width: 'auto' }}
             />
           </Box>
 
