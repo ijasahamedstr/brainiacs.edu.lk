@@ -5,6 +5,7 @@ import Navbar from './Page/Navbar';
 import Slider from './Page/Slider';
 import CampusOffers from './Page/Campus_Offers';
 import About from './Page/About';
+import Footer from './Page/Footer';
 
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/blog" element={<div>Blog Page</div>} />
         {/* Add routes for settings if needed */}
       </Routes>
+      <Footer/>
     </Router>
   );
 }
