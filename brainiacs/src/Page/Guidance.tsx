@@ -38,41 +38,8 @@ Contact: ${form.contact}`;
   };
 
   return (
-    <Box component="section" sx={{ fontFamily: "'Montserrat', sans-serif'" }}>
+    <Box component="section" sx={{ fontFamily: "'Montserrat', sans-serif" }}>
       <Container maxWidth="xl" sx={{ py: { xs: 6, md: 10 } }}>
-        
-        {/* Mobile/Tablet Heading at the Top */}
-        <Box
-          sx={{
-            display: { xs: "block", md: "none" }, // only for mobile/tablet
-            textAlign: "center",
-            mb: 4,
-          }}
-        >
-          <Typography
-            variant="h3"
-            sx={{
-              fontWeight: 600,
-              fontFamily: "'Montserrat', sans-serif",
-              fontSize: 'clamp(1.8rem, 4vw, 2rem)',
-            }}
-          >
-            Need Guidance & Support?
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              mt: 1.5,
-              opacity: 0.85,
-              fontFamily: "'Montserrat', sans-serif",
-              lineHeight: 1.6,
-              fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
-            }}
-          >
-            Let's talk about your future. Fill out the form & we'll reach out to guide you.
-          </Typography>
-        </Box>
-
         <Box
           sx={{
             display: "flex",
@@ -84,7 +51,7 @@ Contact: ${form.contact}`;
             boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
           }}
         >
-          {/* Left Column (Image + Heading for Desktop) */}
+          {/* Left Column (Image + Heading for Desktop Only) */}
           <Box
             sx={{
               display: { xs: "none", md: "block" },
@@ -115,8 +82,8 @@ Contact: ${form.contact}`;
                 variant="h3"
                 sx={{
                   fontWeight: 600,
+                  fontSize: "2.8rem",
                   fontFamily: "'Montserrat', sans-serif",
-                  fontSize: 'clamp(2rem, 2.5vw, 2.8rem)',
                 }}
               >
                 Need Guidance & Support?
@@ -126,9 +93,9 @@ Contact: ${form.contact}`;
                 sx={{
                   mt: 1.5,
                   opacity: 0.85,
+                  fontSize: "1rem",
                   fontFamily: "'Montserrat', sans-serif",
                   lineHeight: 1.6,
-                  fontSize: 'clamp(1rem, 1.5vw, 1.1rem)',
                 }}
               >
                 Let's talk about your future. Fill out the form & we'll reach out to guide you.
@@ -162,6 +129,38 @@ Contact: ${form.contact}`;
               justifyContent: "center",
             }}
           >
+            {/* Mobile & Tablet Heading Above Form */}
+            <Box
+              sx={{
+                display: { xs: "block", md: "none" },
+                textAlign: "center",
+                mb: 4,
+              }}
+            >
+              <Typography
+                variant="h3"
+                sx={{
+                  fontWeight: 600,
+                  fontSize: "2rem",
+                  fontFamily: "'Montserrat', sans-serif",
+                }}
+              >
+                Need Guidance & Support?
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  mt: 1.5,
+                  opacity: 0.85,
+                  fontSize: "1rem",
+                  fontFamily: "'Montserrat', sans-serif",
+                  lineHeight: 1.6,
+                }}
+              >
+                Let's talk about your future. Fill out the form & we'll reach out to guide you.
+              </Typography>
+            </Box>
+
             {/* Form */}
             <Box
               component="form"
@@ -171,7 +170,6 @@ Contact: ${form.contact}`;
                 gap: 3,
               }}
             >
-              {/* First Name & Last Name */}
               <Box
                 sx={{
                   display: "flex",
@@ -203,7 +201,6 @@ Contact: ${form.contact}`;
                 />
               </Box>
 
-              {/* Qualification */}
               <TextField
                 select
                 fullWidth
@@ -223,7 +220,6 @@ Contact: ${form.contact}`;
                 <MenuItem sx={menuItemSX} value="PhD">PhD</MenuItem>
               </TextField>
 
-              {/* Programme */}
               <TextField
                 select
                 fullWidth
@@ -242,7 +238,6 @@ Contact: ${form.contact}`;
                 <MenuItem sx={menuItemSX} value="Design">Design</MenuItem>
               </TextField>
 
-              {/* Email & Contact */}
               <Box
                 sx={{
                   display: "flex",
@@ -274,7 +269,6 @@ Contact: ${form.contact}`;
                 />
               </Box>
 
-              {/* WhatsApp Button */}
               <Button
                 variant="contained"
                 sx={{
@@ -283,9 +277,8 @@ Contact: ${form.contact}`;
                   color: "#fff",
                   fontWeight: 600,
                   textTransform: "none",
-                  px: { xs: 3, md: 4 },
-                  py: { xs: 1, md: 1.5 },
-                  fontSize: 'clamp(0.9rem, 1vw, 1rem)',
+                  px: 4,
+                  py: 1,
                   alignSelf: { xs: "center", md: "flex-start" },
                   "&:hover": { backgroundColor: "#08447a" },
                   fontFamily: "'Montserrat', sans-serif",
