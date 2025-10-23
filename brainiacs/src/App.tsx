@@ -6,6 +6,7 @@ import Slider from './Page/Slider';
 import CampusOffers from './Page/Campus_Offers';
 import About from './Page/About';
 import Footer from './Page/Footer';
+import Guidance from './Page/Guidance';
 
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
       <Slider/>
       <CampusOffers/>
       <About/>
+      <Guidance/>
       <Routes>
         <Route path="/products" element={<Products/>} />
         <Route path="/pricing" element={<div>Pricing Page</div>} />
