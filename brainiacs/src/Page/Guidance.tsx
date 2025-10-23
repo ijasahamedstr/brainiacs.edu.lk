@@ -32,14 +32,16 @@ Interested Programme: ${form.programme}
 Email: ${form.email}
 Contact: ${form.contact}`;
 
-    const phoneNumber = "94768696704"; 
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    const phoneNumber = "94768696704";
+    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+      message
+    )}`;
     window.open(url, "_blank");
   };
 
   return (
     <Box component="section" sx={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <Container maxWidth="xl" sx={{ py: { xs: 6, md: 10 } }}>
+      <Container maxWidth="xl" sx={{ pt: 10, pb: 0 }}>
         <Box
           sx={{
             display: "flex",
@@ -69,12 +71,13 @@ Contact: ${form.contact}`;
                 top: 0,
                 left: 0,
                 width: "100%",
-                background: "linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0))",
+                background:
+                  "linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0))",
                 color: "#fff",
                 textAlign: "center",
                 p: 2,
-                pt: 10,
-                pb: 4,
+                pt: 4,
+                pb: 2,
                 zIndex: 2,
               }}
             >
@@ -91,14 +94,15 @@ Contact: ${form.contact}`;
               <Typography
                 variant="body2"
                 sx={{
-                  mt: 1.5,
+                  mt: 1,
                   opacity: 0.85,
                   fontSize: "1rem",
                   fontFamily: "'Montserrat', sans-serif",
                   lineHeight: 1.6,
                 }}
               >
-                Let's talk about your future. Fill out the form & we'll reach out to guide you.
+                Let's talk about your future. Fill out the form & we'll reach out
+                to guide you.
               </Typography>
             </Box>
 
@@ -123,7 +127,7 @@ Contact: ${form.contact}`;
               flexBasis: { xs: "100%", md: "70%" },
               backgroundColor: "#f7f9fb",
               borderRadius: { xs: "16px", md: "0 16px 16px 0" },
-              p: { xs: 3, md: 5 },
+              p: { xs: 2, md: 3 },
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
@@ -134,7 +138,7 @@ Contact: ${form.contact}`;
               sx={{
                 display: { xs: "block", md: "none" },
                 textAlign: "center",
-                mb: 4,
+                mb: 3,
               }}
             >
               <Typography
@@ -150,14 +154,15 @@ Contact: ${form.contact}`;
               <Typography
                 variant="body2"
                 sx={{
-                  mt: 1.5,
+                  mt: 1,
                   opacity: 0.85,
                   fontSize: "1rem",
                   fontFamily: "'Montserrat', sans-serif",
                   lineHeight: 1.6,
                 }}
               >
-                Let's talk about your future. Fill out the form & we'll reach out to guide you.
+                Let's talk about your future. Fill out the form & we'll reach out
+                to guide you.
               </Typography>
             </Box>
 
@@ -167,7 +172,7 @@ Contact: ${form.contact}`;
               sx={{
                 display: "flex",
                 flexDirection: "column",
-                gap: 3,
+                gap: 2,
               }}
             >
               <Box
