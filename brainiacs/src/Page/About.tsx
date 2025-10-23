@@ -13,7 +13,7 @@ const About: React.FC = () => {
       <Box
         sx={{
           width: "100%",
-          height: { xs: "auto", sm: "700px", md: "600px", lg: "700px" },
+          height: { xs: "auto", sm: "auto", md: "auto", lg: "auto" },
           backgroundColor: { xs: "#FAFAFA", sm: "#FAFAFA", md: "transparent" },
           backgroundImage: {
             xs: "none",
@@ -26,10 +26,8 @@ const About: React.FC = () => {
           position: "relative",
           overflow: "hidden",
           mt: { xs: 6, md: 10, lg: 14 },
-          // mb: { xs: 5, md: 16, lg: 20 }, // Added more bottom margin
-          // pb: { xs: 0, md: 0, lg: 12 }, // Added more internal bottom padding
-           mb: 0, // ✅ Removed bottom margin
-           pb: 0, // ✅ Removed bottom padding
+          mb: { xs: 5, md: 16, lg: 20 }, // Added more bottom margin
+          pb: { xs: 10, md: 0, lg: 12 }, // Added more internal bottom padding
 
           "@media (width:912px) and (height:1368px)": { height: "850px" },
           "@media (width:1024px) and (height:600px)": { height: "850px" },

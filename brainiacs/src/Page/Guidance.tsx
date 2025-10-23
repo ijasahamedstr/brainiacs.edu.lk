@@ -11,7 +11,6 @@ import {
 const Guidance: React.FC = () => {
   const menuItemSX = { fontFamily: "'Montserrat', sans-serif" };
 
-  // Form state
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -21,12 +20,10 @@ const Guidance: React.FC = () => {
     contact: "",
   });
 
-  // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Open WhatsApp with pre-filled message
   const handleWhatsApp = () => {
     const message = `Hello I Need Guidance! 
 I'm ${form.firstName} ${form.lastName}.
@@ -35,14 +32,47 @@ Interested Programme: ${form.programme}
 Email: ${form.email}
 Contact: ${form.contact}`;
 
-    const phoneNumber = "94768696704"; // ✅ Sri Lanka number with country code
+    const phoneNumber = "94768696704"; 
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
   };
 
   return (
-    <Box component="section" sx={{ fontFamily: "'Montserrat', sans-serif" }}>
+    <Box component="section" sx={{ fontFamily: "'Montserrat', sans-serif'" }}>
       <Container maxWidth="xl" sx={{ py: { xs: 6, md: 10 } }}>
+        
+        {/* Mobile/Tablet Heading at the Top */}
+        <Box
+          sx={{
+            display: { xs: "block", md: "none" }, // only for mobile/tablet
+            textAlign: "center",
+            mb: 4,
+          }}
+        >
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 600,
+              fontFamily: "'Montserrat', sans-serif",
+              fontSize: 'clamp(1.8rem, 4vw, 2rem)',
+            }}
+          >
+            Need Guidance & Support?
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              mt: 1.5,
+              opacity: 0.85,
+              fontFamily: "'Montserrat', sans-serif",
+              lineHeight: 1.6,
+              fontSize: 'clamp(0.9rem, 2.5vw, 1rem)',
+            }}
+          >
+            Let's talk about your future. Fill out the form & we'll reach out to guide you.
+          </Typography>
+        </Box>
+
         <Box
           sx={{
             display: "flex",
@@ -54,7 +84,7 @@ Contact: ${form.contact}`;
             boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
           }}
         >
-          {/* Left Column (Image + Overlay Text) */}
+          {/* Left Column (Image + Heading for Desktop) */}
           <Box
             sx={{
               display: { xs: "none", md: "block" },
@@ -65,14 +95,14 @@ Contact: ${form.contact}`;
               borderBottomLeftRadius: "16px",
             }}
           >
+            {/* Desktop Heading on Image */}
             <Box
               sx={{
                 position: "absolute",
                 top: 0,
                 left: 0,
                 width: "100%",
-                background:
-                  "linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0))",
+                background: "linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0))",
                 color: "#fff",
                 textAlign: "center",
                 p: 2,
@@ -85,8 +115,8 @@ Contact: ${form.contact}`;
                 variant="h3"
                 sx={{
                   fontWeight: 600,
-                  fontSize: { md: "2.8rem" },
                   fontFamily: "'Montserrat', sans-serif",
+                  fontSize: 'clamp(2rem, 2.5vw, 2.8rem)',
                 }}
               >
                 Need Guidance & Support?
@@ -96,9 +126,9 @@ Contact: ${form.contact}`;
                 sx={{
                   mt: 1.5,
                   opacity: 0.85,
-                  fontSize: "1rem",
                   fontFamily: "'Montserrat', sans-serif",
                   lineHeight: 1.6,
+                  fontSize: 'clamp(1rem, 1.5vw, 1.1rem)',
                 }}
               >
                 Let's talk about your future. Fill out the form & we'll reach out to guide you.
@@ -132,6 +162,7 @@ Contact: ${form.contact}`;
               justifyContent: "center",
             }}
           >
+            {/* Form */}
             <Box
               component="form"
               sx={{
@@ -172,7 +203,7 @@ Contact: ${form.contact}`;
                 />
               </Box>
 
-              {/* Highest Academic Qualification */}
+              {/* Qualification */}
               <TextField
                 select
                 fullWidth
@@ -192,7 +223,7 @@ Contact: ${form.contact}`;
                 <MenuItem sx={menuItemSX} value="PhD">PhD</MenuItem>
               </TextField>
 
-              {/* Interested Programme */}
+              {/* Programme */}
               <TextField
                 select
                 fullWidth
@@ -211,7 +242,7 @@ Contact: ${form.contact}`;
                 <MenuItem sx={menuItemSX} value="Design">Design</MenuItem>
               </TextField>
 
-              {/* Email & Contact Number */}
+              {/* Email & Contact */}
               <Box
                 sx={{
                   display: "flex",
@@ -252,8 +283,9 @@ Contact: ${form.contact}`;
                   color: "#fff",
                   fontWeight: 600,
                   textTransform: "none",
-                  px: 4,
-                  py: 1,
+                  px: { xs: 3, md: 4 },
+                  py: { xs: 1, md: 1.5 },
+                  fontSize: 'clamp(0.9rem, 1vw, 1rem)',
                   alignSelf: { xs: "center", md: "flex-start" },
                   "&:hover": { backgroundColor: "#08447a" },
                   fontFamily: "'Montserrat', sans-serif",
