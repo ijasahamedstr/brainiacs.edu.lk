@@ -27,7 +27,7 @@ const About: React.FC = () => {
           overflow: "hidden",
           mt: { xs: 6, md: 10, lg: 14 },
           mb: { xs: 5, md: 16, lg: 20 }, // Added more bottom margin
-          pb: { xs: 10, md: 0, lg: 12 }, // Added more internal bottom padding
+          pb: { xs: 0, md: 0, lg: 0 }, // Added more internal bottom padding
 
           "@media (width:912px) and (height:1368px)": { height: "850px" },
           "@media (width:1024px) and (height:600px)": { height: "850px" },
