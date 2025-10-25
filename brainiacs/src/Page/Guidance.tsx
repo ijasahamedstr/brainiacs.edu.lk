@@ -41,7 +41,7 @@ Contact: ${form.contact}`;
 
   return (
     <Box component="section" sx={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <Container maxWidth="xl" sx={{ pt: 10, pb: 0 }}>
+      <Container maxWidth="xl"  sx={{ pt: 10, pb: { xs: 6, md: 10 } }}>
         <Box
           sx={{
             display: "flex",

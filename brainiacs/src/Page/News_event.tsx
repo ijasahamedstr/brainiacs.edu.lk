@@ -75,27 +75,37 @@ const NewsEvent: React.FC = () => {
                 mb: 3,
                 }}
             >
-                <Typography
-                variant="h4"
+              <Typography
                 sx={{
-                    fontWeight: 700,
-                    color: "#0b1033",
-                    fontFamily: "'Montserrat', sans-serif",
-                    position: "relative",
-                    pb: "4px",
-                    "&::after": {
+                  fontWeight: 700,
+                  color: "#0b1033",
+                  fontFamily: "'Montserrat', sans-serif",
+                  position: "relative",
+                  pb: "6px",
+                  fontSize: {
+                    xs: "22px", // Mobile
+                    sm: "26px", // Tablet
+                    md: "15px", // Small Laptop
+                    lg: "25px", // Desktop
+                  },
+                  "&::after": {
                     content: '""',
                     position: "absolute",
                     bottom: 0,
                     left: 0,
-                    width: "40px",
+                    width: {
+                      xs: "35px",
+                      sm: "45px",
+                      md: "55px",
+                      lg: "65px",
+                    },
                     height: "3px",
                     backgroundColor: "#e51b24",
-                    },
+                  },
                 }}
-                >
+              >
                 Latest News
-                </Typography>
+              </Typography>
 
                 <Typography
                 sx={{
@@ -135,17 +145,24 @@ const NewsEvent: React.FC = () => {
                 </Typography>
 
                 {/* Title */}
-                <Typography
-                    variant="h6"
-                    sx={{
-                    fontWeight: 700,
-                    mb: 1.5,
-                    color: "#111",
-                    fontFamily: "'Montserrat', sans-serif",
-                    }}
-                >
-                    {item.title}
-                </Typography>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  mb: 1.5,
+                  color: "#111",
+                  fontFamily: "'Montserrat', sans-serif",
+                  fontSize: {
+                    xs: "16px",  // 📱 Mobile
+                    sm: "18px",  // 📱+ Tablet
+                    md: "20px",  // 💻 Small Desktop
+                    lg: "22px",  // 🖥️ Large Desktop
+                  },
+                  lineHeight: 1.3,
+                }}
+              >
+                {item.title}
+              </Typography>
 
                 {/* Description */}
                 <Typography
