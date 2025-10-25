@@ -64,9 +64,12 @@ const Testimonials: React.FC = () => {
       style={{
         width: "100%",
         textAlign: "center",
-        padding: isMobile ? "30px 10px" : isTablet ? "40px 20px" : "60px 0",
-        backgroundColor: "#fafafa",
-        border: "1px solid #eee",
+        padding: isMobile
+          ? "30px 10px 60px"    // ✅ Extra bottom padding added
+          : isTablet
+          ? "40px 20px 70px"    // ✅ Extra bottom padding for tablet
+          : "60px 0 80px",      // ✅ Extra bottom padding for desktop
+        backgroundColor: "#f8f9fc",
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
       }}
     >
@@ -114,8 +117,8 @@ const Testimonials: React.FC = () => {
         style={{
           width: "100%",
           maxWidth: "900px",
-          paddingBottom: "50px",
-          perspective: "100px", // 3D perspective applied
+          paddingBottom: isMobile ? "40px" : "50px", // ✅ Bottom space for Swiper
+          perspective: "100px",
         }}
       >
         {testimonials.map((item, index) => (
@@ -125,7 +128,7 @@ const Testimonials: React.FC = () => {
               background: "#fff",
               borderRadius: "16px",
               border: "1px solid #ddd",
-              width: isMobile ? "90%" : "85%", // main slide larger, side slides smaller
+              width: isMobile ? "90%" : "85%",
               maxWidth: "750px",
               overflow: "hidden",
               boxShadow: "0 6px 15px rgba(0,0,0,0.1)",

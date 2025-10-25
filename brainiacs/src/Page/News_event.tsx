@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Container, Typography,Button } from "@mui/material";
+import { Box, Container, Typography, Button } from "@mui/material";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 
 const NewsEvent: React.FC = () => {
@@ -11,21 +11,25 @@ const NewsEvent: React.FC = () => {
   ];
 
   const news1 = [
-  {
-    title: "ESOFT Metro Campus Awards Ceremony 2025",
-    date: "September 12, 2025",
-    description:
-      "The ESOFT Metro Campus Awards Ceremony was held on 12th September 2025 at the prestigious BMICH, celebrating the remarkable achievements of over 1,300 students.",
-  },
-];
+    {
+      title: "ESOFT Metro Campus Awards Ceremony 2025",
+      date: "September 12, 2025",
+      description:
+        "The ESOFT Metro Campus Awards Ceremony was held on 12th September 2025 at the prestigious BMICH, celebrating the remarkable achievements of over 1,300 students.",
+    },
+  ];
 
   return (
-    <Container maxWidth={false} disableGutters sx={{ p: 0, m: 0, width: "100%" }}>
-      <Box sx={{ width: "100%", mt: 0 }}>
+    <Container
+      maxWidth={false}
+      disableGutters
+      sx={{ p: 0, m: 0, width: "100%" }}
+    >
+      <Box sx={{ width: "100%", mt: "-40px" }}> {/* Negative margin applied */}
         <Box
           sx={{
             width: "100%",
-            py: { xs: 6, md: 10 },
+            py: { xs: 3, md: 5 },
             fontFamily: '"Montserrat", sans-serif',
             display: "grid",
             gap: 0,
@@ -36,13 +40,13 @@ const NewsEvent: React.FC = () => {
           {/* Column 1 — Image */}
           <Box
             sx={{
-               backgroundColor: "#f8f9fc",
+              backgroundColor: "#f8f9fc",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               height: "100%",
-              pt: { xs: 2, md: 4 }, // top spacing
-              pb: { xs: 2, md: 4 }, // bottom spacing
+              pt: { xs: 1, md: 2 },
+              pb: { xs: 1, md: 2 },
             }}
           >
             <Box
@@ -60,20 +64,20 @@ const NewsEvent: React.FC = () => {
           </Box>
 
           {/* Column 2 — Latest News */}
-            <Box
+          <Box
             sx={{
-                backgroundColor: "#f8f9fc",
-                p: { xs: 3, sm: 5 },
+              backgroundColor: "#f8f9fc",
+              p: { xs: 3, sm: 5 },
             }}
-            >
+          >
             {/* Header */}
             <Box
-                sx={{
+              sx={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
                 mb: 3,
-                }}
+              }}
             >
               <Typography
                 sx={{
@@ -83,10 +87,10 @@ const NewsEvent: React.FC = () => {
                   position: "relative",
                   pb: "6px",
                   fontSize: {
-                    xs: "22px", // Mobile
-                    sm: "26px", // Tablet
-                    md: "15px", // Small Laptop
-                    lg: "25px", // Desktop
+                    xs: "22px",
+                    sm: "26px",
+                    md: "15px",
+                    lg: "25px",
                   },
                   "&::after": {
                     content: '""',
@@ -107,79 +111,79 @@ const NewsEvent: React.FC = () => {
                 Latest News
               </Typography>
 
-                <Typography
+              <Typography
                 sx={{
-                    color: "#0b1033",
-                    fontWeight: 600,
-                    fontFamily: "'Montserrat', sans-serif",
-                    cursor: "pointer",
+                  color: "#0b1033",
+                  fontWeight: 600,
+                  fontFamily: "'Montserrat', sans-serif",
+                  cursor: "pointer",
                 }}
-                >
+              >
                 All News →
-                </Typography>
+              </Typography>
             </Box>
 
             {/* News Card */}
             {news1.map((item, i) => (
-                <Box
+              <Box
                 key={i}
                 sx={{
-                    borderRadius: 2,
-                    p: { xs: 3, sm: 4 },
-                    mb: 4,
+                  borderRadius: 2,
+                  p: { xs: 3, sm: 4 },
+                  mb: 4,
                 }}
-                >
+              >
                 {/* Date */}
                 <Typography
-                    sx={{
+                  sx={{
                     display: "flex",
                     alignItems: "center",
                     color: "#555",
                     fontSize: "0.9rem",
                     mb: 1,
                     fontFamily: "'Montserrat', sans-serif",
-                    }}
+                  }}
                 >
-                    <EventNoteIcon sx={{ mr: 1, color: "#0a5397", fontSize: 20 }} />
-                    {item.date}
+                  <EventNoteIcon sx={{ mr: 1, color: "#0a5397", fontSize: 20 }} />
+                  {item.date}
                 </Typography>
 
                 {/* Title */}
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: 700,
-                  mb: 1.5,
-                  color: "#111",
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontSize: {
-                    xs: "16px",  // 📱 Mobile
-                    sm: "18px",  // 📱+ Tablet
-                    md: "20px",  // 💻 Small Desktop
-                    lg: "22px",  // 🖥️ Large Desktop
-                  },
-                  lineHeight: 1.3,
-                }}
-              >
-                {item.title}
-              </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: 700,
+                    mb: 1.5,
+                    color: "#111",
+                    fontFamily: "'Montserrat', sans-serif",
+                    fontSize: {
+                      xs: "16px",
+                      sm: "18px",
+                      md: "20px",
+                      lg: "22px",
+                    },
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {item.title}
+                </Typography>
 
                 {/* Description */}
                 <Typography
-                    sx={{
+                  sx={{
                     color: "#555",
                     fontSize: "1rem",
                     mb: 3,
                     fontFamily: "'Montserrat', sans-serif",
-                    }}
+                  }}
                 >
-                    {item.description}
+                  {item.description}
                 </Typography>
 
                 {/* Read More Button */}
                 <Button
-                    variant="contained"
-                    sx={{
+                  variant="contained"
+                  sx={{
                     backgroundColor: "#e51b24",
                     color: "#fff",
                     textTransform: "none",
@@ -188,13 +192,13 @@ const NewsEvent: React.FC = () => {
                     px: 3,
                     py: 1,
                     "&:hover": { backgroundColor: "#c41a21" },
-                    }}
+                  }}
                 >
-                    Read More
+                  Read More
                 </Button>
-                </Box>
+              </Box>
             ))}
-            </Box>
+          </Box>
 
           {/* Column 3 — Latest Event */}
           <Box
@@ -206,35 +210,57 @@ const NewsEvent: React.FC = () => {
               p: 3,
             }}
           >
-
-           {news.map((item, i) => (
+            {news.map((item, i) => (
               <Box
                 key={i}
                 sx={{
                   display: "flex",
                   alignItems: "center",
                   gap: 2,
-                  pl: { xs: 2, sm: 3, md: 6 }, // left padding only
+                  pl: { xs: 2, sm: 3, md: 6 },
                   p: 2,
                   borderRadius: 2,
                   boxShadow: "0 6px 18px rgba(15,23,42,0.06)",
                   "&:hover": {
-                transform: "translateY(-5px)",
-                boxShadow: 4,
-                backgroundColor: "#000", // change background to black
-                color: "#fff", // change text color to white
-                },
+                    transform: "translateY(-5px)",
+                    boxShadow: 4,
+                    backgroundColor: "#000",
+                    color: "#fff",
+                  },
                 }}
               >
                 <EventNoteIcon sx={{ color: "#ffffffff" }} />
                 <Box>
-                  <Typography sx={{ fontWeight: 700, fontFamily: "'Montserrat', sans-serif",color: "#ffffffff" }}>{item.title}</Typography>
-                  <Typography sx={{ fontSize: "0.9rem", fontFamily: "'Montserrat', sans-serif",color: "#ffffffff" }}>{item.date}</Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontFamily: "'Montserrat', sans-serif",
+                      color: "#ffffffff",
+                    }}
+                  >
+                    {item.title}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.9rem",
+                      fontFamily: "'Montserrat', sans-serif",
+                      color: "#ffffffff",
+                    }}
+                  >
+                    {item.date}
+                  </Typography>
                 </Box>
               </Box>
             ))}
 
-            <Typography sx={{ color: "#ffffffff", fontWeight: 700, cursor: "pointer",fontFamily: "'Montserrat', sans-serif", }}>
+            <Typography
+              sx={{
+                color: "#ffffffff",
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "'Montserrat', sans-serif",
+              }}
+            >
               View all news & events →
             </Typography>
           </Box>
