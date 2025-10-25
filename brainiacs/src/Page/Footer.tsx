@@ -54,7 +54,7 @@ const Footer: React.FC = () => {
                 src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
                 alt="Company Logo"
                 sx={{
-                  width: { xs: 150, sm: 180, md: 220 },
+                  width: { xs: 220, sm: 240, md: 220 }, // ✅ Bigger on mobile
                   height: "auto",
                   mb: 3,
                   objectFit: "contain",
@@ -167,21 +167,30 @@ const Footer: React.FC = () => {
               <Typography
                 variant="h6"
                 gutterBottom
-                sx={{ fontWeight: 600, mb: 2, letterSpacing: 0.5, color: "#0a5397",fontFamily: "'Montserrat', sans-serif", }}
+                sx={{
+                  fontWeight: 600,
+                  mb: 2,
+                  letterSpacing: 0.5,
+                  color: "#0a5397",
+                  fontFamily: "'Montserrat', sans-serif",
+                }}
               >
                 Contact Us
               </Typography>
 
-                   {/* Contact Info with Icons */}
+              {/* Contact Info */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <LocationOn fontSize="small" />
-                  <Typography variant="body2" sx={{fontFamily: "'Montserrat', sans-serif",}}>
+                  <Typography
+                    variant="body2"
+                    sx={{ fontFamily: "'Montserrat', sans-serif" }}
+                  >
                     No. 100, Alivanniyar Road, Sammanthurai
                   </Typography>
                 </Box>
 
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 ,fontFamily: "'Montserrat', sans-serif", }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Email fontSize="small" />
                   <Link
                     href="mailto:campus@lyceum.lk"
@@ -193,7 +202,7 @@ const Footer: React.FC = () => {
                   </Link>
                 </Box>
 
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, fontFamily: "'Montserrat', sans-serif",mb: 2, }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
                   <Phone fontSize="small" />
                   <Link
                     href="tel:+94765400777"
@@ -206,39 +215,38 @@ const Footer: React.FC = () => {
                 </Box>
               </Box>
 
-            <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+              <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
                 {[
-                    { icon: <Facebook />, link: "https://facebook.com" },
-                    { icon: <Twitter />, link: "https://twitter.com" },
-                    { icon: <Instagram />, link: "https://instagram.com" },
-                    { icon: <LinkedIn />, link: "https://linkedin.com" },
+                  { icon: <Facebook />, link: "https://facebook.com" },
+                  { icon: <Twitter />, link: "https://twitter.com" },
+                  { icon: <Instagram />, link: "https://instagram.com" },
+                  { icon: <LinkedIn />, link: "https://linkedin.com" },
                 ].map((item, index) => (
-                    <IconButton
+                  <IconButton
                     key={index}
                     href={item.link}
                     target="_blank"
                     sx={{
-                        color: "#fff",
-                        backgroundColor: "rgba(255,255,255,0.1)", // 🔹 Rounded background
-                        borderRadius: "50%", // 🔹 Makes it circular
-                        width: 40,
-                        height: 40,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        transition: "all 0.3s ease",
-                        "&:hover": {
+                      color: "#fff",
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                      borderRadius: "50%",
+                      width: 40,
+                      height: 40,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.3s ease",
+                      "&:hover": {
                         transform: "scale(1.2)",
-                        backgroundColor: "#d4f7d4", // 🔹 Change background on hover
-                        color: "#0a5397", // 🔹 Icon color change
-                        
-                        },
+                        backgroundColor: "#d4f7d4",
+                        color: "#0a5397",
+                      },
                     }}
-                    >
+                  >
                     {item.icon}
-                    </IconButton>
+                  </IconButton>
                 ))}
-                </Box>
+              </Box>
             </Box>
           </Box>
         </Container>
@@ -253,8 +261,7 @@ const Footer: React.FC = () => {
               fontSize: "1rem",
               textAlign: "center",
               color: "#fff",
-              fontFamily: "'Montserrat', sans-serif"
-              
+              fontFamily: "'Montserrat', sans-serif",
             }}
           >
             &copy; {new Date().getFullYear()} brainiacs.edu.lk. All rights

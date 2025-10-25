@@ -168,7 +168,7 @@ export default function Navbar() {
                   key={label}
                   component={Link}
                   to={path}
-                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto' }}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto',fontFamily: '"Montserrat", sans-serif', }}
                 >
                   {label}
                 </Button>
@@ -179,7 +179,7 @@ export default function Navbar() {
                 <Button
                   onClick={handleOpenFacultiesMenu}
                   endIcon={<ArrowDropDownIcon />}
-                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto' }}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto',fontFamily: '"Montserrat", sans-serif', }}
                 >
                   Faculties
                 </Button>
@@ -189,7 +189,7 @@ export default function Navbar() {
                   onClose={handleCloseFacultiesMenu}
                 >
                   {facultiesMenu.map(({ label, path }) => (
-                    <MenuItem key={label} component={Link} to={path} onClick={handleCloseFacultiesMenu}>
+                    <MenuItem key={label} component={Link} to={path} onClick={handleCloseFacultiesMenu} sx={{fontFamily: '"Montserrat", sans-serif',}}>
                       {label}
                     </MenuItem>
                   ))}
@@ -201,7 +201,7 @@ export default function Navbar() {
                 <Button
                   onClick={handleOpenProgrammesMenu}
                   endIcon={<ArrowDropDownIcon />}
-                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto' }}
+                  sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto',fontFamily: '"Montserrat", sans-serif', }}
                 >
                   Programmes
                 </Button>
@@ -213,12 +213,12 @@ export default function Navbar() {
                   {programmesMenu.map((group) => (
                     <Box key={group.label}>
                       <MenuItem disabled>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600,fontFamily: '"Montserrat", sans-serif', }}>
                           {group.label}
                         </Typography>
                       </MenuItem>
                       {group.subItems.map(({ label, path }) => (
-                        <MenuItem key={label} component={Link} to={path} onClick={handleCloseProgrammesMenu} sx={{ pl: 4 }}>
+                        <MenuItem key={label} component={Link} to={path} onClick={handleCloseProgrammesMenu} sx={{ pl: 4,fontFamily: '"Montserrat", sans-serif', }}>
                           {label}
                         </MenuItem>
                       ))}
@@ -233,7 +233,7 @@ export default function Navbar() {
                   <SearchIconWrapper>
                     <SearchIcon />
                   </SearchIconWrapper>
-                  <StyledInputBase placeholder="Search…" value={searchQuery} onChange={handleSearchChange} />
+                  <StyledInputBase placeholder="Search…" sx={{fontFamily: '"Montserrat", sans-serif',}} value={searchQuery} onChange={handleSearchChange} />
                 </Search>
               )}
             </Box>
@@ -257,38 +257,38 @@ export default function Navbar() {
           <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
             <List>
               {pages.map(({ label, path }) => (
-                <ListItemButton key={label} component={Link} to={path} onClick={handleDrawerToggle}>
-                  <ListItemText primary={label} />
+                <ListItemButton key={label} sx={{fontFamily: '"Montserrat", sans-serif',}} component={Link} to={path} onClick={handleDrawerToggle}>
+                  <ListItemText primary={label} sx={{fontFamily: '"Montserrat", sans-serif',}} />
                 </ListItemButton>
               ))}
 
-              <ListItemButton onClick={() => setOpenFaculties(!openFaculties)}>
-                <ListItemText primary="Faculties" />
+              <ListItemButton onClick={() => setOpenFaculties(!openFaculties)} sx={{fontFamily: '"Montserrat", sans-serif',}}>
+                <ListItemText primary="Faculties"  sx={{fontFamily: '"Montserrat", sans-serif',}}/>
                 {openFaculties ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
               <Collapse in={openFaculties} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                   {facultiesMenu.map(({ label, path }) => (
-                    <ListItemButton key={label} sx={{ pl: 4 }} component={Link} to={path} onClick={handleDrawerToggle}>
-                      <ListItemText primary={label} />
+                    <ListItemButton key={label} sx={{ pl: 4 ,fontFamily: '"Montserrat", sans-serif',}} component={Link} to={path} onClick={handleDrawerToggle}>
+                      <ListItemText primary={label} sx={{fontFamily: '"Montserrat", sans-serif',}} />
                     </ListItemButton>
                   ))}
                 </List>
               </Collapse>
 
               <ListItemButton onClick={() => setOpenProgrammes(!openProgrammes)}>
-                <ListItemText primary="Programmes" />
+                <ListItemText primary="Programmes" sx={{fontFamily: '"Montserrat", sans-serif',}} />
                 {openProgrammes ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
               <Collapse in={openProgrammes} timeout="auto" unmountOnExit>
                 {programmesMenu.map((group) => (
-                  <Box key={group.label} sx={{ pl: 2 }}>
-                    <Typography variant="subtitle2" sx={{ pl: 1, pt: 1, fontWeight: 600 }}>
+                  <Box key={group.label} sx={{ pl: 2,fontFamily: '"Montserrat", sans-serif', }}>
+                    <Typography variant="subtitle2" sx={{ pl: 1, pt: 1, fontWeight: 600,fontFamily: '"Montserrat", sans-serif', }}>
                       {group.label}
                     </Typography>
                     {group.subItems.map(({ label, path }) => (
-                      <ListItemButton key={label} sx={{ pl: 4 }} component={Link} to={path} onClick={handleDrawerToggle}>
-                        <ListItemText primary={label} />
+                      <ListItemButton key={label} sx={{ pl: 4,fontFamily: '"Montserrat", sans-serif', }} component={Link} to={path} onClick={handleDrawerToggle}>
+                        <ListItemText primary={label} sx={{fontFamily: '"Montserrat", sans-serif',}} />
                       </ListItemButton>
                     ))}
                   </Box>
@@ -298,33 +298,69 @@ export default function Navbar() {
           </Box>
 
           {/* Bottom Info */}
-          <Box sx={{ borderTop: '1px solid #ddd', p: 2, textAlign: 'center', bgcolor: '#f8f8f8' }}>
-            <Typography
-              variant="body2"
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 1,
-                flexWrap: 'wrap',
-                fontSize: '0.7rem',
-              }}
-            >
-              <PhoneIcon fontSize="small" /> (+94) 672260200 | <EmailIcon fontSize="small" /> info@brainiacs.edu.lk
-            </Typography>
+          {/* Bottom Info */}
+<Box
+  sx={{
+    borderTop: '1px solid #ddd',
+    px: 0, // ✅ no left/right padding
+    py: 1.5,
+    width: '100%',
+    textAlign: 'center',
+    bgcolor: '#f8f8f8',
+  }}
+>
+  <Box
+    sx={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '100%',
+      gap: 1,
+      flexWrap: 'wrap',
+      fontSize: { xs: '0.65rem', sm: '0.7rem' }, // ✅ smaller on mobile
+      fontFamily: '"Montserrat", sans-serif',
+      px: 0, // ✅ removes internal spacing too
+    }}
+  >
+    <PhoneIcon  />
+    <Typography component="span" sx={{ fontFamily: '"Montserrat", sans-serif',fontSize:'9.5px' }}>
+      (+94) 672260200
+    </Typography>
+    <Typography component="span" sx={{ fontFamily: '"Montserrat", sans-serif',fontSize:'9.5px' }}>
+      |
+    </Typography>
+    <EmailIcon />
+    <Typography component="span" sx={{ fontFamily: '"Montserrat", sans-serif', fontSize:'9.5px' }}>
+      info@brainiacs.edu.lk
+    </Typography>
+  </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 1 }}>
-              {[FacebookIcon, InstagramIcon, TwitterIcon, LinkedInIcon].map((Icon, i) => (
-                <IconButton
-                  key={i}
-                  size="small"
-                  sx={{ bgcolor: '#fff', borderRadius: '50%', '&:hover': { bgcolor: '#000', color: '#fff' } }}
-                >
-                  <Icon fontSize="small" />
-                </IconButton>
-              ))}
-            </Box>
-          </Box>
+  <Box
+    sx={{
+      display: 'flex',
+      justifyContent: 'center',
+      gap: 1,
+      mt: 1,
+      width: '100%',
+      px: 0, // ✅ no inside margin
+    }}
+  >
+    {[FacebookIcon, InstagramIcon, TwitterIcon, LinkedInIcon].map((Icon, i) => (
+      <IconButton
+        key={i}
+        size="small"
+        sx={{
+          bgcolor: '#fff',
+          borderRadius: '50%',
+          '&:hover': { bgcolor: '#000', color: '#fff' },
+        }}
+      >
+        <Icon fontSize="small" />
+      </IconButton>
+    ))}
+  </Box>
+</Box>
+
         </Box>
       </Drawer>
     </AppBar>

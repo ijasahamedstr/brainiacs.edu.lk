@@ -179,6 +179,7 @@ const About: React.FC = () => {
                     background: "linear-gradient(135deg, #195287, #33b34d)", // gradient colors
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
+                    fontFamily: '"Montserrat", sans-serif',
                   }}
                 >
                   {step.label}

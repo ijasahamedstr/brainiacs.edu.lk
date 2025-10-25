@@ -43,7 +43,7 @@ const Topbar: React.FC = () => {
           sx={{
             fontWeight: 600,
             color: "#35b34e",
-            fontSize: { sm: "0.9rem", md: "1rem" },
+            fontSize: { sm: "0.9rem", md: "1rem",fontFamily: '"Montserrat", sans-serif', },
           }}
         >
           Need Assistance? Contact Us:
@@ -65,7 +65,7 @@ const Topbar: React.FC = () => {
                 href="tel:+94672260200"
                 underline="none"
                 color="inherit"
-                sx={{ "&:hover": { color: "#35b34e" } }}
+                sx={{ "&:hover": { color: "#35b34e" },fontFamily: '"Montserrat", sans-serif', }}
               >
                 (+94) 672260200
               </Link>
@@ -84,7 +84,7 @@ const Topbar: React.FC = () => {
                 href="mailto:info@brainiacs.edu.lk"
                 underline="none"
                 color="inherit"
-                sx={{ "&:hover": { color: "#35b34e" } }}
+                sx={{ "&:hover": { color: "#35b34e" },fontFamily: '"Montserrat", sans-serif', }}
               >
                 info@brainiacs.edu.lk
               </Link>
@@ -106,7 +106,7 @@ const Topbar: React.FC = () => {
                 href="tel:+94672260200"
                 underline="none"
                 color="inherit"
-                sx={{ "&:hover": { color: "#35b34e" } }}
+                sx={{ "&:hover": { color: "#35b34e" },fontFamily: '"Montserrat", sans-serif', }}
               >
                 (+94) 672260200
               </Link>
@@ -125,7 +125,7 @@ const Topbar: React.FC = () => {
                 href="mailto:info@brainiacs.edu.lk"
                 underline="none"
                 color="inherit"
-                sx={{ "&:hover": { color: "#35b34e" } }}
+                sx={{ "&:hover": { color: "#35b34e" }, fontFamily: '"Montserrat", sans-serif', }}
               >
                 info@brainiacs.edu.lk
               </Link>
@@ -137,6 +137,7 @@ const Topbar: React.FC = () => {
                 alignItems: "center",
                 fontSize: "0.9rem",
                 "&:hover": { color: "#35b34e" },
+                fontFamily: '"Montserrat", sans-serif',
               }}
             >
               <LocationOn sx={{ mr: 1, fontSize: "1rem" }} />
@@ -161,6 +162,7 @@ const Topbar: React.FC = () => {
           color: "#35b34e",
           position: "relative",
           zIndex: 0,
+          fontFamily: '"Montserrat", sans-serif',
 
           "&:before": {
             content: '""',
