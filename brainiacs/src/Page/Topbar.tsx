@@ -1,5 +1,6 @@
 import React from "react";
-import { Box, Typography, Button, Link, useMediaQuery } from "@mui/material";
+import { Box, Typography, Button, Link, useMediaQuery  } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
 import { Phone, Email, LocationOn } from "@mui/icons-material";
 
 const Topbar: React.FC = () => {
@@ -151,6 +152,8 @@ const Topbar: React.FC = () => {
       <Button
         variant="outlined"
         size="small"
+        component={RouterLink}
+        to="/inquiries"
         href="#contact"
         sx={{
           fontWeight: "bold",
@@ -162,7 +165,7 @@ const Topbar: React.FC = () => {
           color: "#35b34e",
           position: "relative",
           zIndex: 0,
-          fontFamily: '"Montserrat", sans-serif',
+          
 
           "&:before": {
             content: '""',

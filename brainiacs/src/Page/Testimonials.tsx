@@ -69,7 +69,7 @@ const Testimonials: React.FC = () => {
           : isTablet
           ? "40px 20px 70px"    // ✅ Extra bottom padding for tablet
           : "60px 0 80px",      // ✅ Extra bottom padding for desktop
-        backgroundColor: "#f8f9fc",
+        backgroundColor: "#F3F4F6",
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
       }}
     >
