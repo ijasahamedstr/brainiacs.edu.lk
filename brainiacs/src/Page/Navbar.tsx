@@ -41,7 +41,7 @@ const pages = [
 const ourStoryMenu = [
   { label: 'About Us', path: '/aboutus' },
   { label: 'Leadership and Governance', path: '/faculties/leadership' },
-  { label: "President's Message", path: '/Presidentmessage' },
+  { label: "President's Message", path: '/faculties/president' },
   { label: 'Our Partners', path: '/faculties/partners' },
 ];
 

@@ -220,7 +220,7 @@ const Aboutus: React.FC = () => {
             sx={{
               position: "relative",
               width: { xs: "90%", md: "85%" },
-              maxWidth: "450px",
+              maxWidth: "350px",
               borderRadius: "16px",
               zIndex: 3,
               boxShadow: "0 10px 26px rgba(0,0,0,0.25)",
