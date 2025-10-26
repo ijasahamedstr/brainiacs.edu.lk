@@ -41,14 +41,14 @@ const pages = [
 const ourStoryMenu = [
   { label: 'About Us', path: '/aboutus' },
   { label: 'Leadership and Governance', path: '/leadersip-governance' },
-  { label: "President's Message", path: '/faculties/president' },
+  { label: "President's Message", path: '/Presidentmessage' },
   { label: 'Our Partners', path: '/faculties/partners' },
 ];
 
 const facultiesMenu = [
   { label: 'About Us', path: '/faculties/about' },
   { label: 'Leadership and Governance', path: '/leadersip-governance' },
-  { label: "President's Message", path: '/faculties/president' },
+  { label: "President's Message", path: '/Presidentmessage' },
   { label: 'Our Partners', path: '/faculties/partners' },
 ];
 
