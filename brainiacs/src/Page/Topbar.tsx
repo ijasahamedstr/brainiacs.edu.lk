@@ -1,365 +1,209 @@
 import React from "react";
-import { Box, Breadcrumbs, Link, Typography, keyframes } from "@mui/material";
+import { Box, Typography, Button, Link, useMediaQuery  } from "@mui/material";
+import { Link as RouterLink } from "react-router-dom";
+import { Phone, Email, LocationOn } from "@mui/icons-material";
 
-// ✨ Gradient Animation
-const gradientAnimation = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-`;
+const Topbar: React.FC = () => {
+  // Responsive breakpoints
+  const isPhone = useMediaQuery("(max-width:767px)");
+  const isTablet = useMediaQuery("(min-width:768px) and (max-width:1366px)");
 
-const Aboutus: React.FC = () => {
-  const values = [
-    {
-      title: "Accountability",
-      image:
-        "https://lyceumcampus.lk/assets/img/icons/lineal/accountability-our-values-lyceum-campus.svg",
-    },
-    {
-      title: "Integrity",
-      image:
-        "https://lyceumcampus.lk/assets/img/icons/lineal/integrity-our-values-lyceum-campus.svg",
-    },
-    {
-      title: "Freedom of Expression",
-      image:
-        "https://lyceumcampus.lk/assets/img/icons/lineal/freedom-of-expresssion-our-values-lyceum-campus.svg",
-    },
-    {
-      title: "Social Responsibility",
-      image:
-        "https://lyceumcampus.lk/assets/img/icons/lineal/social-responsibilty-our-values-lyceum-campus.svg",
-    },
-    {
-      title: "Inclusiveness",
-      image:
-        "https://lyceumcampus.lk/assets/img/icons/lineal/inclusiveness-our-values-lyceum-campus.svg",
-    },
-    {
-      title: "Innovation",
-      image:
-        "https://lyceumcampus.lk/assets/img/icons/lineal/innovation-our-values-lyceum-campus.svg",
-    },
-    {
-      title: "Lifelong Learning",
-      image:
-        "https://lyceumcampus.lk/assets/img/icons/lineal/lifelong-learning-our-values-lyceum-campus.svg",
-    },
-    {
-      title: "Sustainability",
-      image:
-        "https://lyceumcampus.lk/assets/img/icons/lineal/sustainability-our-values-lyceum-campus.svg",
-    },
-  ];
+  if (isPhone) return null; // Hidden on small phones
 
   return (
-    <>
-      {/* ✅ Header Banner */}
+    <Box
+      sx={{
+        width: "100%",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        zIndex: 1200,
+        bgcolor: "#222",
+        color: "#fff",
+        px: { sm: 3, md: 6 },
+        py: 1.5,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexWrap: "nowrap",
+        overflow: "hidden",
+        boxShadow: "0px 2px 6px rgba(0,0,0,0.3)",
+      }}
+    >
+      {/* Left: Contact Info */}
       <Box
-        component="img"
-        src="https://lyceumcampus.lk/assets/website/about/about-us-lyceum-campus.webp"
-        alt="About Us Banner"
         sx={{
-          width: "100%",
-          height: { xs: "220px", md: "400px" },
-          objectFit: "cover",
-        }}
-      />
-
-      {/* ✅ Breadcrumb Section */}
-      <Box
-        sx={{
-          bgcolor: "#F1F5F9",
-          fontFamily: "'Montserrat', sans-serif",
-          py: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: { sm: 2, md: 4 },
+          flexWrap: "wrap",
         }}
       >
-        <Box
+        <Typography
+          variant="body2"
           sx={{
-            width: "90%",
-            maxWidth: "1300px",
-            mx: "auto",
+            fontWeight: 600,
+            color: "#35b34e",
+            fontSize: { sm: "0.9rem", md: "1rem",fontFamily: '"Montserrat", sans-serif', },
           }}
         >
-          <Breadcrumbs
-            aria-label="breadcrumb"
-            separator="›"
-            sx={{
-              fontSize: { xs: "14px", md: "16px" },
-              fontWeight: 500,
-            }}
-          >
-            <Link
-              underline="hover"
-              color="inherit"
-              href="/"
-              sx={{
-                color: "#1E293B",
-                fontFamily: "'Montserrat', sans-serif",
-                "&:hover": { color: "#0F172A" },
-              }}
-            >
-              Home
-            </Link>
+          Need Assistance? Contact Us:
+        </Typography>
+
+        {/* Tablet — Only Phone & Email */}
+        {isTablet ? (
+          <>
             <Typography
               sx={{
-                color: "#0F172A",
-                fontWeight: 600,
-                fontFamily: "'Montserrat', sans-serif",
+                display: "flex",
+                alignItems: "center",
+                fontSize: "0.9rem",
+                "&:hover": { color: "#35b34e" },
               }}
             >
-              About Us
-            </Typography>
-          </Breadcrumbs>
-        </Box>
-      </Box>
-
-      {/* ✅ About Section (Text + Image Collage) */}
-      <Box
-        sx={{
-          width: "90%",
-          maxWidth: "1300px",
-          mx: "auto",
-          mt: { xs: 10, md: 12 },
-          mb: 10,
-          display: "flex",
-          flexDirection: { xs: "column", md: "row" },
-          alignItems: "center",
-          gap: 6,
-        }}
-      >
-        {/* ✅ Left Text */}
-        <Box sx={{ flex: 1 }}>
-          <Typography
-            sx={{
-              color: "#475569",
-              fontSize: "16px",
-              lineHeight: 1.8,
-              fontFamily: "'Montserrat', sans-serif",
-              mb: 2,
-            }}
-          >
-            Established in 2022, Lyceum Campus, the higher education arm of the
-            Lyceum Education Group, has been instrumental in moulding the lives
-            and educational journey of many students by providing a gamut of
-            quality, practical and internationally-reputed programmes for
-            students with different goals, dreams and ambitions.
-          </Typography>
-
-          <Typography
-            sx={{
-              color: "#475569",
-              fontSize: "16px",
-              lineHeight: 1.8,
-              fontFamily: "'Montserrat', sans-serif",
-              mb: 2,
-            }}
-          >
-            Located in Nugegoda, one of the main suburbs of Colombo, Lyceum
-            Campus provides students with state-of-the-art facilities that
-            embrace international standards where students can thrive for
-            excellence by experiencing international education in a fully-fledged
-            campus closer to home.
-          </Typography>
-
-          <Typography
-            sx={{
-              color: "#475569",
-              fontSize: "16px",
-              lineHeight: 1.8,
-              fontFamily: "'Montserrat', sans-serif",
-            }}
-          >
-            Lyceum Campus is committed not only to disseminate knowledge but
-            develop the required skills and attitudes to create a holistic
-            individual who can face the future with utmost confidence in life.
-          </Typography>
-        </Box>
-
-        {/* ✅ Right Side Image Collage */}
-        <Box
-          sx={{
-            flex: 1,
-            position: "relative",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            mt: { xs: 4, md: 0 },
-          }}
-        >
-          <Box
-            sx={{
-              display: { xs: "none", xl: "block" },
-              position: "absolute",
-              top: "-50px",
-              left: "90px",
-              width: "260px",
-              height: "260px",
-              backgroundImage: "radial-gradient(#1E40AF 2px, transparent 2px)",
-              backgroundSize: "18px 18px",
-              borderRadius: "12px",
-              opacity: 0.6,
-              zIndex: 1,
-              filter: "contrast(1.2) brightness(0.9)",
-            }}
-          />
-
-          <Box
-            component="img"
-            src="https://lyceumcampus.lk/assets/website/about/about-us-lyceum-campus-3.webp"
-            alt="Lyceum Campus Background"
-            sx={{
-              display: { xs: "none", xl: "block" },
-              position: "absolute",
-              top: "-60px",
-              right: "-90px",
-              width: "350px",
-              borderRadius: "16px",
-              zIndex: 2,
-              boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
-            }}
-          />
-
-          <Box
-            component="img"
-            src="https://lyceumcampus.lk/assets/website/about/about-us-lyceum-campus-2.webp"
-            alt="Lyceum Campus Students"
-            sx={{
-              position: "relative",
-              width: { xs: "90%", md: "85%" },
-              maxWidth: "450px",
-              borderRadius: "16px",
-              zIndex: 3,
-              boxShadow: "0 10px 26px rgba(0,0,0,0.25)",
-            }}
-          />
-        </Box>
-      </Box>
-
-      {/* ✅ Our Values Section */}
-      <Box
-        sx={{
-          textAlign: "center",
-          width: "100%",
-          py: 8,
-          background:
-            "linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #7b2ff7, #ff0080)",
-          backgroundSize: "400% 400%",
-          animation: `${gradientAnimation} 12s ease infinite`,
-        }}
-      >
-        <Box
-          sx={{
-            width: "90%",
-            maxWidth: "1300px",
-            mx: "auto",
-            color: "white",
-          }}
-        >
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: 700,
-              mb: 2,
-              color: "#fff",
-              fontFamily: "'Montserrat', sans-serif",
-            }}
-          >
-            Our Values
-          </Typography>
-
-          <Typography
-            sx={{
-              color: "#f1f5f9",
-              maxWidth: "900px",
-              mx: "auto",
-              mb: 6,
-              fontSize: "16px",
-              lineHeight: 1.8,
-              fontFamily: "'Montserrat', sans-serif",
-            }}
-          >
-            As leaders in education in Sri Lanka, we are committed to creating
-            sustainable quality globally recognized education while embracing our
-            core values
-          </Typography>
-
-          {/* ✅ Responsive Slider with Gradient BG */}
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: { xs: "nowrap", md: "wrap" },
-              overflowX: { xs: "auto", md: "visible" },
-              scrollSnapType: { xs: "x mandatory", md: "none" },
-              justifyContent: { md: "center" },
-              gap: { xs: 3, sm: 4, md: 6 },
-              pb: { xs: 2, md: 0 },
-              "&::-webkit-scrollbar": { display: "none" },
-            }}
-          >
-            {values.map((item, i) => (
-              <Box
-                key={i}
-                sx={{
-                  width: { xs: "70%", sm: "45%", md: "22%" },
-                  minWidth: { xs: "180px", sm: "220px", md: "unset" },
-                  textAlign: "center",
-                  flexShrink: 0,
-                  scrollSnapAlign: { xs: "center", md: "none" },
-                  transition: "transform 0.3s ease",
-                  "&:hover": { transform: "translateY(-6px)" },
-                }}
+              <Phone sx={{ mr: 1, fontSize: "1rem" }} />
+              <Link
+                href="tel:+94672260200"
+                underline="none"
+                color="inherit"
+                sx={{ "&:hover": { color: "#35b34e" },fontFamily: '"Montserrat", sans-serif', }}
               >
-                {/* ✅ Icon Circle */}
-                <Box
-                  sx={{
-                    width: "90px",
-                    height: "90px",
-                    mx: "auto",
-                    mb: 2,
-                    borderRadius: "50%",
-                    border: "3px solid white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "rgba(255,255,255,0.15)",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      backgroundColor: "rgba(255,255,255,0.3)",
-                      boxShadow: "0 0 10px rgba(255,255,255,0.4)",
-                    },
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={item.image}
-                    alt={item.title}
-                    sx={{
-                      width: "45px",
-                      height: "45px",
-                      objectFit: "contain",
-                      filter: "brightness(0) invert(1)",
-                    }}
-                  />
-                </Box>
+                (+94) 672260200
+              </Link>
+            </Typography>
 
-                <Typography
-                  sx={{
-                    fontWeight: 600,
-                    color: "#fff",
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: "15px",
-                  }}
-                >
-                  {item.title}
-                </Typography>
-              </Box>
-            ))}
-          </Box>
-        </Box>
+            <Typography
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                fontSize: "0.9rem",
+                "&:hover": { color: "#35b34e" },
+              }}
+            >
+              <Email sx={{ mr: 1, fontSize: "1rem" }} />
+              <Link
+                href="mailto:info@brainiacs.edu.lk"
+                underline="none"
+                color="inherit"
+                sx={{ "&:hover": { color: "#35b34e" },fontFamily: '"Montserrat", sans-serif', }}
+              >
+                info@brainiacs.edu.lk
+              </Link>
+            </Typography>
+          </>
+        ) : (
+          /* Desktop — All Details */
+          <>
+            <Typography
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                fontSize: "0.9rem",
+                "&:hover": { color: "#35b34e" },
+              }}
+            >
+              <Phone sx={{ mr: 1, fontSize: "1rem" }} />
+              <Link
+                href="tel:+94672260200"
+                underline="none"
+                color="inherit"
+                sx={{ "&:hover": { color: "#35b34e" },fontFamily: '"Montserrat", sans-serif', }}
+              >
+                (+94) 672260200
+              </Link>
+            </Typography>
+
+            <Typography
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                fontSize: "0.9rem",
+                "&:hover": { color: "#35b34e" },
+              }}
+            >
+              <Email sx={{ mr: 1, fontSize: "1rem" }} />
+              <Link
+                href="mailto:info@brainiacs.edu.lk"
+                underline="none"
+                color="inherit"
+                sx={{ "&:hover": { color: "#35b34e" }, fontFamily: '"Montserrat", sans-serif', }}
+              >
+                info@brainiacs.edu.lk
+              </Link>
+            </Typography>
+
+            <Typography
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                fontSize: "0.9rem",
+                "&:hover": { color: "#35b34e" },
+                fontFamily: '"Montserrat", sans-serif',
+              }}
+            >
+              <LocationOn sx={{ mr: 1, fontSize: "1rem" }} />
+              No. 100, Alivanniyar Road, Sammanthurai
+            </Typography>
+          </>
+        )}
       </Box>
-    </>
+
+      {/* Right: Animated Gradient Button (Tablet & Desktop) */}
+      <Button
+        variant="outlined"
+        size="small"
+        component={RouterLink}
+        to="/inquiries"
+        href="#contact"
+        sx={{
+          fontWeight: "bold",
+          textTransform: "none",
+          fontSize: { xs: "0.85rem", sm: "0.95rem" },
+          border: "none",
+          borderRadius: "20px",
+          paddingX: 3,
+          color: "#35b34e",
+          position: "relative",
+          zIndex: 0,
+          
+
+          "&:before": {
+            content: '""',
+            position: "absolute",
+            top: -2,
+            left: -2,
+            right: -2,
+            bottom: -2,
+            borderRadius: "22px",
+            padding: "2px",
+            background:
+              "linear-gradient(90deg, #ff0080, #ff8c00, #40e0d0, #7b2ff7, #ff0080)",
+            backgroundSize: "300% 300%",
+            animation: "gradient 4s linear infinite",
+            zIndex: -1,
+            WebkitMask:
+              "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+            WebkitMaskComposite: "destination-out",
+            maskComposite: "exclude",
+          },
+
+          "&:hover": {
+            bgcolor: "#0a5297",
+            color: "white",
+            borderColor: "#0a5297",
+          },
+
+          "@keyframes gradient": {
+            "0%": { backgroundPosition: "0% 50%" },
+            "50%": { backgroundPosition: "100% 50%" },
+            "100%": { backgroundPosition: "0% 50%" },
+          },
+        }}
+      >
+        Inquire Here
+      </Button>
+    </Box>
   );
 };
 
-export default Aboutus;
+export default Topbar;
