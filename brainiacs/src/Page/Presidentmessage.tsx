@@ -11,11 +11,17 @@ const Presidentmessage: React.FC = () => {
             display: "flex",
             flexDirection: { xs: "column", md: "row" },
             gap: { xs: 4, md: 4 },
-            alignItems: "flex-start",
+            alignItems: { xs: "center", md: "flex-start" }, // center on mobile/tablet
           }}
         >
           {/* Column 1 - Title */}
-          <Box sx={{ flex: 1, textAlign: "center" }}>
+          <Box
+            sx={{
+              flex: 1,
+              textAlign: "center",
+              mx: { xs: "auto", md: 0 }, // center horizontally on mobile/tablet
+            }}
+          >
             <Typography
               variant="h4"
               fontWeight={700}
@@ -34,12 +40,13 @@ const Presidentmessage: React.FC = () => {
             sx={{
               flex: 1,
               textAlign: "center",
-              perspective: "1000px", // allows 3D effects
+              mx: { xs: "auto", md: 0 }, // center horizontally on mobile/tablet
+              perspective: "1000px",
             }}
           >
             <Box
               component="img"
-              src="https://brainiacs.edu.lk/wp-content/uploads/2025/09/Jowfar-300x300.png"
+              src="https://i.ibb.co/sdh9h32R/Gemini-Generated-Image-n6ky85n6ky85n6ky.png"
               alt="President"
               sx={{
                 width: "100%",
@@ -48,7 +55,7 @@ const Presidentmessage: React.FC = () => {
                 transition: "transform 0.5s, box-shadow 0.5s",
                 boxShadow: "0 10px 20px rgba(0,0,0,0.2)",
                 "&:hover": {
-                  transform: "scale(1.05) rotate(-2deg)", // zoom + slight rotation
+                  transform: "scale(1.05) rotate(-2deg)",
                   boxShadow: "0 20px 30px rgba(0,0,0,0.3)",
                 },
               }}
@@ -70,7 +77,7 @@ const Presidentmessage: React.FC = () => {
                     color: "#c00",
                     fontSize: 40,
                     mr: 1,
-                    transform: "scaleX(-1)", // flips the icon to face right
+                    transform: "scaleX(-1)",
                   }}
                 />
                 <Typography
