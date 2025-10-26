@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Container,
@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
+import Rellax from "rellax";
 
 // ✅ Swiper CSS imports
 import "swiper/css";
@@ -47,15 +48,42 @@ const councilMembers = [
     name: "Mr. Nikitha Grero",
     title: "Group Chairman & Chief Executive Officer",
     image:
-      "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/gz6GT0QLPE0YUymxunoOwNFviu53UEgEUd79gpL4.jpg",
+      "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/JqG6NkZOd4QNbzQowWcQLya2GdyPlKALPfTHdmBk.jpg",
     bio: "Provides strategic direction and visionary leadership for the group.",
   },
 ];
 
 const LeadershipGovernance: React.FC = () => {
+  useEffect(() => {
+    new Rellax(".rellax");
+  }, []);
+
   return (
-    <Box sx={{ backgroundColor: "#f9fbff", py: { xs: 6, md: 10 } }}>
-      <Container maxWidth="lg">
+    <Box
+      sx={{
+        backgroundColor: "#f9fbff",
+        py: { xs: 6, md: 10 },
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Soft blue rounded background */}
+      <Box
+        className="rellax d-none d-md-block"
+        sx={{
+          position: "absolute",
+          top: -100,
+          left: -100,
+          width: 400,
+          height: 400,
+          borderRadius: "50%",
+          backgroundColor: "#cce4ff",
+          zIndex: 0,
+        }}
+        data-rellax-speed="-2"
+      />
+
+      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
         {/* Section Header */}
         <Typography
           variant="h6"
@@ -82,7 +110,7 @@ const LeadershipGovernance: React.FC = () => {
           Meet the Minds Shaping Campus Excellence
         </Typography>
 
-        {/* ✅ Swiper Container */}
+        {/* Swiper Container */}
         <Swiper
           spaceBetween={30}
           slidesPerView={1.2}
