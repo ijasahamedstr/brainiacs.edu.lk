@@ -6,6 +6,7 @@ import Footer from './Page/Footer';
 import Home from './Page/Home';
 import Inquiries from './Page/inquiries';
 import Aboutus from './Page/About Us';
+import Presidentmessage from './Page/Presidentmessage';
 
 
 function App() {
@@ -17,7 +18,8 @@ function App() {
         <Route path="/" element={< Home/>} />
         <Route path="/products" element={<Products/>} />
         <Route path="/inquiries" element={<Inquiries/>} />
-         <Route path="/aboutus" element={<Aboutus/>} />
+        <Route path="/aboutus" element={<Aboutus/>} />
+        <Route path="/Presidentmessage" element={<Presidentmessage/>} />
         <Route path="/pricing" element={<div>Pricing Page</div>} />
         <Route path="/blog" element={<div>Blog Page</div>} />
         {/* Add routes for settings if needed */}
