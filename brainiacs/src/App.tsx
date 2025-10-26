@@ -7,6 +7,7 @@ import Home from './Page/Home';
 import Inquiries from './Page/inquiries';
 import Aboutus from './Page/About Us';
 import Presidentmessage from './Page/Presidentmessage';
+import Leadersipgovernance from './Page/leadersip-governance';
 
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
         <Route path="/inquiries" element={<Inquiries/>} />
         <Route path="/aboutus" element={<Aboutus/>} />
         <Route path="/Presidentmessage" element={<Presidentmessage/>} />
+        <Route path="/leadersip-governance" element={<Leadersipgovernance/>} />
         <Route path="/pricing" element={<div>Pricing Page</div>} />
         <Route path="/blog" element={<div>Blog Page</div>} />
         {/* Add routes for settings if needed */}
