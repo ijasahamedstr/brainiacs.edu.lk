@@ -16,6 +16,10 @@ import {
   ListItemText,
   Collapse,
   InputBase,
+  Paper,
+  ClickAwayListener,
+  Grow,
+  Popper,
 } from '@mui/material';
 import { alpha, styled } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -31,7 +35,7 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 
-// --- Pages & Menus ---
+/* --- Pages & Menus --- */
 const pages = [
   { label: 'Home', path: '/' },
   { label: 'Student Life', path: '/student-life' },
@@ -58,22 +62,53 @@ const programmesMenu = [
     subItems: [
       { label: 'Foundation in Business', path: '/programmes/foundation-business' },
       { label: 'Foundation in Science', path: '/programmes/foundation-science' },
-      { label: 'Foundation in IT', path: '/programmes/foundation-it' },
+      { label: 'Foundation in Information Technology', path: '/programmes/foundation-it' },
       { label: 'Foundation in Engineering', path: '/programmes/foundation-engineering' },
+    ],
+  },
+  {
+    label: 'BTEC HND Level 5 in Computing',
+    subItems: [
+      { label: 'Pearson BTEC HND in Computing (Software Engineering)', path: '/programmes/btec/software-engineering' },
+      { label: 'Pearson BTEC HND in Computing (Data Analytics)', path: '/programmes/btec/data-analytics' },
     ],
   },
   {
     label: 'Deakin 1+2 Pathway Programme',
     subItems: [
-      { label: 'Diploma Of Business (Analytics)', path: '/programmes/deakin/analytics' },
+      { label: 'Diploma Of Business (Business Analytics)', path: '/programmes/deakin/analytics' },
       { label: 'Diploma Of Business (Management)', path: '/programmes/deakin/management' },
       { label: 'Diploma Of Business (Commerce)', path: '/programmes/deakin/commerce' },
       { label: 'Diploma Of Business (Sport Management)', path: '/programmes/deakin/sport' },
     ],
   },
+  {
+    label: 'BTEC HND Level 5 in Business',
+    subItems: [
+      { label: 'Pearson BTEC HND in Business (Accounting and Finance)', path: '/programmes/btec/accounting-finance' },
+      { label: 'Pearson BTEC HND in Business (Management)', path: '/programmes/btec/management' },
+    ],
+  },
+  {
+    label: 'Teacher Training Diplomas',
+    subItems: [
+      { label: 'Diploma in Primary School Teaching', path: '/programmes/teacher/primary-teaching' },
+      { label: 'Diploma in English Language Teaching', path: '/programmes/teacher/elt' },
+      { label: 'Diploma in Teaching Mathematics', path: '/programmes/teacher/math' },
+      { label: 'Diploma in Early Childhood Development Education', path: '/programmes/teacher/ecd' },
+      { label: 'Diploma in Teaching Special Needs Education', path: '/programmes/teacher/sen' },
+    ],
+  },
+  {
+    label: 'UWE Pathway Programmes',
+    subItems: [
+      { label: 'Pearson BTEC HND in Early Childhood Education and Care', path: '/programmes/uwe/early-childhood' },
+      { label: 'Diploma in Early Childhood Development Education', path: '/programmes/uwe/ecd' },
+    ],
+  },
 ];
 
-// --- Styled Search ---
+/* --- Styled Search --- */
 const Search = styled('form')(({ theme }) => ({
   position: 'relative',
   borderRadius: '50px',
@@ -112,9 +147,10 @@ export default function Navbar() {
   const [openFaculties, setOpenFaculties] = React.useState(false);
   const [openProgrammes, setOpenProgrammes] = React.useState(false);
   const [openOurStory, setOpenOurStory] = React.useState(false);
+
   const [anchorElFaculties, setAnchorElFaculties] = React.useState<null | HTMLElement>(null);
-  const [anchorElProgrammes, setAnchorElProgrammes] = React.useState<null | HTMLElement>(null);
   const [anchorElOurStory, setAnchorElOurStory] = React.useState<null | HTMLElement>(null);
+  const [anchorElProgrammes, setAnchorElProgrammes] = React.useState<null | HTMLElement>(null);
   const [searchQuery, setSearchQuery] = React.useState('');
   const location = useLocation();
 
@@ -131,7 +167,7 @@ export default function Navbar() {
     setAnchorElOurStory(null);
   }, [location]);
 
-  const marginTopValue = (isDesktop || isMarginTop57px) ? '57px' : '0px';
+  const marginTopValue = isDesktop || isMarginTop57px ? '57px' : '0px';
 
   const handleDrawerToggle = () => setDrawerOpen((prev) => !prev);
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value);
@@ -140,11 +176,24 @@ export default function Navbar() {
     console.log('Searching for:', searchQuery);
   };
 
+  const openMega = Boolean(anchorElProgrammes);
+  const handleOpenMega = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElProgrammes(event.currentTarget);
+  };
+  const handleCloseMega = () => {
+    setAnchorElProgrammes(null);
+  };
+  const handleClickAwayMega = (event: MouseEvent | TouchEvent) => {
+    const anchor = anchorElProgrammes;
+    if (anchor && event.target && (anchor as HTMLElement).contains(event.target as Node)) return;
+    handleCloseMega();
+  };
+
   return (
     <AppBar
       position="static"
       sx={{
-        backgroundColor: '#D0D3D4',
+        backgroundColor: '#ffffff',
         color: 'black',
         boxShadow: 'none',
         transition: 'margin-top 0.3s ease',
@@ -189,6 +238,7 @@ export default function Navbar() {
               <Box>
                 <Button
                   onClick={(e) => setAnchorElOurStory(e.currentTarget)}
+                  onMouseEnter={(e) => setAnchorElOurStory(e.currentTarget)}
                   endIcon={<ArrowDropDownIcon />}
                   sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto', fontFamily: '"Montserrat", sans-serif' }}
                 >
@@ -198,6 +248,7 @@ export default function Navbar() {
                   anchorEl={anchorElOurStory}
                   open={Boolean(anchorElOurStory)}
                   onClose={() => setAnchorElOurStory(null)}
+                  MenuListProps={{ onMouseLeave: () => setAnchorElOurStory(null) }}
                 >
                   {ourStoryMenu.map(({ label, path }) => (
                     <MenuItem
@@ -217,6 +268,7 @@ export default function Navbar() {
               <Box>
                 <Button
                   onClick={(e) => setAnchorElFaculties(e.currentTarget)}
+                  onMouseEnter={(e) => setAnchorElFaculties(e.currentTarget)}
                   endIcon={<ArrowDropDownIcon />}
                   sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto', fontFamily: '"Montserrat", sans-serif' }}
                 >
@@ -226,6 +278,7 @@ export default function Navbar() {
                   anchorEl={anchorElFaculties}
                   open={Boolean(anchorElFaculties)}
                   onClose={() => setAnchorElFaculties(null)}
+                  MenuListProps={{ onMouseLeave: () => setAnchorElFaculties(null) }}
                 >
                   {facultiesMenu.map(({ label, path }) => (
                     <MenuItem key={label} component={Link} to={path} onClick={() => setAnchorElFaculties(null)} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
@@ -235,186 +288,203 @@ export default function Navbar() {
                 </Menu>
               </Box>
 
-              {/* Programmes Dropdown */}
+              {/* Programmes - MEGA MENU */}
               <Box>
                 <Button
-                  onClick={(e) => setAnchorElProgrammes(e.currentTarget)}
+                  aria-haspopup="true"
+                  aria-expanded={openMega ? 'true' : undefined}
+                  onClick={handleOpenMega}
+                  onMouseEnter={handleOpenMega}
                   endIcon={<ArrowDropDownIcon />}
                   sx={{ color: 'black', mx: 1, fontWeight: 500, textTransform: 'none', minWidth: 'auto', fontFamily: '"Montserrat", sans-serif' }}
                 >
                   Programmes
                 </Button>
-                <Menu
+
+                {/* Popper */}
+                <Popper
+                  open={openMega}
                   anchorEl={anchorElProgrammes}
-                  open={Boolean(anchorElProgrammes)}
-                  onClose={() => setAnchorElProgrammes(null)}
+                  placement="bottom-start"
+                  transition
+                  disablePortal={false}
+                  style={{ zIndex: 9998,margin:'10px' }}
                 >
-                  {programmesMenu.map((group) => (
-                    <Box key={group.label}>
-                      <MenuItem disabled>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, fontFamily: '"Montserrat", sans-serif' }}>
-                          {group.label}
-                        </Typography>
-                      </MenuItem>
-                      {group.subItems.map(({ label, path }) => (
-                        <MenuItem key={label} component={Link} to={path} onClick={() => setAnchorElProgrammes(null)} sx={{ pl: 4, fontFamily: '"Montserrat", sans-serif' }}>
-                          {label}
-                        </MenuItem>
-                      ))}
-                    </Box>
-                  ))}
-                </Menu>
+                  {({ TransitionProps }) => (
+                    <Grow {...TransitionProps} style={{ transformOrigin: 'top center' }}>
+                      <Paper
+                        elevation={6}
+                        sx={{
+                          position: 'relative', // ✅ bring front
+                          zIndex: 9999,       // ✅ high z-index
+                          mt: 1.5,
+                          width: '90vw',
+                          maxWidth: '1200px',
+                          borderRadius: 2,
+                          p: 3,
+                          boxShadow: '0 10px 30px rgba(25,25,25,0.12)',
+                        }}
+                      >
+                        <ClickAwayListener onClickAway={handleClickAwayMega}>
+                          <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+                            {/* Columns container */}
+                            <Box sx={{ display: 'flex', gap: 3, flex: 1 }}>
+                              {/* Column 1 */}
+                              <Box sx={{ minWidth: 0, flex: 1 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, fontFamily: '"Montserrat", sans-serif' }}>
+                                  CERTIFICATE IN SPORT ADMINISTRATION
+                                </Typography>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, fontFamily: '"Montserrat", sans-serif' }}>
+                                  LYCEUM GLOBAL FOUNDATION
+                                </Typography>
+                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                  {programmesMenu
+                                    .filter((g) => g.label === 'Lyceum Global Foundation' || g.label === 'BTEC HND Level 5 in Computing')
+                                    .map((group) => (
+                                      <Box key={group.label} sx={{ mb: 1 }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, fontFamily: '"Montserrat", sans-serif' }}>
+                                          {group.label === 'Lyceum Global Foundation' ? '' : ' '}
+                                        </Typography>
+                                        {group.subItems.map((it) => (
+                                          <Box
+                                            key={it.label}
+                                            component={Link}
+                                            to={it.path}
+                                            onClick={handleCloseMega}
+                                            sx={{
+                                              display: 'block',
+                                              textDecoration: 'none',
+                                              color: 'text.primary',
+                                              py: '4px',
+                                              fontSize: '0.95rem',
+                                              fontFamily: '"Montserrat", sans-serif',
+                                            }}
+                                          >
+                                            {it.label}
+                                          </Box>
+                                        ))}
+                                      </Box>
+                                    ))}
+                                </Box>
+
+                                <Box sx={{ mt: 2 }}>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, fontFamily: '"Montserrat", sans-serif' }}>
+                                    PEARSON BTEC HND IN COUNSELLING AND APPLIED PSYCHOLOGY
+                                  </Typography>
+                                </Box>
+                              </Box>
+
+                              {/* Column 2 */}
+                              <Box sx={{ minWidth: 0, flex: 1, borderLeft: '1px solid rgba(0,0,0,0.06)', pl: 3 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, fontFamily: '"Montserrat", sans-serif' }}>
+                                  DEAKIN 1+2 PATHWAY PROGRAMME
+                                </Typography>
+                                {programmesMenu
+                                  .filter((g) => g.label.includes('Deakin') || g.label.includes('BTEC HND Level 5 in Business'))
+                                  .map((group) => (
+                                    <Box key={group.label} sx={{ mb: 1 }}>
+                                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, fontFamily: '"Montserrat", sans-serif' }}>
+                                        {group.label}
+                                      </Typography>
+                                      {group.subItems.map((it) => (
+                                        <Box
+                                          key={it.label}
+                                          component={Link}
+                                          to={it.path}
+                                          onClick={handleCloseMega}
+                                          sx={{
+                                            display: 'block',
+                                            textDecoration: 'none',
+                                            color: 'text.primary',
+                                            py: '4px',
+                                            fontSize: '0.95rem',
+                                            fontFamily: '"Montserrat", sans-serif',
+                                          }}
+                                        >
+                                          {it.label}
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  ))}
+                                <Box sx={{ mt: 2 }}>
+                                  <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, fontFamily: '"Montserrat", sans-serif' }}>
+                                    BACHELOR OF EDUCATION HONOURS IN PRIMARY EDUCATION
+                                  </Typography>
+                                </Box>
+                              </Box>
+
+                              {/* Column 3 */}
+                              <Box sx={{ minWidth: 0, flex: 1, borderLeft: '1px solid rgba(0,0,0,0.06)', pl: 3 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1, fontFamily: '"Montserrat", sans-serif' }}>
+                                  TEACHER TRAINING DIPLOMAS
+                                </Typography>
+
+                                {programmesMenu
+                                  .filter((g) => g.label.includes('Teacher Training') || g.label.includes('UWE'))
+                                  .map((group) => (
+                                    <Box key={group.label} sx={{ mb: 1 }}>
+                                      <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5, fontFamily: '"Montserrat", sans-serif' }}>
+                                        {group.label}
+                                      </Typography>
+                                      {group.subItems.map((it) => (
+                                        <Box
+                                          key={it.label}
+                                          component={Link}
+                                          to={it.path}
+                                          onClick={handleCloseMega}
+                                          sx={{
+                                            display: 'block',
+                                            textDecoration: 'none',
+                                            color: 'text.primary',
+                                            py: '4px',
+                                            fontSize: '0.95rem',
+                                            fontFamily: '"Montserrat", sans-serif',
+                                          }}
+                                        >
+                                          {it.label}
+                                        </Box>
+                                      ))}
+                                    </Box>
+                                  ))}
+                              </Box>
+                            </Box>
+                          </Box>
+                        </ClickAwayListener>
+                      </Paper>
+                    </Grow>
+                  )}
+                </Popper>
               </Box>
 
               {/* Search */}
               {!isRemoveSearch && (
-                <Search onSubmit={handleSearchSubmit} sx={{ ml: 2, flexShrink: 1, minWidth: 120, maxWidth: 250 }}>
+                <Search onSubmit={handleSearchSubmit} sx={{ ml: 2 }}>
                   <SearchIconWrapper>
                     <SearchIcon />
                   </SearchIconWrapper>
-                  <StyledInputBase placeholder="Search…" sx={{ fontFamily: '"Montserrat", sans-serif' }} value={searchQuery} onChange={handleSearchChange} />
+                  <StyledInputBase placeholder="Search…" inputProps={{ 'aria-label': 'search' }} value={searchQuery} onChange={handleSearchChange} />
                 </Search>
               )}
             </Box>
           ) : (
-            <IconButton onClick={handleDrawerToggle} color="inherit">
+            /* Mobile Hamburger */
+            <IconButton edge="end" color="inherit" aria-label="menu" onClick={handleDrawerToggle}>
               <MenuIcon />
             </IconButton>
           )}
         </Toolbar>
       </Container>
 
-      {/* Drawer */}
-      <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle} PaperProps={{ sx: { width: '80%', maxWidth: 280 } }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <Box sx={{ p: 2, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'center', bgcolor: '#f8f8f8' }}>
-            <Box component={Link} to="/" onClick={handleDrawerToggle}>
-              <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ maxHeight: 50, width: 'auto' }} />
-            </Box>
-          </Box>
-
-          <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
-            <List>
-              {pages.map(({ label, path }) => (
-                <ListItemButton key={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} component={Link} to={path} onClick={handleDrawerToggle}>
-                  <ListItemText primary={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} />
-                </ListItemButton>
-              ))}
-
-              {/* Our Story Collapse */}
-              <ListItemButton onClick={() => setOpenOurStory(!openOurStory)} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
-                <ListItemText primary="Our Story" sx={{ fontFamily: '"Montserrat", sans-serif' }} />
-                {openOurStory ? <ExpandLess /> : <ExpandMore />}
+      {/* Mobile Drawer */}
+      <Drawer anchor="right" open={drawerOpen} onClose={handleDrawerToggle}>
+        <Box sx={{ width: 250 }} role="presentation" onClick={handleDrawerToggle} onKeyDown={handleDrawerToggle}>
+          <List>
+            {pages.map(({ label, path }) => (
+              <ListItemButton key={label} component={Link} to={path}>
+                <ListItemText primary={label} />
               </ListItemButton>
-              <Collapse in={openOurStory} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  {ourStoryMenu.map(({ label, path }) => (
-                    <ListItemButton key={label} sx={{ pl: 4, fontFamily: '"Montserrat", sans-serif' }} component={Link} to={path} onClick={handleDrawerToggle}>
-                      <ListItemText primary={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} />
-                    </ListItemButton>
-                  ))}
-                </List>
-              </Collapse>
-
-              {/* Faculties Collapse */}
-              <ListItemButton onClick={() => setOpenFaculties(!openFaculties)} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
-                <ListItemText primary="Faculties" sx={{ fontFamily: '"Montserrat", sans-serif' }} />
-                {openFaculties ? <ExpandLess /> : <ExpandMore />}
-              </ListItemButton>
-              <Collapse in={openFaculties} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  {facultiesMenu.map(({ label, path }) => (
-                    <ListItemButton key={label} sx={{ pl: 4, fontFamily: '"Montserrat", sans-serif' }} component={Link} to={path} onClick={handleDrawerToggle}>
-                      <ListItemText primary={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} />
-                    </ListItemButton>
-                  ))}
-                </List>
-              </Collapse>
-
-              {/* Programmes Collapse */}
-              <ListItemButton onClick={() => setOpenProgrammes(!openProgrammes)}>
-                <ListItemText primary="Programmes" sx={{ fontFamily: '"Montserrat", sans-serif' }} />
-                {openProgrammes ? <ExpandLess /> : <ExpandMore />}
-              </ListItemButton>
-              <Collapse in={openProgrammes} timeout="auto" unmountOnExit>
-                {programmesMenu.map((group) => (
-                  <Box key={group.label} sx={{ pl: 2, fontFamily: '"Montserrat", sans-serif' }}>
-                    <Typography variant="subtitle2" sx={{ pl: 1, pt: 1, fontWeight: 600, fontFamily: '"Montserrat", sans-serif' }}>
-                      {group.label}
-                    </Typography>
-                    {group.subItems.map(({ label, path }) => (
-                      <ListItemButton key={label} sx={{ pl: 4, fontFamily: '"Montserrat", sans-serif' }} component={Link} to={path} onClick={handleDrawerToggle}>
-                        <ListItemText primary={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} />
-                      </ListItemButton>
-                    ))}
-                  </Box>
-                ))}
-              </Collapse>
-            </List>
-          </Box>
-
-          {/* Bottom Info */}
-          <Box
-            sx={{
-              borderTop: '1px solid #ddd',
-              px: 0,
-              py: 1.5,
-              width: '100%',
-              textAlign: 'center',
-              bgcolor: '#f8f8f8',
-            }}
-          >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                gap: 1,
-                flexWrap: 'wrap',
-                fontSize: { xs: '0.65rem', sm: '0.7rem' },
-                fontFamily: '"Montserrat", sans-serif',
-                px: 0,
-              }}
-            >
-              <PhoneIcon />
-              <Typography component="span" sx={{ fontFamily: '"Montserrat", sans-serif', fontSize: '9.5px' }}>
-                (+94) 672260200
-              </Typography>
-              <Typography component="span" sx={{ fontFamily: '"Montserrat", sans-serif', fontSize: '9.5px' }}>
-                |
-              </Typography>
-              <EmailIcon />
-              <Typography component="span" sx={{ fontFamily: '"Montserrat", sans-serif', fontSize: '9.5px' }}>
-                info@brainiacs.edu.lk
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                gap: 1,
-                mt: 1,
-                width: '100%',
-                px: 0,
-              }}
-            >
-              {[FacebookIcon, InstagramIcon, TwitterIcon, LinkedInIcon].map((Icon, i) => (
-                <IconButton
-                  key={i}
-                  size="small"
-                  sx={{
-                    bgcolor: '#fff',
-                    borderRadius: '50%',
-                    '&:hover': { bgcolor: '#000', color: '#fff' },
-                  }}
-                >
-                  <Icon fontSize="small" />
-                </IconButton>
-              ))}
-            </Box>
-          </Box>
+            ))}
+          </List>
         </Box>
       </Drawer>
     </AppBar>
