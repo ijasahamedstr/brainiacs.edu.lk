@@ -40,6 +40,7 @@ const pages = [
   { label: 'Home', path: '/' },
   { label: 'Student Life', path: '/student-life' },
   { label: 'Events', path: '/events' },
+  { label: 'News', path: '/News' },
 ];
 
 const ourStoryMenu = [
@@ -193,7 +194,7 @@ export default function Navbar() {
     <AppBar
       position="static"
       sx={{
-        backgroundColor: '#ffffff',
+        backgroundColor: '#D0D3D4',
         color: 'black',
         boxShadow: 'none',
         transition: 'margin-top 0.3s ease',
@@ -457,18 +458,17 @@ export default function Navbar() {
               </Box>
 
               {/* Search */}
-              {!isRemoveSearch && (
-                <Search onSubmit={handleSearchSubmit} sx={{ ml: 2 }}>
+                {!isRemoveSearch && (
+                <Search onSubmit={handleSearchSubmit} sx={{ ml: 2, flexShrink: 1, minWidth: 120, maxWidth: 250 }}>
                   <SearchIconWrapper>
                     <SearchIcon />
                   </SearchIconWrapper>
-                  <StyledInputBase placeholder="Search…" inputProps={{ 'aria-label': 'search' }} value={searchQuery} onChange={handleSearchChange} />
+                  <StyledInputBase placeholder="Search…" sx={{ fontFamily: '"Montserrat", sans-serif' }} value={searchQuery} onChange={handleSearchChange} />
                 </Search>
               )}
             </Box>
           ) : (
-            /* Mobile Hamburger */
-            <IconButton edge="end" color="inherit" aria-label="menu" onClick={handleDrawerToggle}>
+            <IconButton onClick={handleDrawerToggle} color="inherit">
               <MenuIcon />
             </IconButton>
           )}
