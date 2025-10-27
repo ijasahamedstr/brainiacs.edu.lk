@@ -3,9 +3,6 @@ import {
   Box,
   Container,
   Typography,
-  Card,
-  CardContent,
-  CardMedia,
 } from "@mui/material";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
@@ -53,124 +50,205 @@ const councilMembers = [
   },
 ];
 
+// 👇 New Management Members (second section)
+const managementMembers = [
+  {
+    name: "Dr. John Smith",
+    title: "Chief Academic Officer",
+    image:
+      "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?auto=format&fit=crop&w=800&q=80",
+    bio: "Oversees academic programs and drives innovation in teaching and learning.",
+  },
+  {
+    name: "Ms. Sarah Johnson",
+    title: "Director of Student Affairs",
+    image:
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80",
+    bio: "Ensures student engagement and fosters a vibrant campus community.",
+  },
+  {
+    name: "Mr. Kevin Lee",
+    title: "Chief Operating Officer",
+    image:
+      "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&w=800&q=80",
+    bio: "Oversees daily operations and ensures efficiency across departments.",
+  },
+  {
+    name: "Ms. Amanda Perez",
+    title: "Head of Communications",
+    image:
+      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
+    bio: "Leads brand strategy and communication excellence across the organization.",
+  },
+];
+
 const LeadershipGovernance: React.FC = () => {
   useEffect(() => {
     new Rellax(".rellax");
   }, []);
 
   return (
-    <Box
-      sx={{
-        backgroundColor: "#f9fbff",
-        py: { xs: 6, md: 10 },
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* Soft blue rounded background */}
+    <>
+      {/* ---------------- COUNCIL MEMBERS SECTION ---------------- */}
       <Box
-        className="rellax d-none d-md-block"
         sx={{
-          position: "absolute",
-          top: -100,
-          left: -100,
-          width: 400,
-          height: 400,
-          borderRadius: "50%",
-          backgroundColor: "#cce4ff",
-          zIndex: 0,
+          backgroundColor: "#f9fbff",
+          py: { xs: 6, md: 10 },
+          position: "relative",
+          overflow: "hidden",
         }}
-        data-rellax-speed="-2"
-      />
-
-      <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
-        {/* Section Header */}
-        <Typography
-          variant="h6"
-          align="center"
+      >
+        {/* Parallax Soft Blue Circle */}
+        <Box
+          className="rellax"
+          data-rellax-speed="-2"
           sx={{
-            color: "text.secondary",
-            mb: 1,
-            fontWeight: 500,
-            fontFamily: "'Montserrat', sans-serif",
+            position: "absolute",
+            top: -120,
+            left: -120,
+            width: 420,
+            height: 420,
+            borderRadius: "50%",
+            backgroundColor: "#cce4ff",
+            zIndex: 0,
           }}
-        >
-          Council Members
-        </Typography>
-        <Typography
-          variant="h4"
-          align="center"
-          sx={{
-            fontWeight: 700,
-            mb: 6,
-            color: "#111",
-            fontFamily: "'Montserrat', sans-serif",
-          }}
-        >
-          Meet the Minds Shaping Campus Excellence
-        </Typography>
+        />
 
-        {/* Swiper Container */}
-        <Swiper
-          spaceBetween={30}
-          slidesPerView={1.2}
-          autoplay={{
-            delay: 3000,
-            disableOnInteraction: false,
-          }}
-          pagination={{ clickable: true }}
-          loop={true}
-          breakpoints={{
-            600: { slidesPerView: 2 },
-            900: { slidesPerView: 3 },
-            1200: { slidesPerView: 4 },
-          }}
-          modules={[Autoplay, Pagination]}
-          style={{ paddingBottom: "50px" }}
-        >
-          {councilMembers.map((member, index) => (
-            <SwiperSlide key={index}>
-              <Box
-                sx={{
-                  width: "100%",
-                  height: 400,
-                  position: "relative",
-                  transformStyle: "preserve-3d",
-                  transition: "transform 0.8s",
-                  cursor: "pointer",
-                  "&:hover": {
-                    transform: "rotateY(180deg)",
-                  },
-                  perspective: "1000px",
-                }}
-              >
-                {/* FRONT SIDE */}
-                <Card
+        <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
+          <Typography
+            variant="h6"
+            align="center"
+            sx={{
+              color: "text.secondary",
+              mb: 1,
+              fontWeight: 500,
+              fontFamily: "'Montserrat', sans-serif",
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
+          >
+            Council Members
+          </Typography>
+          <Typography
+            variant="h4"
+            align="center"
+            sx={{
+              fontWeight: 700,
+              mb: 6,
+              color: "#0a5397",
+              fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            Meet the Minds Shaping Campus Excellence
+          </Typography>
+
+          {/* Swiper Slider */}
+          <Swiper
+            spaceBetween={30}
+            slidesPerView={1.2}
+            autoplay={{
+              delay: 3000,
+              disableOnInteraction: false,
+            }}
+            pagination={{ clickable: true }}
+            loop={true}
+            breakpoints={{
+              600: { slidesPerView: 2 },
+              900: { slidesPerView: 3 },
+              1200: { slidesPerView: 4 },
+            }}
+            modules={[Autoplay, Pagination]}
+            style={{ paddingBottom: "50px" }}
+          >
+            {councilMembers.map((member, index) => (
+              <SwiperSlide key={index}>
+                <Box
                   sx={{
-                    position: "absolute",
                     width: "100%",
-                    height: "100%",
-                    backfaceVisibility: "hidden",
-                    borderRadius: 3,
-                    overflow: "hidden",
-                    textAlign: "center",
-                    boxShadow: 3,
-                    transition: "box-shadow 0.3s ease",
+                    height: 400,
+                    position: "relative",
+                    transformStyle: "preserve-3d",
+                    transition: "transform 0.8s",
+                    cursor: "pointer",
                     "&:hover": {
-                      boxShadow: 6,
+                      transform: "rotateY(180deg)",
                     },
+                    perspective: "1000px",
                   }}
                 >
-                  <CardMedia
-                    component="img"
-                    height="260"
-                    image={member.image}
-                    alt={member.name}
-                    sx={{ objectFit: "cover" }}
-                  />
-                  <CardContent sx={{ py: 3 }}>
+                  {/* Front Side */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: 3,
+                      backfaceVisibility: "hidden",
+                      textAlign: "center",
+                      boxShadow: 3,
+                      backgroundColor: "#fff",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={member.image}
+                      alt={member.name}
+                      sx={{
+                        width: 220,
+                        height: 220,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        mx: "auto",
+                        mt: 3,
+                      }}
+                    />
+                    <Box sx={{ py: 3 }}>
+                      <Typography
+                        variant="subtitle1"
+                        sx={{
+                          fontWeight: 700,
+                          mb: 1,
+                          fontFamily: "'Montserrat', sans-serif",
+                        }}
+                      >
+                        {member.name}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "text.secondary",
+                          lineHeight: 1.6,
+                          fontFamily: "'Montserrat', sans-serif",
+                        }}
+                      >
+                        {member.title}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Back Side */}
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: 3,
+                      backfaceVisibility: "hidden",
+                      transform: "rotateY(180deg)",
+                      background: "linear-gradient(135deg, #1a237e, #3949ab)",
+                      color: "#fff",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      textAlign: "center",
+                      px: 3,
+                      boxShadow: 4,
+                    }}
+                  >
                     <Typography
-                      variant="subtitle1"
+                      variant="h6"
                       sx={{
                         fontWeight: 700,
                         mb: 1,
@@ -180,40 +258,132 @@ const LeadershipGovernance: React.FC = () => {
                       {member.name}
                     </Typography>
                     <Typography
-                      variant="body2"
+                      variant="subtitle2"
                       sx={{
-                        color: "text.secondary",
-                        lineHeight: 1.6,
+                        opacity: 0.9,
+                        mb: 2,
                         fontFamily: "'Montserrat', sans-serif",
                       }}
                     >
                       {member.title}
                     </Typography>
-                  </CardContent>
-                </Card>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        lineHeight: 1.7,
+                        maxWidth: 240,
+                        fontFamily: "'Montserrat', sans-serif",
+                      }}
+                    >
+                      {member.bio}
+                    </Typography>
+                  </Box>
+                </Box>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </Container>
+      </Box>
 
-                {/* BACK SIDE */}
-                <Card
+      {/* ---------------- MANAGEMENT MEMBERS SECTION ---------------- */}
+      <Box
+        sx={{
+          backgroundColor: "#ffffff",
+          py: { xs: 6, md: 10 },
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Decorative Circle */}
+        <Box
+          className="rellax"
+          data-rellax-speed="2"
+          sx={{
+            position: "absolute",
+            bottom: -120,
+            right: -120,
+            width: 400,
+            height: 400,
+            borderRadius: "50%",
+            backgroundColor: "#e3f2fd",
+            zIndex: 0,
+          }}
+        />
+
+        <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
+          <Typography
+            variant="h6"
+            align="center"
+            sx={{
+              color: "text.secondary",
+              mb: 1,
+              fontWeight: 500,
+              fontFamily: "'Montserrat', sans-serif",
+              letterSpacing: 1,
+            }}
+          >
+            Management Members
+          </Typography>
+          <Typography
+            variant="h4"
+            align="center"
+            sx={{
+              fontWeight: 700,
+              mb: 6,
+              color: "#0a5397",
+              fontFamily: "'Montserrat', sans-serif",
+            }}
+          >
+            Where Vision Meets Leadership
+          </Typography>
+
+          {/* ✅ Clean layout without Card */}
+          <Swiper
+            spaceBetween={30}
+            slidesPerView={1.2}
+            autoplay={{
+              delay: 3500,
+              disableOnInteraction: false,
+            }}
+            pagination={{ clickable: true }}
+            loop={true}
+            breakpoints={{
+              600: { slidesPerView: 2 },
+              900: { slidesPerView: 3 },
+              1200: { slidesPerView: 4 },
+            }}
+            modules={[Autoplay, Pagination]}
+            style={{ paddingBottom: "50px" }}
+          >
+            {managementMembers.map((member, index) => (
+              <SwiperSlide key={index}>
+                <Box
                   sx={{
-                    position: "absolute",
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: 3,
-                    backfaceVisibility: "hidden",
-                    transform: "rotateY(180deg)",
-                    background: "linear-gradient(135deg, #1a237e, #3949ab)",
-                    color: "#fff",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
                     textAlign: "center",
-                    px: 3,
-                    boxShadow: 4,
+                    p: 3,
+                    borderRadius: 3,
+                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                    "&:hover": {
+                      transform: "translateY(-6px)",
+                    },
                   }}
                 >
+                  <Box
+                    component="img"
+                    src={member.image}
+                    alt={member.name}
+                    sx={{
+                      width: 220,
+                      height: 220,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      mx: "auto",
+                      mb: 2,
+                      boxShadow: 3,
+                    }}
+                  />
                   <Typography
-                    variant="h6"
+                    variant="subtitle1"
                     sx={{
                       fontWeight: 700,
                       mb: 1,
@@ -223,10 +393,10 @@ const LeadershipGovernance: React.FC = () => {
                     {member.name}
                   </Typography>
                   <Typography
-                    variant="subtitle2"
+                    variant="body2"
                     sx={{
-                      opacity: 0.9,
-                      mb: 2,
+                      color: "text.secondary",
+                      mb: 1,
                       fontFamily: "'Montserrat', sans-serif",
                     }}
                   >
@@ -235,20 +405,21 @@ const LeadershipGovernance: React.FC = () => {
                   <Typography
                     variant="body2"
                     sx={{
-                      lineHeight: 1.7,
-                      maxWidth: 240,
+                      color: "text.secondary",
                       fontFamily: "'Montserrat', sans-serif",
+                      maxWidth: 280,
+                      mx: "auto",
                     }}
                   >
                     {member.bio}
                   </Typography>
-                </Card>
-              </Box>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </Container>
-    </Box>
+                </Box>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        </Container>
+      </Box>
+    </>
   );
 };
 
