@@ -8,6 +8,7 @@ import Inquiries from './Page/inquiries';
 import Aboutus from './Page/About Us';
 import Presidentmessage from './Page/Presidentmessage';
 import Leadersipgovernance from './Page/leadersip-governance';
+import Events from './Page/Events';
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/aboutus" element={<Aboutus/>} />
         <Route path="/Presidentmessage" element={<Presidentmessage/>} />
         <Route path="/leadersip-governance" element={<Leadersipgovernance/>} />
+        <Route path="/events" element={< Events/>} />
         <Route path="/pricing" element={<div>Pricing Page</div>} />
         <Route path="/blog" element={<div>Blog Page</div>} />
         {/* Add routes for settings if needed */}
