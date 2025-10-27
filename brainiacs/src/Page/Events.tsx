@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import Rellax from "rellax";
 
 const Events: React.FC = () => {
@@ -61,7 +62,7 @@ const Events: React.FC = () => {
   useEffect(() => {
     if (circleRef.current) {
       new Rellax(circleRef.current, {
-        speed: -3, // Negative for opposite scroll
+        speed: -3,
         center: false,
         wrapper: null,
         round: true,
@@ -203,44 +204,49 @@ const Events: React.FC = () => {
 
         <div style={styles.grid}>
           {currentEvents.map((event, index) => (
-            <div
+            <Link
+              to={`/events/${event.title.replace(/\s+/g, "-").toLowerCase()}`}
               key={index}
-              style={{ ...styles.card, cursor: "pointer" }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "scale(1.03)";
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 8px 16px rgba(0,0,0,0.2)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.transform = "scale(1)";
-                (e.currentTarget as HTMLElement).style.boxShadow =
-                  "0 4px 12px rgba(0,0,0,0.1)";
-              }}
+              style={{ textDecoration: "none" }}
             >
-              <img src={event.image} alt={event.title} style={styles.image} />
-              <div style={styles.info}>
-                <h3 style={styles.eventName}>{event.title}</h3>
-                <p style={styles.date}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    fill="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                  {event.date}
-                </p>
+              <div
+                style={{ ...styles.card, cursor: "pointer" }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = "scale(1.03)";
+                  (e.currentTarget as HTMLElement).style.boxShadow =
+                    "0 8px 16px rgba(0,0,0,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+                  (e.currentTarget as HTMLElement).style.boxShadow =
+                    "0 4px 12px rgba(0,0,0,0.1)";
+                }}
+              >
+                <img src={event.image} alt={event.title} style={styles.image} />
+                <div style={styles.info}>
+                  <h3 style={styles.eventName}>{event.title}</h3>
+                  <p style={styles.date}>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
+                      />
+                    </svg>
+                    {event.date}
+                  </p>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 

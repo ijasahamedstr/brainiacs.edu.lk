@@ -47,7 +47,7 @@ const ourStoryMenu = [
   { label: 'About Us', path: '/aboutus' },
   { label: 'Leadership and Governance', path: '/leadersip-governance' },
   { label: "President's Message", path: '/Presidentmessage' },
-  { label: 'Our Partners', path: '/faculties/partners' },
+  { label: 'Our Partners', path: '/partners' },
 ];
 
 const facultiesMenu = [
