@@ -476,15 +476,138 @@ export default function Navbar() {
       </Container>
 
       {/* Mobile Drawer */}
-      <Drawer anchor="right" open={drawerOpen} onClose={handleDrawerToggle}>
-        <Box sx={{ width: 250 }} role="presentation" onClick={handleDrawerToggle} onKeyDown={handleDrawerToggle}>
-          <List>
-            {pages.map(({ label, path }) => (
-              <ListItemButton key={label} component={Link} to={path}>
-                <ListItemText primary={label} />
+
+      {/* Drawer */}
+      <Drawer anchor="left" open={drawerOpen} onClose={handleDrawerToggle} PaperProps={{ sx: { width: '80%', maxWidth: 280 } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Box sx={{ p: 2, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'center', bgcolor: '#f8f8f8' }}>
+            <Box component={Link} to="/" onClick={handleDrawerToggle}>
+              <img src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" alt="Logo" style={{ maxHeight: 50, width: 'auto' }} />
+            </Box>
+          </Box>
+
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 2 }}>
+            <List>
+              {pages.map(({ label, path }) => (
+                <ListItemButton key={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} component={Link} to={path} onClick={handleDrawerToggle}>
+                  <ListItemText primary={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} />
+                </ListItemButton>
+              ))}
+
+              {/* Our Story Collapse */}
+              <ListItemButton onClick={() => setOpenOurStory(!openOurStory)} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
+                <ListItemText primary="Our Story" sx={{ fontFamily: '"Montserrat", sans-serif' }} />
+                {openOurStory ? <ExpandLess /> : <ExpandMore />}
               </ListItemButton>
-            ))}
-          </List>
+              <Collapse in={openOurStory} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {ourStoryMenu.map(({ label, path }) => (
+                    <ListItemButton key={label} sx={{ pl: 4, fontFamily: '"Montserrat", sans-serif' }} component={Link} to={path} onClick={handleDrawerToggle}>
+                      <ListItemText primary={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} />
+                    </ListItemButton>
+                  ))}
+                </List>
+              </Collapse>
+
+              {/* Faculties Collapse */}
+              <ListItemButton onClick={() => setOpenFaculties(!openFaculties)} sx={{ fontFamily: '"Montserrat", sans-serif' }}>
+                <ListItemText primary="Faculties" sx={{ fontFamily: '"Montserrat", sans-serif' }} />
+                {openFaculties ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+              <Collapse in={openFaculties} timeout="auto" unmountOnExit>
+                <List component="div" disablePadding>
+                  {facultiesMenu.map(({ label, path }) => (
+                    <ListItemButton key={label} sx={{ pl: 4, fontFamily: '"Montserrat", sans-serif' }} component={Link} to={path} onClick={handleDrawerToggle}>
+                      <ListItemText primary={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} />
+                    </ListItemButton>
+                  ))}
+                </List>
+              </Collapse>
+
+              {/* Programmes Collapse */}
+              <ListItemButton onClick={() => setOpenProgrammes(!openProgrammes)}>
+                <ListItemText primary="Programmes" sx={{ fontFamily: '"Montserrat", sans-serif' }} />
+                {openProgrammes ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+              <Collapse in={openProgrammes} timeout="auto" unmountOnExit>
+                {programmesMenu.map((group) => (
+                  <Box key={group.label} sx={{ pl: 2, fontFamily: '"Montserrat", sans-serif' }}>
+                    <Typography variant="subtitle2" sx={{ pl: 1, pt: 1, fontWeight: 600, fontFamily: '"Montserrat", sans-serif' }}>
+                      {group.label}
+                    </Typography>
+                    {group.subItems.map(({ label, path }) => (
+                      <ListItemButton key={label} sx={{ pl: 4, fontFamily: '"Montserrat", sans-serif' }} component={Link} to={path} onClick={handleDrawerToggle}>
+                        <ListItemText primary={label} sx={{ fontFamily: '"Montserrat", sans-serif' }} />
+                      </ListItemButton>
+                    ))}
+                  </Box>
+                ))}
+              </Collapse>
+            </List>
+          </Box>
+
+          {/* Bottom Info */}
+          <Box
+            sx={{
+              borderTop: '1px solid #ddd',
+              px: 0,
+              py: 1.5,
+              width: '100%',
+              textAlign: 'center',
+              bgcolor: '#f8f8f8',
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '100%',
+                gap: 1,
+                flexWrap: 'wrap',
+                fontSize: { xs: '0.65rem', sm: '0.7rem' },
+                fontFamily: '"Montserrat", sans-serif',
+                px: 0,
+              }}
+            >
+              <PhoneIcon />
+              <Typography component="span" sx={{ fontFamily: '"Montserrat", sans-serif', fontSize: '9.5px' }}>
+                (+94) 672260200
+              </Typography>
+              <Typography component="span" sx={{ fontFamily: '"Montserrat", sans-serif', fontSize: '9.5px' }}>
+                |
+              </Typography>
+              <EmailIcon />
+              <Typography component="span" sx={{ fontFamily: '"Montserrat", sans-serif', fontSize: '9.5px' }}>
+                info@brainiacs.edu.lk
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 1,
+                mt: 1,
+                width: '100%',
+                px: 0,
+              }}
+            >
+              {[FacebookIcon, InstagramIcon, TwitterIcon, LinkedInIcon].map((Icon, i) => (
+                <IconButton
+                  key={i}
+                  size="small"
+                  sx={{
+                    bgcolor: '#fff',
+                    borderRadius: '50%',
+                    '&:hover': { bgcolor: '#000', color: '#fff' },
+                  }}
+                >
+                  <Icon fontSize="small" />
+                </IconButton>
+              ))}
+            </Box>
+          </Box>
         </Box>
       </Drawer>
     </AppBar>
