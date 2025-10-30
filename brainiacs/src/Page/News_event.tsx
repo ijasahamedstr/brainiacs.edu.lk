@@ -51,7 +51,7 @@ const NewsEvent: React.FC = () => {
           >
             <Box
               component="img"
-              src="https://i.ibb.co/zWyQj3Yj/547227038-1191532979682125-4255025107900974708-n-1024x683.webp"
+              src="https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/events/new-student-council-installation-lyceum-campus-1-1.webp"
               alt="Brainiacs Campus"
               sx={{
                 width: "100%",
