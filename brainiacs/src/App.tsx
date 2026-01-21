@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Products from './Page/Products';
 import Navbar from './Page/Navbar';
 import Footer from './Page/Footer';
@@ -17,34 +18,71 @@ import NewsView from './Page/News-view';
 import Course from './Page/coures';
 import Login from './Page/Admin/Login';
 
+// --- Protected Route Component ---
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
 
+// --- Layout Wrapper Component ---
+// This component handles the conditional visibility of Navbar and Footer
+const AppContent = () => {
+  const location = useLocation();
+  
+  // Define paths where you don't want Navbar/Footer
+  const hideLayoutPaths = ['/login', '/dashboard', '/Dashboard'];
+  const shouldHideLayout = hideLayoutPaths.includes(location.pathname);
+
+  return (
+    <>
+      {!shouldHideLayout && <Navbar />}
+      
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/inquiries" element={<Inquiries />} />
+        <Route path="/aboutus" element={<Aboutus />} />
+        <Route path="/Presidentmessage" element={<Presidentmessage />} />
+        <Route path="/leadersip-governance" element={<Leadersipgovernance />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/events/uni-sittham" element={<Event_view />} />
+        <Route path="/partners" element={<Partners />} />
+        <Route path="/student-life" element={<Studentlife />} />
+        <Route path="/student-life/view" element={<Studentlifeview />} />
+        <Route path="/News" element={<News />} />
+        <Route path="/news/view" element={<NewsView />} />
+        <Route path="/programmes/foundation-business" element={<Course />} />
+        <Route path="/pricing" element={<div>Pricing Page</div>} />
+        <Route path="/blog" element={<div>Blog Page</div>} />
+        
+        {/* Login Route */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Example of a Protected Route (Dashboard) */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <div>Admin Dashboard Content Here</div>
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
+
+      {!shouldHideLayout && <Footer />}
+    </>
+  );
+};
+
+// --- Main App Component ---
 function App() {
   return (
     <Router>
-      <Navbar/>     
-      <Routes>
-        <Route path="/" element={< Home/>} />
-        <Route path="/products" element={<Products/>} />
-        <Route path="/inquiries" element={<Inquiries/>} />
-        <Route path="/aboutus" element={<Aboutus/>} />
-        <Route path="/Presidentmessage" element={<Presidentmessage/>} />
-        <Route path="/leadersip-governance" element={<Leadersipgovernance/>} />
-        <Route path="/events/uni-sittham" element={<Studentlifeview/>} />
-        <Route path="/events" element={< Events/>} />
-        <Route path="/events/uni-sittham" element={< Event_view/>} />
-        <Route path="/partners" element={< Partners/>} />
-        <Route path="/student-life" element={< Studentlife/>} />
-        <Route path="/News" element={< News/>} />
-        <Route path="/events/uni-sittham-nes" element={< NewsView/>} />
-        <Route path="/programmes/foundation-business" element={< Course/>} />
-        <Route path="/pricing" element={<div>Pricing Page</div>} />
-        <Route path="/blog" element={<div>Blog Page</div>} />
-        {/* Add routes for settings if needed */}
-
-        <Route path="/login" element={< Login/>} />
-        
-      </Routes>
-      <Footer/>
+      <AppContent />
     </Router>
   );
 }
