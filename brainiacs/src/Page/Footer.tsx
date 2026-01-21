@@ -5,27 +5,39 @@ import {
   Typography,
   Link,
   IconButton,
+  Divider,
+  Stack,
 } from "@mui/material";
-import {
-  Facebook,
-  Twitter,
-  Instagram,
-  LinkedIn,
-  LocationOn,
-  Email,
-  Phone,
+import { 
+  Facebook, 
+  Instagram, 
+  Email, 
+  Phone, 
+  WhatsApp 
 } from "@mui/icons-material";
 
 const Footer: React.FC = () => {
+  const primaryFont = '"Montserrat", sans-serif';
+  const brandBlue = "#0a5397"; // Your brand color
+
+  // Social Media Data with Custom Brand Colors
+  const socialLinks = [
+    { icon: <Phone fontSize="small" />, link: "tel:+974502260200", color: "#4caf50" },
+    { icon: <WhatsApp fontSize="small" />, link: "https://wa.me/974502260200", color: "#25D366" },
+    { icon: <Email fontSize="small" />, link: "mailto:info@almtcqatar.com", color: "#EA4335" },
+    { icon: <Facebook fontSize="small" />, link: "https://facebook.com", color: "#1877F2" },
+    { icon: <Instagram fontSize="small" />, link: "https://instagram.com", color: "#E4405F" },
+  ];
+
   return (
-    <Box component="footer" sx={{ fontFamily: "'Montserrat', sans-serif" }}>
-      {/* Main Footer */}
+    <Box component="footer" sx={{ fontFamily: primaryFont }}>
+      {/* Main Footer Section */}
       <Box
         sx={{
-          background: "linear-gradient(135deg, #0a5397, #35b74b)",
+          backgroundColor: "#7a7676", // Dark grey background
           color: "#fff",
-          py: { xs: 6, md: 10 },
-          boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.2)",
+          py: { xs: 6, md: 8 },
+          px: { xs: 2, sm: 4 },
         }}
       >
         <Container maxWidth="lg">
@@ -34,194 +46,49 @@ const Footer: React.FC = () => {
               display: "flex",
               flexDirection: { xs: "column", md: "row" },
               justifyContent: "space-between",
-              alignItems: "flex-start",
-              flexWrap: "wrap",
-              gap: { xs: 4, md: 0 },
+              alignItems: { xs: "center", md: "flex-start" },
+              gap: 4,
+              textAlign: { xs: "center", md: "left" },
             }}
           >
-            {/* Logo Section (40%) */}
+            {/* Logo & Social Icons */}
             <Box
               sx={{
-                flexBasis: { xs: "100%", md: "40%" },
-                pr: { md: 4 },
+                flexBasis: { xs: "100%", md: "30%" },
                 display: "flex",
                 flexDirection: "column",
                 alignItems: { xs: "center", md: "flex-start" },
+                gap: 2,
               }}
             >
               <Box
                 component="img"
                 src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
-                alt="Company Logo"
+                alt="MTC Logo"
                 sx={{
-                  width: { xs: 220, sm: 240, md: 220 }, // ✅ Bigger on mobile
+                  width: 160,
                   height: "auto",
-                  mb: 3,
-                  objectFit: "contain",
-                  backgroundColor: "rgba(255, 255, 255, 0.15)",
-                  borderRadius: "16px",
-                  p: 1.5,
-                  boxShadow: "0 6px 20px rgba(0,0,0,0.4)",
-                  backdropFilter: "blur(6px)",
-                  border: "1px solid rgba(255,255,255,0.3)",
-                  transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                  "&:hover": {
-                    transform: "scale(1.05)",
-                    boxShadow: "0 10px 25px rgba(0,0,0,0.5)",
-                  },
+                  mb: 1,
+                  // filter: "brightness(0) invert(1)", 
                 }}
               />
+              
               <Typography
                 variant="body2"
-                sx={{
-                  lineHeight: 1.7,
-                  opacity: 0.95,
-                  fontSize: "1rem",
-                  textAlign: "justify",
-                  fontFamily: "'Montserrat', sans-serif",
+                sx={{ 
+                  fontWeight: 600, 
+                  fontSize: "0.85rem", 
+                  textTransform: "uppercase", 
+                  letterSpacing: 1.5,
+                  fontFamily: primaryFont,
+                  opacity: 0.8
                 }}
               >
-                Brainiacs Campus, the higher education arm of the Brainiacs
-                Education Group, has always been committed to guiding students
-                in choosing the right path in their educational journey by
-                offering a wide range of quality, practical, and internationally
-                recognized programmes.
-              </Typography>
-            </Box>
-
-            {/* Quick Links */}
-            <Box sx={{ flexBasis: { xs: "100%", md: "20%" } }}>
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{
-                  fontWeight: 600,
-                  mb: 2,
-                  letterSpacing: 0.5,
-                  color: "#0a5397",
-                  fontFamily: "'Montserrat', sans-serif",
-                }}
-              >
-                Quick Links
-              </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {["Home", "About", "Admissions", "Contact"].map((text) => (
-                  <Link
-                    key={text}
-                    href="#"
-                    color="inherit"
-                    underline="hover"
-                    sx={{
-                      transition: "color 0.3s ease",
-                      "&:hover": { color: "#d4f7d4" },
-                      fontFamily: "'Montserrat', sans-serif",
-                    }}
-                  >
-                    {text}
-                  </Link>
-                ))}
-              </Box>
-            </Box>
-
-            {/* Programs */}
-            <Box sx={{ flexBasis: { xs: "100%", md: "20%" } }}>
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{
-                  fontWeight: 600,
-                  mb: 2,
-                  letterSpacing: 0.5,
-                  color: "#0a5397",
-                  fontFamily: "'Montserrat', sans-serif",
-                }}
-              >
-                Programs
-              </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {[
-                  "Undergraduate",
-                  "Postgraduate",
-                  "Short Courses",
-                  "Online Learning",
-                ].map((text) => (
-                  <Link
-                    key={text}
-                    href="#"
-                    color="inherit"
-                    underline="hover"
-                    sx={{
-                      transition: "color 0.3s ease",
-                      "&:hover": { color: "#d4f7d4" },
-                      fontFamily: "'Montserrat', sans-serif",
-                    }}
-                  >
-                    {text}
-                  </Link>
-                ))}
-              </Box>
-            </Box>
-
-            {/* Social Media + Contact Info */}
-            <Box sx={{ flexBasis: { xs: "100%", md: "20%" } }}>
-              <Typography
-                variant="h6"
-                gutterBottom
-                sx={{
-                  fontWeight: 600,
-                  mb: 2,
-                  letterSpacing: 0.5,
-                  color: "#0a5397",
-                  fontFamily: "'Montserrat', sans-serif",
-                }}
-              >
-                Contact Us
+                Connect with us
               </Typography>
 
-              {/* Contact Info */}
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <LocationOn fontSize="small" />
-                  <Typography
-                    variant="body2"
-                    sx={{ fontFamily: "'Montserrat', sans-serif" }}
-                  >
-                    No. 100, Alivanniyar Road, Sammanthurai
-                  </Typography>
-                </Box>
-
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Email fontSize="small" />
-                  <Link
-                    href="mailto:campus@lyceum.lk"
-                    color="inherit"
-                    underline="hover"
-                    sx={{ "&:hover": { color: "#d4f7d4" } }}
-                  >
-                    info@brainiacs.edu.lk
-                  </Link>
-                </Box>
-
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-                  <Phone fontSize="small" />
-                  <Link
-                    href="tel:+94765400777"
-                    color="inherit"
-                    underline="hover"
-                    sx={{ "&:hover": { color: "#d4f7d4" } }}
-                  >
-                    (+94) 672260200
-                  </Link>
-                </Box>
-              </Box>
-
-              <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-                {[
-                  { icon: <Facebook />, link: "https://facebook.com" },
-                  { icon: <Twitter />, link: "https://twitter.com" },
-                  { icon: <Instagram />, link: "https://instagram.com" },
-                  { icon: <LinkedIn />, link: "https://linkedin.com" },
-                ].map((item, index) => (
+              <Stack direction="row" spacing={1.5}>
+                {socialLinks.map((item, index) => (
                   <IconButton
                     key={index}
                     href={item.link}
@@ -229,44 +96,181 @@ const Footer: React.FC = () => {
                     sx={{
                       color: "#fff",
                       backgroundColor: "rgba(255,255,255,0.1)",
-                      borderRadius: "50%",
+                      borderRadius: "12px",
                       width: 40,
                       height: 40,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transition: "all 0.3s ease",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
                       "&:hover": {
-                        transform: "scale(1.2)",
-                        backgroundColor: "#d4f7d4",
-                        color: "#0a5397",
+                        backgroundColor: item.color,
+                        borderColor: item.color,
+                        transform: "translateY(-5px)",
+                        boxShadow: `0 10px 20px ${item.color}66`,
                       },
                     }}
                   >
                     {item.icon}
                   </IconButton>
                 ))}
+              </Stack>
+            </Box>
+
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{
+                display: { xs: "none", md: "block" },
+                borderColor: "rgba(255,255,255,0.15)",
+              }}
+            />
+
+            {/* Address Section */}
+            <Box sx={{ flexBasis: { xs: "100%", md: "25%" } }}>
+              <Typography
+                variant="h6"
+                sx={{ 
+                    mb: 3, 
+                    fontSize: "0.95rem", 
+                    fontWeight: 800, 
+                    fontFamily: primaryFont,
+                    color: brandBlue // Applied Heading Color
+                }}
+              >
+                ADDRESS
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ lineHeight: 1.8, opacity: 0.9, fontFamily: primaryFont }}
+              >
+                Al Mubthadieen Trading & Contracting (MTC)
+                <br />
+                P.O.BOX 23693,
+                <br />
+                Tel: +974 502260200,
+                <br />
+                Al Muntazah, Al Rawabi St, Doha,
+                <br />
+                Office Doha - Qatar
+              </Typography>
+            </Box>
+
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{ display: { xs: "none", md: "block" }, borderColor: "rgba(255,255,255,0.15)" }}
+            />
+
+            {/* Contact Section */}
+            <Box sx={{ flexBasis: { xs: "100%", md: "20%" } }}>
+              <Typography
+                variant="h6"
+                sx={{ 
+                    mb: 3, 
+                    fontSize: "0.95rem", 
+                    fontWeight: 800, 
+                    fontFamily: primaryFont,
+                    color: brandBlue // Applied Heading Color
+                }}
+              >
+                CONTACT
+              </Typography>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                <Typography variant="body2" sx={{ fontFamily: primaryFont }}>
+                  +94 672260200 <br /> +974 502260200
+                </Typography>
+                <Link
+                  href="mailto:info@almtcqatar.com"
+                  sx={{
+                    color: "inherit",
+                    fontSize: "0.85rem",
+                    textDecoration: "none",
+                    fontFamily: primaryFont,
+                    fontWeight: 500,
+                    "&:hover": { color: brandBlue }, // Links hover to brand blue
+                  }}
+                >
+                  info@almtcqatar.com
+                </Link>
               </Box>
+            </Box>
+
+            <Divider
+              orientation="vertical"
+              flexItem
+              sx={{ display: { xs: "none", md: "block" }, borderColor: "rgba(255,255,255,0.15)" }}
+            />
+
+            {/* Opening Hours */}
+            <Box sx={{ flexBasis: { xs: "100%", md: "20%" } }}>
+              <Typography
+                variant="h6"
+                sx={{ 
+                    mb: 3, 
+                    fontSize: "0.95rem", 
+                    fontWeight: 800, 
+                    fontFamily: primaryFont,
+                    color: brandBlue // Applied Heading Color
+                }}
+              >
+                OPENING HOURS
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ lineHeight: 1.8, opacity: 0.9, fontFamily: primaryFont }}
+              >
+                Saturday - Thursday
+                <br />
+                8:00 AM - 6:00 PM
+                <br />
+                Friday: Closed
+              </Typography>
             </Box>
           </Box>
         </Container>
       </Box>
 
-      {/* Bottom Section */}
-      <Box sx={{ backgroundColor: "#28282B", py: 2 }}>
-        <Container maxWidth="lg">
+      {/* Bottom Footer Bar */}
+      <Box sx={{ backgroundColor: "#000", py: 2.5 }}>
+        <Container
+          maxWidth="lg"
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
           <Typography
             variant="body2"
-            sx={{
-              fontSize: "1rem",
-              textAlign: "center",
-              color: "#fff",
-              fontFamily: "'Montserrat', sans-serif",
-            }}
+            sx={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8rem", fontFamily: primaryFont }}
           >
-            &copy; {new Date().getFullYear()} brainiacs.edu.lk. All rights
-            reserved.
+            Copyright © 2026 | Al Mubthadieen Trading & Contracting (MTC)
           </Typography>
+          
+          <Stack 
+            direction="row" 
+            spacing={2} 
+            divider={<Typography sx={{ color: "rgba(255,255,255,0.2)" }}>|</Typography>}
+            sx={{ display: { xs: "none", md: "flex" } }}
+          >
+            {["Home", "Portfolio", "Project", "Expertise", "Contact us"].map((text) => (
+              <Link
+                key={text}
+                href="#"
+                sx={{
+                  color: "#FFF",
+                  textDecoration: "none",
+                  fontSize: "0.8rem",
+                  fontFamily: primaryFont,
+                  transition: "color 0.2s",
+                  "&:hover": { color: brandBlue }, // Bottom menu hover to brand blue
+                }}
+              >
+                {text}
+              </Link>
+            ))}
+          </Stack>
         </Container>
       </Box>
     </Box>

@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Topbar from "./Page/Topbar";
 import Products from './Page/Products';
 import Navbar from './Page/Navbar';
 import Footer from './Page/Footer';
@@ -16,12 +15,12 @@ import Studentlifeview from './Page/Student-life-view';
 import News from './Page/News';
 import NewsView from './Page/News-view';
 import Course from './Page/coures';
+import Login from './Page/Admin/Login';
 
 
 function App() {
   return (
     <Router>
-      <Topbar />
       <Navbar/>     
       <Routes>
         <Route path="/" element={< Home/>} />
@@ -41,6 +40,9 @@ function App() {
         <Route path="/pricing" element={<div>Pricing Page</div>} />
         <Route path="/blog" element={<div>Blog Page</div>} />
         {/* Add routes for settings if needed */}
+
+        <Route path="/login" element={< Login/>} />
+        
       </Routes>
       <Footer/>
     </Router>

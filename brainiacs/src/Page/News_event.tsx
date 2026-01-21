@@ -1,269 +1,336 @@
 import React from "react";
-import { Box, Container, Typography, Button } from "@mui/material";
-import EventNoteIcon from "@mui/icons-material/EventNote";
+import { Box, Container, Typography, Button, Stack } from "@mui/material";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import AddIcon from "@mui/icons-material/Add";
 
 const NewsEvent: React.FC = () => {
-  const news = [
-    { title: "Orientation Week Kicks Off", date: "Oct 10, 2025" },
-    { title: "New Scholarship Program Announced", date: "Sep 28, 2025" },
-    { title: "Industry Meet: Careers in Tech", date: "Aug 15, 2025" },
-    { title: "Industry Meet: Careers in Tech", date: "Aug 15, 2025" },
+  const secondaryNews = [
+    { title: "Orientation Week Kicks Off", date: "Oct 10, 2025", category: "Campus" },
+    { title: "New Scholarship Program", date: "Sep 28, 2025", category: "Finance" },
+    { title: "Industry Meet: Tech Careers", date: "Aug 15, 2025", category: "Career" },
+    { title: "Global Research Symposium", date: "Aug 05, 2025", category: "Academic" },
   ];
 
-  const news1 = [
-    {
-      title: "ESOFT Metro Campus Awards Ceremony 2025",
-      date: "September 12, 2025",
-      description:
-        "The ESOFT Metro Campus Awards Ceremony was held on 12th September 2025 at the prestigious BMICH, celebrating the remarkable achievements of over 1,300 students.",
-    },
-  ];
+  const featuredNews = {
+    title: "ESOFT Metro Campus Awards Ceremony 2025",
+    date: "September 12, 2025",
+    description:
+      "A night of excellence at the BMICH, celebrating the remarkable achievements of over 1,300 graduates paving their way into the future.",
+    image: "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/events/new-student-council-installation-lyceum-campus-1-1.webp"
+  };
+
+  const primaryFont = '"Montserrat", sans-serif';
+  const brandBlue = "#0054f8";
 
   return (
-    <Container
-      maxWidth={false}
-      disableGutters
-      sx={{ p: 0, m: 0, width: "100%" }}
-    >
-      <Box sx={{ width: "100%", mt: "-40px" }}> {/* Negative margin applied */}
-        <Box
-          sx={{
-            width: "100%",
-            py: { xs: 3, md: 5 },
-            fontFamily: '"Montserrat", sans-serif',
-            display: "grid",
-            gap: 0,
-            alignItems: "stretch",
-            gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1.2fr 0.9fr 1fr" },
-          }}
-        >
-          {/* Column 1 — Image */}
+    <Container maxWidth="xl" sx={{ py: 8, px: { xs: 2, md: 4 } }}>
+      <Box 
+        sx={{ 
+          display: "grid", 
+          gap: 4, 
+          gridTemplateColumns: { xs: "1fr", lg: "1.4fr 0.8fr" },
+          alignItems: "stretch"
+        }}
+      >
+        
+        {/* LEFT COLUMN: Featured News */}
+        <Box sx={{ position: "relative", display: "flex", flexDirection: "column" }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              <Typography 
+              variant="h4" 
+              sx={{ 
+                fontWeight: 800, 
+                fontFamily: primaryFont, 
+                color: "#0b1033",
+                // Responsive Font Size:
+                fontSize: { 
+                  xs: '1.25rem', // Smaller size for mobile (0px+)
+                  sm: '1.75rem', // Medium size for tablets (600px+)
+                  md: '2.125rem' // Default h4 size for desktop (900px+)
+                }
+              }}
+            >
+              Latest News
+            </Typography>
+            </Stack>
+            
+            {/* Added: View All for Latest News */}
+            <Typography 
+              sx={{ 
+                color: brandBlue, 
+                fontWeight: 700, 
+                cursor: "pointer", 
+                display: "flex", 
+                alignItems: "center",
+                gap: 0.5,
+                fontFamily: primaryFont,
+                fontSize: "0.9rem",
+                "&:hover": { textDecoration: "underline" }
+              }}
+            >
+              View All <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
+            </Typography>
+          </Box>
+
           <Box
             sx={{
-              backgroundColor: "#f8f9fc",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              pt: { xs: 1, md: 2 },
-              pb: { xs: 1, md: 2 },
+              position: "relative",
+              borderRadius: "24px",
+              overflow: "hidden",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+              transition: "transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              "&:hover": { transform: "translateY(-8px)" }
             }}
           >
             <Box
               component="img"
-              src="https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/events/new-student-council-installation-lyceum-campus-1-1.webp"
-              alt="Brainiacs Campus"
+              src={featuredNews.image}
               sx={{
                 width: "100%",
-                height: "100%",
-                maxHeight: { xs: 300, sm: 412, md: 549 },
-                pl: { sm: 3, md: 6 },
+                height: { xs: 450, md: 550 }, // Slightly taller on mobile for text room
                 objectFit: "cover",
+                display: "block"
               }}
             />
-          </Box>
 
-          {/* Column 2 — Latest News */}
-          <Box
-            sx={{
-              backgroundColor: "#f8f9fc",
-              p: { xs: 3, sm: 5 },
-            }}
-          >
-            {/* Header */}
+            {/* IMPROVED GRADIENT: Darker at bottom, clear at top for text legibility */}
             <Box
               sx={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: "100%", // Full height overlay for consistent shading
+                background: "linear-gradient(to top, rgba(11, 16, 51, 0.95) 5%, rgba(11, 16, 51, 0.6) 40%, transparent 90%)",
+                p: { xs: 3, md: 6 }, // Reduced padding on mobile
                 display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 3,
+                flexDirection: "column",
+                justifyContent: "flex-end", // Pushes text to bottom
+                color: "white"
               }}
             >
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  color: "#0b1033",
-                  fontFamily: "'Montserrat', sans-serif",
-                  position: "relative",
-                  pb: "6px",
-                  fontSize: {
-                    xs: "22px",
-                    sm: "26px",
-                    md: "15px",
-                    lg: "25px",
-                  },
-                  "&::after": {
-                    content: '""',
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    width: {
-                      xs: "35px",
-                      sm: "45px",
-                      md: "55px",
-                      lg: "65px",
-                    },
-                    height: "3px",
-                    backgroundColor: "#e51b24",
-                  },
+              {/* Category Label */}
+              <Typography 
+                sx={{ 
+                  textTransform: "uppercase", 
+                  letterSpacing: 2, 
+                  fontWeight: 800, 
+                  fontSize: { xs: "0.65rem", md: "0.75rem" }, 
+                  color: brandBlue,
+                  mb: 1,
+                  fontFamily: primaryFont,
+                  textShadow: "0px 2px 4px rgba(0,0,0,0.3)" // Adds depth
                 }}
               >
-                Latest News
+                Featured Event
               </Typography>
 
-              <Typography
-                sx={{
-                  color: "#0b1033",
-                  fontWeight: 600,
-                  fontFamily: "'Montserrat', sans-serif",
-                  cursor: "pointer",
+              {/* Title */}
+              <Typography 
+                variant="h3" 
+                sx={{ 
+                  fontWeight: 700, 
+                  mb: 1, 
+                  fontSize: { xs: "1.6rem", md: "2.5rem" }, // Responsive sizing
+                  fontFamily: primaryFont,
+                  lineHeight: 1.2,
+                  textShadow: "0px 2px 10px rgba(0,0,0,0.5)"
                 }}
               >
-                All News →
+                {featuredNews.title}
               </Typography>
-            </Box>
 
-            {/* News Card */}
-            {news1.map((item, i) => (
-              <Box
-                key={i}
-                sx={{
-                  borderRadius: 2,
-                  p: { xs: 3, sm: 4 },
-                  mb: 4,
+              {/* Description - Smaller & Hidden on very small screens if needed */}
+              <Typography 
+                sx={{ 
+                  opacity: 0.95, 
+                  mb: 3, 
+                  maxWidth: "600px", 
+                  fontSize: { xs: "0.9rem", md: "1.1rem" }, // Smaller on mobile
+                  fontFamily: primaryFont,
+                  lineHeight: 1.5,
+                  display: { xs: "-webkit-box", sm: "block" }, // Clamp text on mobile
+                  overflow: "hidden",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical"
                 }}
               >
-                {/* Date */}
-                <Typography
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    color: "#555",
-                    fontSize: "0.9rem",
-                    mb: 1,
-                    fontFamily: "'Montserrat', sans-serif",
-                  }}
-                >
-                  <EventNoteIcon sx={{ mr: 1, color: "#0a5397", fontSize: 20 }} />
-                  {item.date}
-                </Typography>
-
-                {/* Title */}
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 700,
-                    mb: 1.5,
-                    color: "#111",
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontSize: {
-                      xs: "16px",
-                      sm: "18px",
-                      md: "20px",
-                      lg: "22px",
-                    },
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {item.title}
-                </Typography>
-
-                {/* Description */}
-                <Typography
-                  sx={{
-                    color: "#555",
-                    fontSize: "1rem",
-                    mb: 3,
-                    fontFamily: "'Montserrat', sans-serif",
-                  }}
-                >
-                  {item.description}
-                </Typography>
-
-                {/* Read More Button */}
+                {featuredNews.description}
+              </Typography>
+              
+              {/* Actions & Responsive Time */}
+              <Stack 
+                direction={{ xs: "column", sm: "row" }} // Stack on mobile, row on tablet+
+                spacing={{ xs: 2, sm: 3 }} 
+                alignItems={{ xs: "flex-start", sm: "center" }}
+              >
                 <Button
                   variant="contained"
                   sx={{
-                    backgroundColor: "#e51b24",
-                    color: "#fff",
-                    textTransform: "none",
-                    fontWeight: 600,
-                    fontFamily: "'Montserrat', sans-serif",
-                    px: 3,
-                    py: 1,
-                    "&:hover": { backgroundColor: "#c41a21" },
+                    bgcolor: brandBlue,
+                    borderRadius: "50px",
+                    px: { xs: 3, md: 4 },
+                    py: 1.5,
+                    fontWeight: 700,
+                    fontSize: { xs: "0.8rem", md: "1rem" },
+                    fontFamily: primaryFont,
+                    boxShadow: `0 8px 20px ${brandBlue}44`,
+                    "&:hover": { bgcolor: "#0041c2" }
                   }}
                 >
-                  Read More
+                  Read Full Story
                 </Button>
-              </Box>
-            ))}
+
+                {/* DATE/TIME - SMALLER ON MOBILE */}
+                <Typography 
+                  sx={{ 
+                    display: "flex", 
+                    alignItems: "center", 
+                    gap: 1, 
+                    fontSize: { xs: "0.8rem", md: "0.95rem" }, // Responsive Time Font
+                    fontWeight: 600,
+                    fontFamily: primaryFont,
+                    color: "rgba(255,255,255,0.8)"
+                  }}
+                >
+                  <EventAvailableIcon sx={{ fontSize: { xs: 18, md: 20 } }} /> {featuredNews.date}
+                </Typography>
+              </Stack>
+            </Box>
           </Box>
 
-          {/* Column 3 — Latest Event */}
-          <Box
-            sx={{
-              backgroundColor: "#0e072a",
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-              p: 3,
-            }}
-          >
-            {news.map((item, i) => (
+    
+        </Box>
+
+        {/* RIGHT COLUMN: Event Feed */}
+        <Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", mb: 3 }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 800, 
+                fontFamily: primaryFont, 
+                color: "#0b1033" 
+              }}
+            >
+              Upcoming Events
+            </Typography>
+            <Typography 
+              sx={{ 
+                color: brandBlue, 
+                fontWeight: 700, 
+                cursor: "pointer", 
+                display: "flex", 
+                alignItems: "center",
+                gap: 0.5,
+                fontFamily: primaryFont,
+                fontSize: "0.9rem",
+                "&:hover": { textDecoration: "underline" }
+              }}
+            >
+              View All <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
+            </Typography>
+          </Box>
+
+          <Stack spacing={2}>
+            {secondaryNews.map((item, i) => (
               <Box
                 key={i}
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 2,
-                  pl: { xs: 2, sm: 3, md: 6 },
-                  p: 2,
-                  borderRadius: 2,
-                  boxShadow: "0 6px 18px rgba(15,23,42,0.06)",
+                  p: 2.5,
+                  borderRadius: "16px",
+                  bgcolor: "#fff",
+                  border: "1px solid #edf2f7",
+                  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                  cursor: "pointer",
                   "&:hover": {
-                    transform: "translateY(-5px)",
-                    boxShadow: 4,
-                    backgroundColor: "#000",
-                    color: "#fff",
+                    borderColor: brandBlue,
+                    boxShadow: "0 10px 30px rgba(0, 84, 248, 0.08)",
+                    transform: "translateX(10px)",
+                    "& .icon-box": { bgcolor: brandBlue, color: "white", transform: "rotate(-10deg)" }
                   },
                 }}
               >
-                <EventNoteIcon sx={{ color: "#ffffffff" }} />
-                <Box>
-                  <Typography
-                    sx={{
-                      fontWeight: 700,
-                      fontFamily: "'Montserrat', sans-serif",
-                      color: "#ffffffff",
+                <Box
+                  className="icon-box"
+                  sx={{
+                    width: 50,
+                    height: 50,
+                    borderRadius: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "#f8f9fc",
+                    color: "#0b1033",
+                    mr: 2,
+                    transition: "0.4s ease"
+                  }}
+                >
+                  <CampaignIcon />
+                </Box>
+                
+                <Box sx={{ flexGrow: 1 }}>
+                  <Typography 
+                    sx={{ 
+                      fontSize: "0.7rem", 
+                      fontWeight: 800, 
+                      color: brandBlue, 
+                      textTransform: "uppercase",
+                      fontFamily: primaryFont 
+                    }}
+                  >
+                    {item.category}
+                  </Typography>
+                  <Typography 
+                    sx={{ 
+                      fontWeight: 700, 
+                      color: "#0b1033", 
+                      lineHeight: 1.2, 
+                      my: 0.5,
+                      fontFamily: primaryFont 
                     }}
                   >
                     {item.title}
                   </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "0.9rem",
-                      fontFamily: "'Montserrat', sans-serif",
-                      color: "#ffffffff",
+                  <Typography 
+                    sx={{ 
+                      fontSize: "0.85rem", 
+                      color: "#718096",
+                      fontFamily: primaryFont 
                     }}
                   >
                     {item.date}
                   </Typography>
                 </Box>
+                
+                <ArrowForwardIosIcon sx={{ fontSize: 14, color: "#cbd5e0" }} />
               </Box>
             ))}
-
-            <Typography
-              sx={{
-                color: "#ffffffff",
-                fontWeight: 700,
-                cursor: "pointer",
-                fontFamily: "'Montserrat', sans-serif",
-              }}
+            
+            <Button
+                variant="text"
+                fullWidth
+                startIcon={<AddIcon />}
+                sx={{
+                    py: 1.5,
+                    borderRadius: "12px",
+                    color: "#718096",
+                    fontFamily: primaryFont,
+                    fontWeight: 600,
+                    "&:hover": {
+                        color: brandBlue,
+                        bgcolor: "rgba(0, 84, 248, 0.04)"
+                    }
+                }}
             >
-              View all news & events →
-            </Typography>
-          </Box>
+                Load More Events
+            </Button>
+          </Stack>
         </Box>
       </Box>
     </Container>

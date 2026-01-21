@@ -3,9 +3,9 @@ import { Box, Container, Typography } from "@mui/material";
 
 const About: React.FC = () => {
   const steps = [
-    { number: "1700+", label: "Current Students" },
-    { number: "800+", label: "Alumni" },
-    { number: "1000+", label: "Annual Enrollments" },
+    { number: "1700+", label: "current students" },
+    { number: "800+", label: "alumni" },
+    { number: "1000+", label: "annual enrollments" },
   ];
 
   return (
@@ -13,206 +13,182 @@ const About: React.FC = () => {
       <Box
         sx={{
           width: "100%",
-          height: { xs: "auto", sm: "auto", md: "auto", lg: "auto" },
-          backgroundColor: { xs: "#FAFAFA", sm: "#FAFAFA", md: "transparent" },
+          py: { xs: "80px", md: "120px" }, // More vertical breathing room
+          backgroundColor: { xs: "#FAFAFA", md: "transparent" },
           backgroundImage: {
             xs: "none",
-            sm: "none",
             md: "url('https://i.ibb.co/v6rL5NRm/about-bg.webp')",
           },
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          position: "relative",
-          overflow: "hidden",
-          mt: { xs: 6, md: 10, lg: 14 },
-          // mb: { xs: 5, md: 16, lg: 20 }, // Added more bottom margin
-          // pb: { xs: 0, md: 0, lg: 0 }, // Added more internal bottom padding
-
-          "@media (width:912px) and (height:1368px)": { height: "850px" },
-          "@media (width:1024px) and (height:600px)": { height: "850px" },
-          "@media (width:1280px) and (height:800px)": { height: "850px" },
+          display: "flex",
+          alignItems: "center",
+          minHeight: "90vh",
         }}
       >
         <Box
           sx={{
-            position: "relative",
             width: "100%",
+            // EXTREME PADDING: Increased for more left/right space
+            px: { xs: 4, md: 12, lg: 20, xl: 30 }, 
             display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            justifyContent: "flex-start",
-            alignItems: { xs: "flex-start", md: "flex-start" },
-            textAlign: { xs: "flex-start", md: "start" },
-            px: { xs: 4, md: 10, lg: 0 },
-            pt: { xs: 6, md: 12, lg: 12 },
-            fontFamily: '"Montserrat", sans-serif',
-            color: "#000",
+            flexDirection: { xs: "column", lg: "row" },
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: { lg: 15 }, // Large gap between the two columns
           }}
         >
-          {/* Left Section (60%) */}
+          {/* LEFT COLUMN: Content Section */}
           <Box
             sx={{
-              flex: { xs: "1 1 100%", md: "0 0 60%" },
-              mb: { xs: 3, md: 0 },
-              pl: { lg: "350px" },
-              pr: { lg: "0px" },
-              position: "relative",
+              flex: { xs: "1 1 100%", lg: "0 1 50%" },
+              textAlign: "left",
             }}
           >
             <Typography
-              variant="h3"
-              component="h1"
               sx={{
                 fontFamily: '"Montserrat", sans-serif',
-                fontWeight: 700,
-                color: "#222",
+                fontWeight: 800,
+                color: "#1a2b3c",
                 mb: 1,
-                fontSize: { xs: "1.8rem", sm: "2rem", md: "2.5rem", lg: "2.5rem" },
-                textShadow: "1px 1px 4px rgba(0,0,0,0.15)",
+                fontSize: { xs: "2.2rem", md: "2.8rem", lg: "2.8rem" },
+                // Change this value to make the space smaller
+                letterSpacing: "1.5px", 
+                lineHeight: 1.1,
+                textTransform: "none", // Ensures it stays "Brainiacs Campus" and not uppercase
               }}
             >
               Brainiacs Campus
-            </Typography>
+          </Typography>
 
             <Typography
-              variant="h6"
-              component="h6"
               sx={{
                 fontFamily: '"Montserrat", sans-serif',
-                fontWeight: 600,
-                color: "#343f52",
-                mt: { xs: 1, md: 1.5, lg: 2 },
-                mb: 3,
-                fontSize: { xs: "0.9rem", sm: "1rem", md: "1.25rem", lg: "1.5rem" },
-                lineHeight: 1.5,
+                fontWeight: 700,
+                color: "#0a5397",
+                mb: 4,
+                fontSize: { xs: "0.9rem", md: "0.9rem" },
+                textTransform: "uppercase",
+                letterSpacing: "4px",
               }}
             >
               is not just about Higher Education, it's more than that
             </Typography>
 
-            <Typography
-              variant="body1"
-              mt={2}
-              sx={{
-                fontFamily: '"Montserrat", sans-serif',
-                mb: 2,
-                fontSize: { xs: "0.85rem", sm: "0.95rem", md: "1.1rem", lg: "1.125rem" },
-                lineHeight: 1.6,
-                color: "#444",
-              }}
-            >
-              Witness Lyceum Campus symbolizing great significance among all with a vision
-              of facilitating and guiding young souls on their journey of learning being
-              the trailblazer in adult education.
-            </Typography>
-
-            <Typography
-              variant="body1"
-              mt={2}
-              sx={{
-                fontFamily: '"Montserrat", sans-serif',
-                fontSize: { xs: "0.85rem", sm: "0.95rem", md: "1.1rem", lg: "1.125rem" },
-                lineHeight: 1.6,
-                color: "#444",
-              }}
-            >
-              The perfect blend of knowledge, continuous learning, emotional intelligence,
-              and global integration, Lyceum Campus is geared to provide unwavering support
-              to all students. The unique facilities and opportunities available for
-              students and staff alike make Lyceum Campus the ideal choice for higher
-              education.
-            </Typography>
-
-       {/* Circles Section */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: { xs: "space-around", sm: "space-around", md: "flex-start" },
-              mt: 6,
-              gap: { xs: 3, sm: 4, md: 6 }, // increased spacing between circles
-              pb: { xs: 0, md: 10, lg: 12 },
-            }}
-          >
-            {steps.map((step, index) => (
-              <Box
-                key={step.number}
+            <Box sx={{ maxWidth: "600px", mb: 6 }}>
+              <Typography
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  position: "relative",
-                  animation: `fadeInUp 0.8s ease forwards`,
-                  animationDelay: `${index * 0.2}s`,
-                  opacity: 0,
+                  fontFamily: '"Montserrat", sans-serif',
+                  mb: 3,
+                  fontSize: { xs: "1.1rem", md: "1.25rem" },
+                  lineHeight: 1.7,
+                  color: "#2d3436",
+                  fontWeight: 500,
+                  borderLeft: "5px solid #35b74b",
+                  pl: 4,
                 }}
               >
+                Witness Lyceum Campus symbolizing great significance among all with a vision of facilitating and guiding young souls on their journey of learning.
+              </Typography>
+
+              <Typography
+                sx={{
+                  fontFamily: '"Montserrat", sans-serif',
+                  fontSize: { xs: "1.05rem", md: "1.2rem" },
+                  lineHeight: 1.7,
+                  color: "#555",
+                }}
+              >
+                The perfect blend of knowledge, continuous learning, and global integration. Lyceum Campus is geared to provide unwavering support to all students.
+              </Typography>
+            </Box>
+
+            {/* Stats Cards - ORIGINAL EFFECTS APPLIED */}
+            <Box sx={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+              {steps.map((step, index) => (
                 <Box
+                  key={step.number}
                   sx={{
-                    width: { xs: 90, sm: 110, md: 150 },
-                    height: { xs: 90, sm: 110, md: 150 },
-                    borderRadius: "50%", // rounded
-                    background: "linear-gradient(135deg, #0a5397, #35b74b)",
-                    color: "#fff",
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 700,
-                    fontSize: { xs: "1rem", sm: "1.3rem", md: "2rem" },
-                    boxShadow: "0 8px 20px rgba(0,0,0,0.3)",
-                    border: "3px solid #fff", // ✅ white outline
-                    transition: "all 0.4s ease",
+                    flexDirection: "column",
+                    p: 3,
+                    pl: 4,
+                    minWidth: "190px",
+                    borderRadius: "16px",
+                    background: "rgba(255, 255, 255, 0.98)",
+                    border: "1px solid #e0e0e0",
+                    position: "relative",
+                    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                    animation: `fadeInUp 0.6s ease forwards ${index * 0.15}s`,
+                    opacity: 0,
                     cursor: "pointer",
                     "&:hover": {
-                      transform: "scale(1.1) rotate(5deg)",
-                      boxShadow: "0 12px 24px rgba(0,0,0,0.4)",
+                      borderColor: "#35b74b",
+                      transform: "translateX(12px)", // Original slide effect
+                      boxShadow: "0 15px 35px rgba(0,0,0,0.08)",
+                      "& .left-accent": { height: "100%", background: "#35b74b" }
                     },
                   }}
                 >
-                  {step.number}
+                  <Box
+                    className="left-accent"
+                    sx={{
+                      position: "absolute",
+                      left: 0,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: "6px",
+                      height: "45%",
+                      bgcolor: "#0a5397",
+                      transition: "0.4s ease",
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontFamily: '"Montserrat", sans-serif',
+                      fontSize: "1.6rem",
+                      fontWeight: 900,
+                      color: "#0a5397",
+                      mb: 0.2,
+                    }}
+                  >
+                    {step.number}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: '"Montserrat", sans-serif',
+                      fontSize: "0.9rem",
+                      fontWeight: 700,
+                      color: "#1a2b3c",
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {step.label}
+                  </Typography>
                 </Box>
-                <Typography
-                  sx={{
-                    mt: 1.5,
-                    fontSize: { xs: "0.6rem", sm: "0.85rem", md: "1.1rem" },
-                    fontWeight: 500,
-                    textAlign: "center",
-                    background: "linear-gradient(135deg, #195287, #33b34d)", // gradient colors
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    fontFamily: '"Montserrat", sans-serif',
-                  }}
-                >
-                  {step.label}
-                </Typography>
-              </Box>
-            ))}
+              ))}
+            </Box>
           </Box>
 
-          </Box>
-
-          {/* Right Section (40%) */}
+          {/* RIGHT COLUMN: Visual Section */}
           <Box
             sx={{
-              flex: { xs: "1 1 100%", md: "0 0 40%" },
-              mt: { xs: 4, md: 0 },
-              px: { xs: 0, md: 2 },
+              flex: { xs: "1 1 100%", lg: "0 1 40%" },
+              display: { xs: "none", lg: "flex" },
+              justifyContent: "flex-end", // Push image to the far right
             }}
-          />
+          >
+           
+          </Box>
         </Box>
       </Box>
 
-      {/* Animation Keyframes */}
       <style>
         {`
           @keyframes fadeInUp {
-            0% {
-              opacity: 0;
-              transform: translateY(20px);
-            }
-            100% {
-              opacity: 1;
-              transform: translateY(0);
-            }
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
           }
         `}
       </style>

@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Naskh+Arabic:wght@400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anek+Tamil:wght@100..800&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Noto+Naskh+Arabic:wght@400..700&display=swap');
 
 :root {
-  font-family: "Noto Naskh Arabic", serif;
+  font-family: "Montserrat", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -17,7 +17,7 @@
 
 body {
   margin: 0;
-  font-family: 'Noto Naskh Arabic', serif;
+ font-family: "Montserrat", sans-serif;
 }
 
 .overlay-text {

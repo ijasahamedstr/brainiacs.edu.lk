@@ -6,10 +6,27 @@ import {
   TextField,
   Button,
   MenuItem,
+  InputAdornment,
+  Fade,
+  Stack,
 } from "@mui/material";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
+import SupportAgentIcon from "@mui/icons-material/SupportAgent";
 
 const Guidance: React.FC = () => {
-  const menuItemSX = { fontFamily: "'Montserrat', sans-serif" };
+  const primaryFont = "'Montserrat', sans-serif";
+  const brandBlue = "#0a5397";
+  const brandGreen = "#35b74b";
+
+  const menuItemSX = { 
+    fontFamily: primaryFont,
+    fontSize: "0.9rem",
+    "&:hover": { backgroundColor: "rgba(10, 83, 151, 0.08)" }
+  };
 
   const [form, setForm] = useState({
     firstName: "",
@@ -25,274 +42,229 @@ const Guidance: React.FC = () => {
   };
 
   const handleWhatsApp = () => {
-    const message = `Hello I Need Guidance! 
-I'm ${form.firstName} ${form.lastName}.
-Qualification: ${form.qualification}
-Interested Programme: ${form.programme}
-Email: ${form.email}
-Contact: ${form.contact}`;
+    const message = `Hello I Need Guidance! %0A I'm ${form.firstName} ${form.lastName}.%0A Qualification: ${form.qualification}%0A Interest: ${form.programme}`;
+    const phoneNumber = "+94768696704";
+    window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
+  };
 
-    const phoneNumber = "94768696704";
-    const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
-      message
-    )}`;
-    window.open(url, "_blank");
+  const fieldStyle = {
+    "& .MuiOutlinedInput-root": {
+      fontFamily: primaryFont,
+      backgroundColor: "#fff",
+      borderRadius: "16px",
+      transition: "all 0.3s ease",
+      "& fieldset": { borderColor: "#e0e0e0" },
+      "&:hover fieldset": { borderColor: brandBlue },
+      "&.Mui-focused fieldset": { borderColor: brandBlue, borderWidth: "2px" },
+    },
+    "& .MuiInputLabel-root": { fontFamily: primaryFont, fontSize: "0.9rem" },
   };
 
   return (
-    <Box component="section" sx={{ fontFamily: "'Montserrat', sans-serif" }}>
-      <Container maxWidth="xl"  sx={{ pt: 10, pb: { xs: 6, md: 10 } }}>
+    <Box component="section" sx={{ py: { xs: 6, md: 12 }, bgcolor: "#f8fafc" }}>
+      <Container maxWidth="xl">
         <Box
           sx={{
             display: "flex",
             flexDirection: { xs: "column", md: "row" },
-            justifyContent: "space-between",
-            alignItems: "stretch",
+            gap: { xs: 4, md: 0 },
+            borderRadius: "40px",
             overflow: "hidden",
-            borderRadius: "16px",
-            boxShadow: "0 6px 20px rgba(0,0,0,0.1)",
+            boxShadow: "0 40px 80px -20px rgba(10, 83, 151, 0.15)",
+            bgcolor: "#fff",
           }}
         >
-          {/* Left Column (Image + Heading for Desktop Only) */}
+          {/* LEFT COLUMN: BRAND NEW DIFFERENT STYLE */}
           <Box
             sx={{
-              display: { xs: "none", md: "block" },
-              flexBasis: "30%",
+              flexBasis: "45%",
               position: "relative",
-              overflow: "hidden",
-              borderTopLeftRadius: "16px",
-              borderBottomLeftRadius: "16px",
+              p: { xs: 4, md: 8 },
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              bgcolor: "#f0f4f8",
+              overflow: "hidden"
             }}
           >
-            {/* Desktop Heading on Image */}
-            <Box
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                background:
-                  "linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0))",
-                color: "#fff",
-                textAlign: "center",
-                p: 2,
-                pt: 4,
-                pb: 2,
-                zIndex: 2,
-              }}
-            >
+            {/* Background Decorative Pattern */}
+            <Box sx={{ 
+                position: "absolute", 
+                top: 20, 
+                left: 20, 
+                width: 100, 
+                height: 100, 
+                backgroundImage: "radial-gradient(#cbd5e1 2px, transparent 2px)", 
+                backgroundSize: "15px 15px",
+                opacity: 0.5 
+            }} />
+
+            <Box sx={{ position: "relative", zIndex: 2 }}>
               <Typography
-                variant="h3"
                 sx={{
-                  fontWeight: 600,
-                  fontSize: "2.8rem",
-                  fontFamily: "'Montserrat', sans-serif",
+                  fontFamily: primaryFont,
+                  color: brandBlue,
+                  fontWeight: 800,
+                  fontSize: "0.85rem",
+                  letterSpacing: 3,
+                  textTransform: "uppercase",
+                  mb: 2,
+                  display: "block"
                 }}
               >
-                Need Guidance & Support?
+                Start Your Journey
               </Typography>
+
               <Typography
-                variant="body2"
+                variant="h2"
                 sx={{
-                  mt: 1,
-                  opacity: 0.85,
-                  fontSize: "1rem",
-                  fontFamily: "'Montserrat', sans-serif",
-                  lineHeight: 1.6,
+                  fontWeight: 800,
+                  fontSize: { xs: "2.5rem", md: "3.2rem" },
+                  fontFamily: primaryFont,
+                  lineHeight: 1.1,
+                  color: "#0b1033",
+                  mb: 3,
                 }}
               >
-                Let's talk about your future. Fill out the form & we'll reach out
-                to guide you.
+                Shape Your <br />
+                <span style={{ 
+                    background: `linear-gradient(90deg, ${brandBlue}, ${brandGreen})`,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent"
+                }}>Future</span> With Us
+              </Typography>
+
+              {/* Unique Image Presentation */}
+              <Box sx={{ position: "relative", mt: 4, mb: 4 }}>
+                <Box
+                  component="img"
+                  src="https://i.ibb.co/ynPqgtGS/form-image.png"
+                  sx={{
+                    width: "100%",
+                    height: "300px",
+                    objectFit: "cover",
+                    borderRadius: "30px 100px 30px 30px",
+                    boxShadow: "20px 20px 60px rgba(0,0,0,0.1)",
+                  }}
+                />
+                
+                {/* Floating Badge 1 */}
+                <Box sx={{
+                    position: "absolute",
+                    top: -20,
+                    right: -10,
+                    bgcolor: "#fff",
+                    p: 2,
+                    borderRadius: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
+                    backdropFilter: "blur(10px)",
+                    background: "rgba(255,255,255,0.9)"
+                }}>
+                    <VerifiedUserIcon sx={{ color: brandGreen }} />
+                    <Typography sx={{ fontFamily: primaryFont, fontWeight: 700, fontSize: "0.8rem", color: "#0b1033" }}>
+                        Certified Expert <br /> Guidance
+                    </Typography>
+                </Box>
+
+                {/* Floating Badge 2 */}
+                <Box sx={{
+                    position: "absolute",
+                    bottom: 20,
+                    left: -20,
+                    bgcolor: brandBlue,
+                    color: "#fff",
+                    p: 2,
+                    borderRadius: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    boxShadow: "0 10px 25px rgba(10, 83, 151, 0.3)",
+                }}>
+                    <SupportAgentIcon />
+                    <Typography sx={{ fontFamily: primaryFont, fontWeight: 600, fontSize: "0.8rem" }}>
+                        24/7 WhatsApp <br /> Support
+                    </Typography>
+                </Box>
+              </Box>
+
+              <Typography sx={{ fontFamily: primaryFont, color: "#64748b", lineHeight: 1.8 }}>
+                Get personalized academic counseling and discover the perfect career path tailored for your goals.
               </Typography>
             </Box>
-
-            <Box
-              component="img"
-              src="https://i.ibb.co/ynPqgtGS/form-image.png"
-              alt="Brainiacs Campus"
-              sx={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                transition: "transform 0.5s ease",
-                background: "linear-gradient(135deg, #0a5397, #35b74b)",
-                "&:hover": { transform: "scale(1.05)" },
-              }}
-            />
           </Box>
 
-          {/* Right Column (Form) */}
+          {/* RIGHT COLUMN: Form (Kept the layout you liked) */}
           <Box
             sx={{
-              flexBasis: { xs: "100%", md: "70%" },
-              backgroundColor: "#f7f9fb",
-              borderRadius: { xs: "16px", md: "0 16px 16px 0" },
-              p: { xs: 2, md: 3 },
+              flexBasis: "55%",
+              p: { xs: 4, md: 8 },
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
             }}
           >
-            {/* Mobile & Tablet Heading Above Form */}
-            <Box
-              sx={{
-                display: { xs: "block", md: "none" },
-                textAlign: "center",
-                mb: 3,
-              }}
-            >
-              <Typography
-                variant="h3"
-                sx={{
-                  fontWeight: 600,
-                  fontSize: "2rem",
-                  fontFamily: "'Montserrat', sans-serif",
-                }}
-              >
-                Need Guidance & Support?
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{
-                  mt: 1,
-                  opacity: 0.85,
-                  fontSize: "1rem",
-                  fontFamily: "'Montserrat', sans-serif",
-                  lineHeight: 1.6,
-                }}
-              >
-                Let's talk about your future. Fill out the form & we'll reach out
-                to guide you.
-              </Typography>
-            </Box>
+            <Fade in timeout={1000}>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 800, fontFamily: primaryFont, color: "#0b1033", mb: 1 }}>
+                  Request Consultation
+                </Typography>
+                <Typography sx={{ fontFamily: primaryFont, color: "#718096", mb: 5 }}>
+                  Fill in your details and we will reach out via WhatsApp.
+                </Typography>
 
-            {/* Form */}
-            <Box
-              component="form"
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-              }}
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", md: "row" },
-                  gap: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1 }}
-                  name="firstName"
-                  label="First Name"
-                  variant="outlined"
-                  size="medium"
-                  value={form.firstName}
-                  onChange={handleChange}
-                  InputProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                  InputLabelProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                />
-                <TextField
-                  sx={{ flex: 1 }}
-                  name="lastName"
-                  label="Last Name"
-                  variant="outlined"
-                  size="medium"
-                  value={form.lastName}
-                  onChange={handleChange}
-                  InputProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                  InputLabelProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                />
+                <Stack spacing={3}>
+                  <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
+                    <TextField fullWidth name="firstName" label="First Name" onChange={handleChange} sx={fieldStyle} 
+                      InputProps={{ startAdornment: <InputAdornment position="start"><PersonOutlineIcon sx={{ color: brandBlue }} /></InputAdornment> }} 
+                    />
+                    <TextField fullWidth name="lastName" label="Last Name" onChange={handleChange} sx={fieldStyle} />
+                  </Box>
+
+                  <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 2 }}>
+                    <TextField select fullWidth name="qualification" label="Qualification" value={form.qualification} onChange={handleChange} sx={fieldStyle}>
+                      <MenuItem sx={menuItemSX} value="High School">High School</MenuItem>
+                      <MenuItem sx={menuItemSX} value="Diploma">Diploma</MenuItem>
+                      <MenuItem sx={menuItemSX} value="Bachelor's">Bachelor's</MenuItem>
+                    </TextField>
+                    <TextField select fullWidth name="programme" label="Programme" value={form.programme} onChange={handleChange} sx={fieldStyle}>
+                      <MenuItem sx={menuItemSX} value="Computer Science">Computer Science</MenuItem>
+                      <MenuItem sx={menuItemSX} value="Business">Business</MenuItem>
+                    </TextField>
+                  </Box>
+
+                  <TextField fullWidth name="email" label="Email Address" onChange={handleChange} sx={fieldStyle} 
+                    InputProps={{ startAdornment: <InputAdornment position="start"><EmailOutlinedIcon sx={{ color: brandBlue }} /></InputAdornment> }} 
+                  />
+                  <TextField fullWidth name="contact" label="WhatsApp Number" onChange={handleChange} sx={fieldStyle} 
+                    InputProps={{ startAdornment: <InputAdornment position="start"><PhoneIphoneIcon sx={{ color: brandBlue }} /></InputAdornment> }} 
+                  />
+
+                  <Button
+                    variant="contained"
+                    size="large"
+                    onClick={handleWhatsApp}
+                    startIcon={<WhatsAppIcon />}
+                    sx={{
+                      py: 2.5,
+                      borderRadius: "20px",
+                      backgroundColor: brandBlue,
+                      fontFamily: primaryFont,
+                      fontWeight: 800,
+                      fontSize: "1.1rem",
+                      textTransform: "none",
+                      boxShadow: "0 20px 40px rgba(10, 83, 151, 0.25)",
+                      transition: "0.4s",
+                      "&:hover": { backgroundColor: "#08447a", transform: "translateY(-5px)", boxShadow: "0 25px 50px rgba(10, 83, 151, 0.35)" },
+                    }}
+                  >
+                    Send Request to WhatsApp
+                  </Button>
+                </Stack>
               </Box>
-
-              <TextField
-                select
-                fullWidth
-                name="qualification"
-                label="Your Highest Academic Qualification"
-                variant="outlined"
-                size="medium"
-                value={form.qualification}
-                onChange={handleChange}
-                InputProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                InputLabelProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-              >
-                <MenuItem sx={menuItemSX} value="High School">High School</MenuItem>
-                <MenuItem sx={menuItemSX} value="Diploma">Diploma</MenuItem>
-                <MenuItem sx={menuItemSX} value="Bachelor's">Bachelor's</MenuItem>
-                <MenuItem sx={menuItemSX} value="Master's">Master's</MenuItem>
-                <MenuItem sx={menuItemSX} value="PhD">PhD</MenuItem>
-              </TextField>
-
-              <TextField
-                select
-                fullWidth
-                name="programme"
-                label="Interested Programme"
-                variant="outlined"
-                size="medium"
-                value={form.programme}
-                onChange={handleChange}
-                InputProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                InputLabelProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-              >
-                <MenuItem sx={menuItemSX} value="Computer Science">Computer Science</MenuItem>
-                <MenuItem sx={menuItemSX} value="Business">Business</MenuItem>
-                <MenuItem sx={menuItemSX} value="Engineering">Engineering</MenuItem>
-                <MenuItem sx={menuItemSX} value="Design">Design</MenuItem>
-              </TextField>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: { xs: "column", md: "row" },
-                  gap: 2,
-                }}
-              >
-                <TextField
-                  sx={{ flex: 1 }}
-                  name="email"
-                  label="Email"
-                  variant="outlined"
-                  size="medium"
-                  value={form.email}
-                  onChange={handleChange}
-                  InputProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                  InputLabelProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                />
-                <TextField
-                  sx={{ flex: 1 }}
-                  name="contact"
-                  label="Contact Number"
-                  variant="outlined"
-                  size="medium"
-                  value={form.contact}
-                  onChange={handleChange}
-                  InputProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                  InputLabelProps={{ style: { fontFamily: "'Montserrat', sans-serif" } }}
-                />
-              </Box>
-
-              <Button
-                variant="contained"
-                sx={{
-                  mt: 1,
-                  backgroundColor: "#0a5397",
-                  color: "#fff",
-                  fontWeight: 600,
-                  textTransform: "none",
-                  px: 4,
-                  py: 1,
-                  alignSelf: { xs: "center", md: "flex-start" },
-                  "&:hover": { backgroundColor: "#08447a" },
-                  fontFamily: "'Montserrat', sans-serif",
-                }}
-                onClick={handleWhatsApp}
-              >
-                Contact via WhatsApp
-              </Button>
-            </Box>
+            </Fade>
           </Box>
         </Box>
       </Container>
