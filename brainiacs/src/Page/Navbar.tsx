@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import {useNavigate } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -175,7 +175,6 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = React.useState<{ [key: string]: boolean }>({});
   const [anchorEl, setAnchorEl] = React.useState<{ [key: string]: HTMLElement | null }>({});
 
-  const location = useLocation();
   const navigate = useNavigate();
   const isDesktop = useMediaQuery('(min-width:1200px)');
 

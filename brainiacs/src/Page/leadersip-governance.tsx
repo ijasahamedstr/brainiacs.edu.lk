@@ -50,38 +50,6 @@ const councilMembers = [
   },
 ];
 
-// 👇 New Management Members (second section)
-const managementMembers = [
-  {
-    name: "Dr. John Smith",
-    title: "Chief Academic Officer",
-    image:
-      "https://images.unsplash.com/photo-1603415526960-f7e0328c63b1?auto=format&fit=crop&w=800&q=80",
-    bio: "Oversees academic programs and drives innovation in teaching and learning.",
-  },
-  {
-    name: "Ms. Sarah Johnson",
-    title: "Director of Student Affairs",
-    image:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=800&q=80",
-    bio: "Ensures student engagement and fosters a vibrant campus community.",
-  },
-  {
-    name: "Mr. Kevin Lee",
-    title: "Chief Operating Officer",
-    image:
-      "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?auto=format&fit=crop&w=800&q=80",
-    bio: "Oversees daily operations and ensures efficiency across departments.",
-  },
-  {
-    name: "Ms. Amanda Perez",
-    title: "Head of Communications",
-    image:
-      "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
-    bio: "Leads brand strategy and communication excellence across the organization.",
-  },
-];
-
 const LeadershipGovernance: React.FC = () => {
   useEffect(() => {
     new Rellax(".rellax");

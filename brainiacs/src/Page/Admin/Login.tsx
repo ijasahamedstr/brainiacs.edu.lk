@@ -42,9 +42,7 @@ import {
   PersonOutline,
   ShieldOutlined,
   ArrowBack,
-  InfoOutlined,
   AdminPanelSettings,
-  Language,
   VerifiedUser,
   SupportAgent
 } from "@mui/icons-material";
