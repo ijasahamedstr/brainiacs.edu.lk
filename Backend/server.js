@@ -6,10 +6,6 @@ import { fileURLToPath } from 'url';
 
 // Route Imports
 import Adminrouter from "./routes/AccountRegisterAdmin.route.js";
-import Propertyfinishingrouter from "./routes/Propertyfinishing.route.js";
-import Propertyforsalerouter from "./routes/Propertyforsale.route.js";
-import Buyingpropertyrouter from "./routes/Buyingproperty.route.js";
-import Propertyrentalrouter from "./routes/Propertyrental.route.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -34,10 +30,6 @@ app.get("/", (req, res) => {
 });
 
 app.use('/api', Adminrouter);
-app.use('/api', Propertyfinishingrouter);
-app.use('/api', Propertyforsalerouter);
-app.use('/api', Buyingpropertyrouter); 
-app.use('/api', Propertyrentalrouter); 
 
 // 7. Start server
 const port = 8001;

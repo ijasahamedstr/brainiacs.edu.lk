@@ -17,6 +17,7 @@ Adminrouter.put('/edit/:id', updateAdmin); // Uses ID from URL
 
 Adminrouter.delete('/delete/:id',deleteAdmin); // Uses ID from URL
 
-// Adminrouter.patch('/unlock/:id', manualUnlock);
+// New Unlock Route
+Adminrouter.patch('/unlock/:id', manualUnlock);
 
 export default Adminrouter;
