@@ -13,14 +13,13 @@ import {
   Instagram, 
   Email, 
   Phone, 
-  WhatsApp 
+  WhatsApp,
 } from "@mui/icons-material";
 
 const Footer: React.FC = () => {
   const primaryFont = '"Montserrat", sans-serif';
-  const brandBlue = "#0a5397"; // Your brand color
+  const brandBlue = "#0a5397"; 
 
-  // Social Media Data with Custom Brand Colors
   const socialLinks = [
     { icon: <Phone fontSize="small" />, link: "tel:+974502260200", color: "#4caf50" },
     { icon: <WhatsApp fontSize="small" />, link: "https://wa.me/974502260200", color: "#25D366" },
@@ -34,10 +33,21 @@ const Footer: React.FC = () => {
       {/* Main Footer Section */}
       <Box
         sx={{
-          backgroundColor: "#7a7676", // Dark grey background
-          color: "#fff",
-          py: { xs: 6, md: 8 },
+          backgroundColor: "#e1eeff",
+          backgroundImage: "linear-gradient(180deg, rgba(255,255,255,0.4) 0%, rgba(225,238,255,1) 100%)",
+          color: "#000000",
+          py: { xs: 8, md: 10 },
           px: { xs: 2, sm: 4 },
+          position: "relative",
+          "&::before": { // Aesthetic top border line
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "4px",
+            background: `linear-gradient(90deg, transparent, ${brandBlue}, transparent)`,
+          }
         }}
       >
         <Container maxWidth="lg">
@@ -47,7 +57,7 @@ const Footer: React.FC = () => {
               flexDirection: { xs: "column", md: "row" },
               justifyContent: "space-between",
               alignItems: { xs: "center", md: "flex-start" },
-              gap: 4,
+              gap: 6,
               textAlign: { xs: "center", md: "left" },
             }}
           >
@@ -58,7 +68,7 @@ const Footer: React.FC = () => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: { xs: "center", md: "flex-start" },
-                gap: 2,
+                gap: 3,
               }}
             >
               <Box
@@ -66,46 +76,63 @@ const Footer: React.FC = () => {
                 src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
                 alt="MTC Logo"
                 sx={{
-                  width: 160,
+                  width: 180,
                   height: "auto",
                   mb: 1,
-                  // filter: "brightness(0) invert(1)", 
+                  filter: "drop-shadow(0px 4px 10px rgba(0,0,0,0.05))",
+                  transition: "transform 0.3s ease",
+                  "&:hover": { transform: "scale(1.02)" }
                 }}
               />
               
               <Typography
                 variant="body2"
                 sx={{ 
-                  fontWeight: 600, 
-                  fontSize: "0.85rem", 
+                  fontWeight: 700, 
+                  fontSize: "0.75rem", 
                   textTransform: "uppercase", 
-                  letterSpacing: 1.5,
+                  letterSpacing: 2,
                   fontFamily: primaryFont,
-                  opacity: 0.8
+                  color: brandBlue,
+                  position: "relative",
+                  "&::after": {
+                    content: '""',
+                    position: "absolute",
+                    bottom: -5,
+                    left: { xs: "50%", md: "0" },
+                    transform: { xs: "translateX(-50%)", md: "none" },
+                    width: "40px",
+                    height: "2px",
+                    backgroundColor: brandBlue,
+                    opacity: 0.3
+                  }
                 }}
               >
                 Connect with us
               </Typography>
 
-              <Stack direction="row" spacing={1.5}>
+              <Stack direction="row" spacing={2}>
                 {socialLinks.map((item, index) => (
                   <IconButton
                     key={index}
                     href={item.link}
                     target="_blank"
                     sx={{
-                      color: "#fff",
-                      backgroundColor: "rgba(255,255,255,0.1)",
-                      borderRadius: "12px",
-                      width: 40,
-                      height: 40,
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                      color: "#333",
+                      backgroundColor: "rgba(255,255,255,0.6)",
+                      backdropFilter: "blur(4px)",
+                      borderRadius: "14px",
+                      width: 44,
+                      height: 44,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+                      border: "1px solid rgba(255,255,255,0.8)",
+                      transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
                       "&:hover": {
                         backgroundColor: item.color,
+                        color: "#fff",
                         borderColor: item.color,
-                        transform: "translateY(-5px)",
-                        boxShadow: `0 10px 20px ${item.color}66`,
+                        transform: "translateY(-8px) rotate(8deg)",
+                        boxShadow: `0 15px 30px ${item.color}44`,
                       },
                     }}
                   >
@@ -120,7 +147,7 @@ const Footer: React.FC = () => {
               flexItem
               sx={{
                 display: { xs: "none", md: "block" },
-                borderColor: "rgba(255,255,255,0.15)",
+                borderColor: "rgba(0, 0, 0, 0.08)",
               }}
             />
 
@@ -130,35 +157,40 @@ const Footer: React.FC = () => {
                 variant="h6"
                 sx={{ 
                     mb: 3, 
-                    fontSize: "0.95rem", 
+                    fontSize: "0.9rem", 
                     fontWeight: 800, 
                     fontFamily: primaryFont,
-                    color: brandBlue // Applied Heading Color
+                    color: brandBlue,
+                    letterSpacing: 1
                 }}
               >
-                ADDRESS
+                OFFICE LOCATION
               </Typography>
               <Typography
                 variant="body2"
-                sx={{ lineHeight: 1.8, opacity: 0.9, fontFamily: primaryFont }}
+                sx={{ lineHeight: 2, color: "#444", fontFamily: primaryFont, fontSize: "0.9rem" }}
               >
-                Al Mubthadieen Trading & Contracting (MTC)
+                <strong>Brainiacs Campus</strong>
                 <br />
-                P.O.BOX 23693,
+                P.O.BOX 32200,
                 <br />
-                Tel: +974 502260200,
+                Tel: +94 76 095 93 85,
                 <br />
-                Al Muntazah, Al Rawabi St, Doha,
+                No. 100, Alivanniyar Road, Sammanthurai,
                 <br />
-                Office Doha - Qatar
+                Office Sammanthurai - SriLanka
               </Typography>
             </Box>
 
             <Divider
               orientation="vertical"
               flexItem
-              sx={{ display: { xs: "none", md: "block" }, borderColor: "rgba(255,255,255,0.15)" }}
+              sx={{
+                display: { xs: "none", md: "block" },
+                borderColor: "rgba(0, 0, 0, 0.08)",
+              }}
             />
+
 
             {/* Contact Section */}
             <Box sx={{ flexBasis: { xs: "100%", md: "20%" } }}>
@@ -166,30 +198,35 @@ const Footer: React.FC = () => {
                 variant="h6"
                 sx={{ 
                     mb: 3, 
-                    fontSize: "0.95rem", 
+                    fontSize: "0.9rem", 
                     fontWeight: 800, 
                     fontFamily: primaryFont,
-                    color: brandBlue // Applied Heading Color
+                    color: brandBlue,
+                    letterSpacing: 1
                 }}
               >
-                CONTACT
+                GET IN TOUCH
               </Typography>
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                <Typography variant="body2" sx={{ fontFamily: primaryFont }}>
-                  +94 672260200 <br /> +974 502260200
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Typography variant="body2" sx={{ fontFamily: primaryFont, color: "#444", fontWeight: 600 }}>
+                  +94 67 22 60 200 <br /> +94 76 095 93 85
                 </Typography>
                 <Link
                   href="mailto:info@almtcqatar.com"
                   sx={{
-                    color: "inherit",
-                    fontSize: "0.85rem",
+                    color: brandBlue,
+                    fontSize: "0.9rem",
                     textDecoration: "none",
                     fontFamily: primaryFont,
-                    fontWeight: 500,
-                    "&:hover": { color: brandBlue }, // Links hover to brand blue
+                    fontWeight: 600,
+                    transition: "all 0.3s ease",
+                    "&:hover": { 
+                        opacity: 0.7,
+                        paddingLeft: "5px" 
+                    },
                   }}
                 >
-                  info@almtcqatar.com
+                  info@brainiacs.edu.lk
                 </Link>
               </Box>
             </Box>
@@ -197,7 +234,10 @@ const Footer: React.FC = () => {
             <Divider
               orientation="vertical"
               flexItem
-              sx={{ display: { xs: "none", md: "block" }, borderColor: "rgba(255,255,255,0.15)" }}
+              sx={{
+                display: { xs: "none", md: "block" },
+                borderColor: "rgba(0, 0, 0, 0.08)",
+              }}
             />
 
             {/* Opening Hours */}
@@ -206,31 +246,41 @@ const Footer: React.FC = () => {
                 variant="h6"
                 sx={{ 
                     mb: 3, 
-                    fontSize: "0.95rem", 
+                    fontSize: "0.9rem", 
                     fontWeight: 800, 
                     fontFamily: primaryFont,
-                    color: brandBlue // Applied Heading Color
+                    color: brandBlue,
+                    letterSpacing: 1
                 }}
               >
-                OPENING HOURS
+                WORKING HOURS
               </Typography>
-              <Typography
-                variant="body2"
-                sx={{ lineHeight: 1.8, opacity: 0.9, fontFamily: primaryFont }}
-              >
-                Saturday - Thursday
-                <br />
-                8:00 AM - 6:00 PM
-                <br />
-                Friday: Closed
-              </Typography>
+              <Box sx={{ 
+                backgroundColor: "rgba(255,255,255,0.5)", 
+                p: 2, 
+                borderRadius: "12px",
+                border: "1px solid rgba(10, 83, 151, 0.1)"
+              }}>
+                <Typography
+                    variant="body2"
+                    sx={{ lineHeight: 1.8, color: "#444", fontFamily: primaryFont }}
+                >
+                    <strong>Sat - Thu:</strong>
+                    <br />
+                    8:00 AM - 6:00 PM
+                    <br />
+                    <Typography component="span" sx={{ color: "#d32f2f", fontSize: "0.8rem", fontWeight: 700,fontFamily: primaryFont }}>
+                        Friday: Closed
+                    </Typography>
+                </Typography>
+              </Box>
             </Box>
           </Box>
         </Container>
       </Box>
 
       {/* Bottom Footer Bar */}
-      <Box sx={{ backgroundColor: "#000", py: 2.5 }}>
+      <Box sx={{ backgroundColor: "#000", py: 3, borderTop: "1px solid rgba(255,255,255,0.1)" }}>
         <Container
           maxWidth="lg"
           sx={{
@@ -243,15 +293,14 @@ const Footer: React.FC = () => {
         >
           <Typography
             variant="body2"
-            sx={{ color: "rgba(255,255,255,0.6)", fontSize: "0.8rem", fontFamily: primaryFont }}
+            sx={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", fontFamily: primaryFont }}
           >
-            Copyright © 2026 | Al Mubthadieen Trading & Contracting (MTC)
+            © 2026 <strong>Brainiacs Campus</strong>. All Rights Reserved.
           </Typography>
           
           <Stack 
             direction="row" 
-            spacing={2} 
-            divider={<Typography sx={{ color: "rgba(255,255,255,0.2)" }}>|</Typography>}
+            spacing={3} 
             sx={{ display: { xs: "none", md: "flex" } }}
           >
             {["Home", "Portfolio", "Project", "Expertise", "Contact us"].map((text) => (
@@ -259,12 +308,28 @@ const Footer: React.FC = () => {
                 key={text}
                 href="#"
                 sx={{
-                  color: "#FFF",
+                  color: "rgba(255,255,255,0.8)",
                   textDecoration: "none",
-                  fontSize: "0.8rem",
+                  fontSize: "0.75rem",
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
                   fontFamily: primaryFont,
-                  transition: "color 0.2s",
-                  "&:hover": { color: brandBlue }, // Bottom menu hover to brand blue
+                  position: "relative",
+                  transition: "color 0.3s",
+                  "&::after": {
+                    content: '""',
+                    position: "absolute",
+                    width: "0%",
+                    height: "1px",
+                    bottom: -4,
+                    left: 0,
+                    backgroundColor: brandBlue,
+                    transition: "width 0.3s ease"
+                  },
+                  "&:hover": { 
+                    color: "#FFF",
+                    "&::after": { width: "100%" }
+                  },
                 }}
               >
                 {text}

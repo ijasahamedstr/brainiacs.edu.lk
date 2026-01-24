@@ -17,6 +17,7 @@ import News from './Page/News';
 import NewsView from './Page/News-view';
 import Course from './Page/coures';
 import Login from './Page/Admin/Login';
+import Dashboard from "./Page/Admin/Dashboard";
 
 // --- Protected Route Component ---
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -63,11 +64,11 @@ const AppContent = () => {
         <Route path="/login" element={<Login />} />
 
         {/* Example of a Protected Route (Dashboard) */}
-        <Route 
+         <Route 
           path="/dashboard" 
           element={
             <ProtectedRoute>
-              <div>Admin Dashboard Content Here</div>
+              <Dashboard />
             </ProtectedRoute>
           } 
         />

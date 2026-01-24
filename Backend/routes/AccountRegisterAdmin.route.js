@@ -1,5 +1,5 @@
 import express from 'express';
-import { createAdmin, deleteAdmin, getAllAdmins, login, setup2FA, updateAdmin, verify2FA } from '../controller/AccountRegisterAdmin.Controller.js';
+import { createAdmin, deleteAdmin, getAllAdmins, login, manualUnlock, setup2FA, updateAdmin, verify2FA } from '../controller/AccountRegisterAdmin.Controller.js';
 
 const Adminrouter = express.Router();
 
@@ -16,5 +16,7 @@ Adminrouter.post('/login',login);
 Adminrouter.put('/edit/:id', updateAdmin); // Uses ID from URL
 
 Adminrouter.delete('/delete/:id',deleteAdmin); // Uses ID from URL
+
+// Adminrouter.patch('/unlock/:id', manualUnlock);
 
 export default Adminrouter;

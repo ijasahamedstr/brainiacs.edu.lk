@@ -1,553 +1,376 @@
-/**
- * ============================================================================
- * COMPONENT: Login.tsx
- * PROJECT: Digi Laser Real Estate Admin Portal
- * DESIGN: Corporate Modern (Teal & Gold)
- * FONT: Montserrat
- * ============================================================================
- */
-
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
-import axios, { AxiosError } from "axios";
-
-// Material UI Components
-import {
-  Box,
-  Container,
-  Typography,
-  TextField,
-  Button,
-  IconButton,
-  InputAdornment,
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; 
+import axios from "axios";
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  TextField, 
+  Button, 
+  IconButton, 
+  InputAdornment, 
   Paper,
   CircularProgress,
   Alert,
   Fade,
-  Collapse,
-  Stack,
-  Divider,
-  useTheme,
-  useMediaQuery,
-  CssBaseline,
-  Tooltip,
-  Zoom
+  Collapse 
 } from "@mui/material";
-
-// Material UI Icons
-import {
-  Visibility,
-  VisibilityOff,
-  LockOutlined,
-  PersonOutline,
+import { 
+  Visibility, 
+  VisibilityOff, 
+  LockOutlined, 
+  PersonOutline, 
   ShieldOutlined,
-  ArrowBack,
-  AdminPanelSettings,
-  VerifiedUser,
-  SupportAgent
+  ArrowForward,
+  InfoOutlined,
+  ErrorOutline,
+  LockClockOutlined
 } from "@mui/icons-material";
 
-// ----------------------------------------------------------------------------
-// TYPES & INTERFACES
-// ----------------------------------------------------------------------------
-interface LoginResponse {
-  token: string;
-  requires2FA: boolean;
-  adminId: string;
-  admin: {
-    name: string;
-    email: string;
-    role: string;
-  };
-}
-
-interface ApiError {
-  message: string;
-}
-
-// ----------------------------------------------------------------------------
-// STYLED CONSTANTS
-// ----------------------------------------------------------------------------
-const PRIMARY_TEAL = "#004652";
-const ACCENT_GOLD = "#CC9D2F";
-const BG_LIGHT = "#F8FAFC";
-const MONTSERRAT = "'Montserrat', sans-serif";
-const LOGO_URL = "https://i.ibb.co/6RkH7J3r/Small-scaled.webp";
-
-// ----------------------------------------------------------------------------
-// MAIN COMPONENT
-// ----------------------------------------------------------------------------
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-
-  // Flow State
-  const [step, setStep] = useState<"password" | "otp">("password");
-  const [loading, setLoading] = useState<boolean>(false);
-  const [showPassword, setShowPassword] = useState<boolean>(false);
   
-  // Data State
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [otp, setOtp] = useState<string>("");
-  const [adminId, setAdminId] = useState<string>("");
+  // UI & Flow States
+  const [step, setStep] = useState<"password" | "otp" | "locked">("password");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showForgotAlert, setShowForgotAlert] = useState(false);
 
-  // UI Feedback State
-  const [error, setError] = useState<string | null>(null);
-  const [showForgotAlert, setShowForgotAlert] = useState<boolean>(false);
-  const [isHovered, setIsHovered] = useState<boolean>(false);
+  // Form Data States
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [adminId, setAdminId] = useState("");
 
-  // --------------------------------------------------------------------------
-  // EFFECTS
-  // --------------------------------------------------------------------------
+  // Styling Constants
+  const primaryFont = '"Montserrat", sans-serif';
+  const primaryTeal = "#004652";
+  const accentGold = "#CC9D2F";
+  const BASE_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
-    // Initial UI Setup
-    document.title = "Login | Digi Laser Real Estate";
     window.scrollTo({ top: 0, behavior: "smooth" });
-
-    // Check existing session
     const token = localStorage.getItem("token");
     if (token) {
-      const savedAdmin = localStorage.getItem("adminData");
-      console.log("Session detected for:", savedAdmin ? JSON.parse(savedAdmin).name : "Admin");
       navigate("/dashboard");
     }
   }, [navigate]);
 
-  // --------------------------------------------------------------------------
-  // LOGIC HANDLERS
-  // --------------------------------------------------------------------------
-  const togglePasswordVisibility = useCallback(() => {
-    setShowPassword((prev) => !prev);
-  }, []);
+  const handleTogglePassword = () => setShowPassword(!showPassword);
 
-  const clearMessages = () => {
-    setError(null);
-    setShowForgotAlert(false);
-  };
-
-  /**
-   * Step 1: Handle Email/Password Submission
-   */
-  const handleInitialLogin = async (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    clearMessages();
-
+    setShowForgotAlert(false);
     if (!email || !password) {
-      setError("Please fill in all required fields.");
+      setError("Please enter your email and password");
       return;
     }
 
     setLoading(true);
-    const BASE_URL = import.meta.env.VITE_API_URL;
+    setError("");
 
     try {
-      const response = await axios.post<LoginResponse>(`${BASE_URL}/api/login`, {
-        email: email.trim(),
-        password
-      });
-
+      const response = await axios.post(`${BASE_URL}/api/login`, { email, password });
+      
       if (response.data.requires2FA) {
         setAdminId(response.data.adminId);
-        setStep("otp");
+        setStep("otp"); 
       } else {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("adminData", JSON.stringify(response.data.admin));
-        navigate("/dashboard");
-      }
-    } catch (err) {
-      const axiosError = err as AxiosError<ApiError>;
-      setError(axiosError.response?.data?.message || "Internal server error. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /**
-   * Step 2: Handle 2FA Verification
-   */
-  const handleTwoFactorVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    clearMessages();
-
-    if (otp.length < 6) {
-      setError("Please enter the complete 6-digit verification code.");
-      return;
-    }
-
-    setLoading(true);
-    const BASE_URL = import.meta.env.VITE_API_URL;
-
-    try {
-      const response = await axios.post(`${BASE_URL}/api/verify-2fa`, {
-        adminId,
-        token: otp
-      });
-
-      if (response.data.success) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("adminData", JSON.stringify(response.data.admin));
         window.location.href = "/dashboard";
       }
-    } catch (err) {
-      setError("Invalid security code. Please check your authenticator app.");
+    } catch (err: any) {
+      const status = err.response?.status;
+      const message = err.response?.data?.message;
+
+      if (status === 403) {
+        // Switch to "Locked" screen if the backend reports account lockout
+        setStep("locked");
+        setError(message || "Account is temporarily locked");
+      } else {
+        setError(message || "Login failed, please check your credentials");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // --------------------------------------------------------------------------
-  // MEMOIZED STYLES
-  // --------------------------------------------------------------------------
-  const inputGlobalStyles = useMemo(() => ({
-    "& .MuiOutlinedInput-root": {
-      borderRadius: 4,
-      backgroundColor: BG_LIGHT,
-      fontFamily: MONTSERRAT,
-      transition: "all 0.3s ease",
-      "&:hover": {
-        backgroundColor: "#F1F5F9",
-      },
-      "&.Mui-focused": {
-        backgroundColor: "#FFFFFF",
-        "& fieldset": {
-          borderColor: PRIMARY_TEAL,
-          borderWidth: "2px",
-        },
-      },
-    },
-    "& .MuiInputLabel-root": {
-      fontFamily: MONTSERRAT,
-      fontWeight: 600,
-      color: "#94A3B8",
-      "&.Mui-focused": {
-        color: PRIMARY_TEAL,
-      },
-    },
-  }), []);
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length !== 6) {
+      setError("Please enter a valid 6-digit code");
+      return;
+    }
 
-  // --------------------------------------------------------------------------
-  // RENDER
-  // --------------------------------------------------------------------------
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await axios.post(`${BASE_URL}/api/verify-2fa`, { 
+        adminId, 
+        token: otp 
+      });
+
+      if (response.data.success) {
+        localStorage.setItem("token", response.data.token || "logged_in_token");
+        localStorage.setItem("adminData", JSON.stringify(response.data.admin));
+        window.location.href = "/dashboard";
+      }
+    } catch (err: any) {
+      setError("Invalid verification code, please try again");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box
+      component="section"
       sx={{
         minHeight: "100vh",
-        width: "100%",
+        bgcolor: "#E2E8F0",
+        py: { xs: 4, md: 10 },
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
-        background: `radial-gradient(circle at center, #F8FAFC 0%, #E2E8F0 100%)`,
-        position: "relative",
-        overflow: "hidden"
+        direction: "ltr",
       }}
     >
-      <CssBaseline />
-      
-      {/* Background Decorative Elements */}
-      <Box sx={{
-        position: "absolute",
-        width: "600px",
-        height: "600px",
-        borderRadius: "50%",
-        background: `radial-gradient(circle, ${PRIMARY_TEAL}08 0%, transparent 70%)`,
-        top: "-200px",
-        right: "-100px",
-        zIndex: 0
-      }} />
-
-      <Container maxWidth="sm" sx={{ zIndex: 1 }}>
-        <Fade in={true} timeout={1200}>
+      <Container maxWidth="sm">
+        <Fade in={true} timeout={800}>
           <Paper
-            elevation={0}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            elevation={24}
             sx={{
               p: { xs: 4, md: 7 },
-              borderRadius: 12,
-              backgroundColor: "rgba(255, 255, 255, 0.95)",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.6)",
-              boxShadow: isHovered 
-                ? "0 50px 100px -20px rgba(0, 42, 50, 0.18)" 
-                : "0 30px 60px -12px rgba(0, 42, 50, 0.12)",
-              transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-              textAlign: "center"
+              borderRadius: 10,
+              textAlign: "left",
+              background: "rgba(255, 255, 255, 0.98)",
+              backdropFilter: "blur(12px)",
+              boxShadow: "0 25px 60px rgba(0, 70, 82, 0.18)",
+              border: "1px solid rgba(255,255,255,0.3)"
             }}
           >
-            {/* Logo Section */}
-            <Box sx={{ mb: 5 }}>
-              <Box
-                component="img"
-                src={LOGO_URL}
-                alt="Digi Laser Logo"
-                sx={{
-                  height: { xs: 70, md: 90 },
-                  width: "auto",
-                  mb: 3,
-                  filter: "drop-shadow(0 8px 15px rgba(0,0,0,0.08))"
-                }}
-              />
-              <Typography
-                variant="h4"
-                sx={{
-                  fontFamily: MONTSERRAT,
-                  fontWeight: 800,
-                  color: PRIMARY_TEAL,
-                  letterSpacing: "-1.5px",
-                  textTransform: "uppercase"
-                }}
-              >
-                {step === "password" ? "Admin Login" : "Identity Shield"}
-              </Typography>
-              <Box sx={{ 
-                width: 60, 
-                height: 4, 
-                bgcolor: ACCENT_GOLD, 
-                margin: "12px auto", 
-                borderRadius: 2 
-              }} />
+            {/* --- ICON HEADER --- */}
+            <Box
+              sx={{
+                width: 90,
+                height: 90,
+                bgcolor: step === "locked" ? "#DC2626" : primaryTeal,
+                borderRadius: "30px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                margin: "0 auto 30px",
+                boxShadow: step === "locked" ? "0 10px 25px rgba(220, 38, 38, 0.3)" : "0 10px 25px rgba(0, 70, 82, 0.3)",
+                transform: "rotate(-4deg)"
+              }}
+            >
+              {step === "password" && <LockOutlined sx={{ color: accentGold, fontSize: 48 }} />}
+              {step === "otp" && <ShieldOutlined sx={{ color: "#10B981", fontSize: 48 }} />}
+              {step === "locked" && <LockClockOutlined sx={{ color: "#fff", fontSize: 48 }} />}
             </Box>
 
-            {/* Error/Notice Handlers */}
-            <Stack spacing={2} sx={{ mb: 3 }}>
-              <Collapse in={!!error}>
-                <Alert
-                  severity="error"
-                  variant="filled"
-                  icon={<ShieldOutlined />}
-                  onClose={() => setError(null)}
-                  sx={{
-                    borderRadius: 3,
-                    fontFamily: MONTSERRAT,
-                    fontWeight: 600,
-                    boxShadow: "0 8px 20px rgba(211, 47, 47, 0.2)"
-                  }}
-                >
-                  {error}
-                </Alert>
-              </Collapse>
-
-              <Collapse in={showForgotAlert}>
-                <Alert
-                  severity="info"
-                  variant="outlined"
-                  icon={<SupportAgent />}
-                  onClose={() => setShowForgotAlert(false)}
-                  sx={{
-                    borderRadius: 3,
-                    fontFamily: MONTSERRAT,
-                    fontWeight: 500,
-                    borderColor: PRIMARY_TEAL,
-                    color: PRIMARY_TEAL,
-                    textAlign: "left"
-                  }}
-                >
-                  Password resets are restricted. Please contact your Department Head or the IT Security Team.
-                </Alert>
-              </Collapse>
-            </Stack>
-
-            {/* Form Section */}
-            <Box
-              component="form"
-              onSubmit={step === "password" ? handleInitialLogin : handleTwoFactorVerify}
-              noValidate
+            <Typography
+              variant="h4"
+              sx={{ fontWeight: 900, color: step === "locked" ? "#DC2626" : primaryTeal, mb: 1.5, fontFamily: primaryFont, textAlign: 'center' }}
             >
-              {step === "password" ? (
-                <Stack spacing={2.5}>
-                  <TextField
-                    fullWidth
-                    label="Authorized Email"
-                    variant="outlined"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonOutline sx={{ color: PRIMARY_TEAL }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={inputGlobalStyles}
-                  />
+              {step === "password" && "Login"}
+              {step === "otp" && "Security Verification"}
+              {step === "locked" && "Account Locked"}
+            </Typography>
+            
+            <Typography
+              variant="body1"
+              sx={{ color: "#64748B", mb: 5, fontFamily: primaryFont, fontSize: "1rem", textAlign: 'center', lineHeight: 1.6 }}
+            >
+              {step === "password" && "Welcome back, please enter your details to access the dashboard"}
+              {step === "otp" && "Please enter the 6-digit code from your Authenticator app"}
+              {step === "locked" && (error || "Too many failed attempts. Your account has been suspended for 24 hours.")}
+            </Typography>
 
-                  <TextField
-                    fullWidth
-                    label="Secure Password"
-                    variant="outlined"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <LockOutlined sx={{ color: PRIMARY_TEAL }} />
-                        </InputAdornment>
-                      ),
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton onClick={togglePasswordVisibility} edge="end">
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={inputGlobalStyles}
-                  />
-
-                  <Box sx={{ textAlign: "right", mt: -1 }}>
-                    <Tooltip title="Contact IT for help" arrow TransitionComponent={Zoom}>
-                      <Button
-                        variant="text"
-                        size="small"
-                        onClick={() => setShowForgotAlert(true)}
-                        sx={{
-                          fontFamily: MONTSERRAT,
-                          color: ACCENT_GOLD,
-                          fontWeight: 700,
-                          fontSize: "0.75rem",
-                          "&:hover": { backgroundColor: "transparent", color: PRIMARY_TEAL }
-                        }}
-                      >
-                        Trouble accessing your account?
-                      </Button>
-                    </Tooltip>
-                  </Box>
-                </Stack>
-              ) : (
-                <Box>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontFamily: MONTSERRAT,
-                      color: "#64748B",
-                      mb: 4,
-                      fontWeight: 500
-                    }}
-                  >
-                    Enter the 6-digit code from your <Box component="span" sx={{ color: PRIMARY_TEAL, fontWeight: 700 }}>Google Authenticator</Box>
-                  </Typography>
-                  
-                  <TextField
-                    fullWidth
-                    placeholder="0 0 0 0 0 0"
-                    variant="outlined"
-                    autoFocus
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    inputProps={{
-                      maxLength: 6,
-                      style: {
-                        textAlign: "center",
-                        fontSize: isMobile ? "1.8rem" : "2.5rem",
-                        letterSpacing: isMobile ? "10px" : "15px",
-                        fontWeight: 900,
-                        fontFamily: MONTSERRAT,
-                        color: PRIMARY_TEAL
-                      }
-                    }}
-                    sx={inputGlobalStyles}
-                  />
-                </Box>
-              )}
-
-              <Button
-                fullWidth
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                sx={{
-                  mt: 5,
-                  py: 2.2,
-                  borderRadius: 5,
-                  backgroundColor: PRIMARY_TEAL,
-                  fontFamily: MONTSERRAT,
-                  fontWeight: 700,
-                  fontSize: "1rem",
-                  letterSpacing: "1.5px",
-                  boxShadow: `0 12px 25px ${PRIMARY_TEAL}40`,
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    backgroundColor: "#00323a",
-                    transform: "translateY(-3px)",
-                    boxShadow: `0 15px 35px ${PRIMARY_TEAL}60`,
-                  },
-                  "&.Mui-disabled": {
-                    backgroundColor: "#94A3B8",
-                  }
-                }}
+            {/* --- ERROR ALERT --- */}
+            {error && step !== "locked" && (
+              <Alert 
+                severity="error" 
+                variant="filled"
+                sx={{ mb: 4, fontFamily: primaryFont, borderRadius: 3, fontWeight: 700 }}
               >
-                {loading ? (
-                  <CircularProgress size={24} sx={{ color: "#FFF" }} />
-                ) : (
-                  step === "password" ? "VALIDATE & CONTINUE" : "CONFIRM ACCESS"
-                )}
-              </Button>
+                {error}
+              </Alert>
+            )}
 
-              {step === "otp" && (
+            {/* --- LOCKOUT UI --- */}
+            {step === "locked" ? (
+              <Box sx={{ textAlign: "center" }}>
+                <Alert severity="error" icon={<ErrorOutline fontSize="large" />} sx={{ borderRadius: 4, mb: 4, py: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700, fontFamily: primaryFont }}>
+                    For security reasons, access is restricted.
+                  </Typography>
+                </Alert>
+                <Typography sx={{ mb: 4, color: "#64748B", fontFamily: primaryFont }}>
+                  Please contact the System Administrator to manually unlock your account or wait for the cooldown period to end.
+                </Typography>
                 <Button
                   fullWidth
-                  startIcon={<ArrowBack />}
+                  variant="outlined"
                   onClick={() => setStep("password")}
+                  sx={{ py: 2, borderRadius: 4, borderColor: primaryTeal, color: primaryTeal, fontWeight: 700 }}
+                >
+                  Return to Login
+                </Button>
+              </Box>
+            ) : (
+              <Box 
+                component="form" 
+                onSubmit={step === "password" ? handleLoginSubmit : handleOtpSubmit} 
+                noValidate
+              >
+                {step === "password" ? (
+                  <>
+                    <TextField
+                      fullWidth
+                      label="Email Address"
+                      variant="outlined"
+                      margin="normal"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      InputLabelProps={{ sx: { fontFamily: primaryFont, fontWeight: 700 } }}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start"><PersonOutline sx={{ color: primaryTeal, mr: 1 }} /></InputAdornment>,
+                      }}
+                      sx={{ 
+                        "& .MuiOutlinedInput-root": { borderRadius: 4, bgcolor: "#F8FAFC", height: 65, fontFamily: primaryFont },
+                        "& input": { textAlign: 'left', fontFamily: primaryFont, fontWeight: 500 }
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Password"
+                      type={showPassword ? "text" : "password"}
+                      variant="outlined"
+                      margin="normal"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      InputLabelProps={{ sx: { fontFamily: primaryFont, fontWeight: 700 } }}
+                      InputProps={{
+                        startAdornment: <InputAdornment position="start"><LockOutlined sx={{ color: primaryTeal, mr: 1 }} /></InputAdornment>,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton onClick={handleTogglePassword} edge="end" sx={{ p: 2 }}>
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{ 
+                        "& .MuiOutlinedInput-root": { borderRadius: 4, bgcolor: "#F8FAFC", height: 65, fontFamily: primaryFont },
+                        "& input": { textAlign: 'left', fontFamily: primaryFont, fontWeight: 500 }
+                      }}
+                    />
+                    
+                    <Box sx={{ textAlign: "right", mt: 1, mb: 4 }}>
+                      <Typography
+                        component="button"
+                        type="button"
+                        onClick={() => setShowForgotAlert(true)}
+                        sx={{ 
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: accentGold, 
+                          fontSize: "0.9rem", 
+                          fontWeight: 700, 
+                          fontFamily: primaryFont,
+                          padding: 0,
+                          "&:hover": { textDecoration: "underline" }
+                        }}
+                      >
+                        Forgot Password?
+                      </Typography>
+                    </Box>
+                  </>
+                ) : (
+                  <TextField
+                    fullWidth
+                    label="Verification Code"
+                    placeholder="000 000"
+                    variant="outlined"
+                    margin="normal"
+                    autoFocus
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
+                    inputProps={{ maxLength: 6, style: { textAlign: 'center', fontSize: '2.2rem', letterSpacing: '8px', fontWeight: 900, color: primaryTeal, fontFamily: primaryFont } }}
+                    InputLabelProps={{ sx: { fontFamily: primaryFont, fontWeight: 700 } }}
+                    sx={{ "& .MuiOutlinedInput-root": { borderRadius: 5, bgcolor: "#F8FAFC", py: 2 }, mb: 5 }}
+                  />
+                )}
+
+                <Button
+                  fullWidth
+                  type="submit"
+                  variant="contained"
+                  disabled={loading}
                   sx={{
-                    mt: 3,
-                    color: "#64748B",
-                    fontFamily: MONTSERRAT,
-                    fontWeight: 600,
-                    textTransform: "none",
-                    "&:hover": { backgroundColor: "transparent", color: PRIMARY_TEAL }
+                    py: 2.2,
+                    borderRadius: 5,
+                    bgcolor: primaryTeal,
+                    fontSize: "1.1rem",
+                    fontWeight: 800,
+                    fontFamily: primaryFont,
+                    boxShadow: "0 12px 30px rgba(0, 70, 82, 0.25)",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px",
+                    transition: "0.3s",
+                    "&:hover": { bgcolor: "#065f6e", transform: "translateY(-2px)" },
                   }}
                 >
-                  Use a different account
+                  {loading ? (
+                    <CircularProgress size={24} sx={{ color: "#fff" }} />
+                  ) : (
+                    step === "password" ? "Login Now" : "Verify Code"
+                  )}
                 </Button>
-              )}
-            </Box>
 
-            <Divider sx={{ my: 5 }}>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <AdminPanelSettings sx={{ color: "#CBD5E1", fontSize: 18 }} />
-                <Typography variant="caption" sx={{ color: "#94A3B8", fontWeight: 700, letterSpacing: 1.5 }}>
-                  SECURED BY DIGI LASER
-                </Typography>
-              </Stack>
-            </Divider>
+                {step === "otp" && (
+                  <Button 
+                    fullWidth 
+                    onClick={() => setStep("password")}
+                    startIcon={<ArrowForward sx={{ transform: 'rotate(180deg)', mr: 1 }} />}
+                    sx={{ mt: 3, color: "#64748B", fontFamily: primaryFont, fontWeight: 700, fontSize: '0.9rem', textTransform: "none" }}
+                  >
+                    Back to login
+                  </Button>
+                )}
+              </Box>
+            )}
 
-            {/* Footer Info */}
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              justifyContent="center"
-              alignItems="center"
-              spacing={2}
-            >
-              <Stack direction="row" spacing={0.5} alignItems="center">
-                <VerifiedUser sx={{ fontSize: 14, color: "#10B981" }} />
-                <Typography variant="caption" sx={{ color: "#64748B", fontFamily: MONTSERRAT }}>
-                  SSL Encrypted
-                </Typography>
-              </Stack>
-              <Typography variant="caption" sx={{ color: "#64748B", fontFamily: MONTSERRAT, display: { xs: 'none', sm: 'block' } }}>
-                •
-              </Typography>
-              <Typography variant="caption" sx={{ color: "#64748B", fontFamily: MONTSERRAT }}>
-                Internal Use Only
-              </Typography>
-            </Stack>
+            <Collapse in={showForgotAlert}>
+              <Box sx={{ mt: 3 }}>
+                <Alert 
+                  severity="info" 
+                  icon={<InfoOutlined fontSize="inherit" />}
+                  onClose={() => setShowForgotAlert(false)}
+                  sx={{ 
+                    fontFamily: primaryFont, 
+                    borderRadius: 3, 
+                    fontWeight: 600,
+                    bgcolor: "#f0f9ff",
+                    color: "#0369a1",
+                    "& .MuiAlert-icon": { color: "#0369a1" }
+                  }}
+                >
+                  To reset your password, please contact the System Administrator.
+                </Alert>
+              </Box>
+            </Collapse>
           </Paper>
         </Fade>
 
-        {/* System Footer */}
-        <Box sx={{ mt: 5, display: "flex", justifyContent: "space-between", px: 2, opacity: 0.7 }}>
-          <Typography variant="caption" sx={{ fontFamily: MONTSERRAT, fontWeight: 700, color: "#475569" }}>
-            DIGI LASER v4.2.0
-          </Typography>
-          <Typography variant="caption" sx={{ fontFamily: MONTSERRAT, fontWeight: 700, color: "#475569" }}>
-            &copy; {new Date().getFullYear()}
-          </Typography>
-        </Box>
+        <Typography sx={{ mt: 5, textAlign: "center", color: "#64748B", fontSize: "0.85rem", fontFamily: primaryFont, fontWeight: 600 }}>
+          DIGI LASER REAL ESTATE © {new Date().getFullYear()} | SECURE ACCESS
+        </Typography>
       </Container>
     </Box>
   );
