@@ -73,11 +73,12 @@ const News: React.FC = () => {
   const circleRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (circleRef.current) {
-      new Rellax(circleRef.current, {
+      const rellax = new Rellax(circleRef.current, {
         speed: -3,
         center: false,
         round: true,
       });
+      return () => rellax.destroy();
     }
   }, []);
 
@@ -101,32 +102,33 @@ const News: React.FC = () => {
     container: {
       position: "relative" as const,
       backgroundColor: "#fff",
-      padding: "60px 5%",
+      padding: "120px 5%", // INCREASED TOP/BOTTOM PADDING
       textAlign: "center" as const,
       fontFamily: "'Poppins', sans-serif",
       zIndex: 1,
     },
     title: {
-      fontSize: "2.5rem",
+      fontSize: "2.8rem",
       fontWeight: 700,
       color: "#111827",
-      marginBottom: "0.5rem",
+      marginBottom: "1.5rem", // ADDED SPACE BELOW TITLE
       fontFamily: "'Montserrat', sans-serif",
     },
     subtitle: {
-      fontSize: "1.75rem",
-      fontWeight: 600,
+      fontSize: "1.5rem",
+      fontWeight: 500,
       color: "#4b5563",
-      marginBottom: "2.5rem",
+      marginBottom: "5rem", // LARGE SPACE BEFORE THE GRID
       fontFamily: "'Montserrat', sans-serif",
+      letterSpacing: "1px",
     },
     grid: {
       display: "grid",
       gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-      gap: "30px",
-      maxWidth: "1200px",
+      gap: "35px",
+      maxWidth: "1240px",
       margin: "0 auto",
-      alignItems: "stretch", // 👈 ensures equal height
+      alignItems: "stretch",
     },
     card: {
       backgroundColor: "#ffffff",
@@ -136,7 +138,7 @@ const News: React.FC = () => {
       textAlign: "left" as const,
       display: "flex",
       flexDirection: "column" as const,
-      height: "100%", // 👈 equal height
+      height: "100%",
       transition: "transform 0.3s ease, box-shadow 0.3s ease",
     },
     image: {
@@ -146,27 +148,27 @@ const News: React.FC = () => {
       display: "block",
     },
     info: {
-      padding: "20px",
+      padding: "24px",
       color: "#111827",
       fontFamily: "'Montserrat', sans-serif",
-      flexGrow: 1, // 👈 fills height evenly
+      flexGrow: 1,
       display: "flex",
       flexDirection: "column" as const,
-      justifyContent: "space-between", // 👈 push content evenly
+      justifyContent: "space-between",
     },
     textBlock: {
       flexGrow: 1,
     },
     eventName: {
-      fontSize: "1.2rem",
+      fontSize: "1.25rem",
       fontWeight: 700,
-      margin: "0 0 8px 0",
+      margin: "0 0 10px 0",
       color: "#0a5397",
     },
     date: {
       fontSize: "0.9rem",
       color: "#6b7280",
-      marginBottom: "10px",
+      marginBottom: "12px",
       display: "flex",
       alignItems: "center",
       gap: "6px",
@@ -174,7 +176,7 @@ const News: React.FC = () => {
     description: {
       fontSize: "0.95rem",
       color: "#374151",
-      marginBottom: "15px",
+      marginBottom: "20px",
       lineHeight: 1.6,
     },
     readMore: {
@@ -189,22 +191,22 @@ const News: React.FC = () => {
       marginTop: "auto",
     },
     pagination: {
-      marginTop: "40px",
+      marginTop: "60px",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      gap: "10px",
+      gap: "12px",
     },
     pageButton: {
       backgroundColor: "#f3f4f6",
       color: "#111827",
       border: "1px solid #d1d5db",
-      width: "40px",
-      height: "40px",
+      width: "44px",
+      height: "44px",
       borderRadius: "50%",
       cursor: "pointer",
       fontWeight: 600,
-      fontSize: "0.9rem",
+      fontSize: "0.95rem",
       transition: "all 0.25s ease",
     },
     activePage: {
@@ -217,8 +219,8 @@ const News: React.FC = () => {
       color: "#111827",
       border: "none",
       borderRadius: "50%",
-      width: "40px",
-      height: "40px",
+      width: "44px",
+      height: "44px",
       cursor: "pointer",
       fontWeight: 600,
       transition: "all 0.25s ease",
@@ -247,15 +249,12 @@ const News: React.FC = () => {
               <div
                 style={{ ...styles.card, cursor: "pointer" }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.transform =
-                    "translateY(-6px)";
-                  (e.currentTarget as HTMLElement).style.boxShadow =
-                    "0 12px 24px rgba(0,0,0,0.12)";
+                  (e.currentTarget as HTMLElement).style.transform = "translateY(-8px)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 15px 30px rgba(0,0,0,0.12)";
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.transform = "none";
-                  (e.currentTarget as HTMLElement).style.boxShadow =
-                    "0 6px 20px rgba(0,0,0,0.08)";
+                  (e.currentTarget as HTMLElement).style.boxShadow = "0 6px 20px rgba(0,0,0,0.08)";
                 }}
               >
                 <img src={event.image} alt={event.title} style={styles.image} />
@@ -274,14 +273,7 @@ const News: React.FC = () => {
                         strokeLinejoin="round"
                         viewBox="0 0 24 24"
                       >
-                        <rect
-                          x="3"
-                          y="4"
-                          width="18"
-                          height="18"
-                          rx="2"
-                          ry="2"
-                        ></rect>
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                         <line x1="16" y1="2" x2="16" y2="6"></line>
                         <line x1="8" y1="2" x2="8" y2="6"></line>
                         <line x1="3" y1="10" x2="21" y2="10"></line>

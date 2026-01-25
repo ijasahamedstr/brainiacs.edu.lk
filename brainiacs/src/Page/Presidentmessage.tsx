@@ -12,6 +12,7 @@ const Presidentmessage: React.FC = () => {
             flexDirection: { xs: "column", md: "row" },
             gap: { xs: 4, md: 4 },
             alignItems: { xs: "center", md: "flex-start" }, // center on mobile/tablet
+            pt: { xs: 10, md: 15 }, 
           }}
         >
           {/* Column 1 - Title */}
@@ -112,26 +113,36 @@ const Presidentmessage: React.FC = () => {
                   />
                 </Typography>
               </Box>
-
-              {/* President Name */}
-              <Box sx={{ mt: 3 }}>
+              <Box 
+                sx={{ 
+                  p: 3, 
+                  backgroundColor: "#fff", 
+                  borderRadius: "15px",
+                  boxShadow: "0 10px 30px rgba(0,0,0,0.05)",
+                  borderLeft: "6px solid #002D72",
+                  transition: "transform 0.3s ease",
+                  "&:hover": { transform: "translateX(10px)" }
+                }}
+              >
                 <Typography
-                  variant="subtitle1"
+                  variant="h6"
                   fontWeight={700}
-                  sx={{
-                    fontFamily: "'Montserrat', sans-serif",
-                    color: "#002D72",
-                  }}
+                  sx={{ color: "#002D72", fontFamily: "'Montserrat', sans-serif" }}
                 >
                   Dr. A L Joufer Sadique
                 </Typography>
                 <Typography
-                  variant="subtitle2"
-                  color="text.secondary"
-                  sx={{ fontFamily: "'Montserrat', sans-serif" }}
+                  variant="caption"
+                  sx={{ 
+                    display: "block", 
+                    mt: 1, 
+                    color: "text.secondary", 
+                    lineHeight: 1.5,
+                    fontFamily: "'Montserrat', sans-serif"
+                  }}
                 >
-                  (B.Sc (Hons), PGDM, FCPM, and D.Lit (Honorary)), Retired University
-                  Registrar and Chairman of the Board of Governors of the Brainiacs Campus
+                  B.Sc (Hons), PGDM, FCPM, and D.Lit (Honorary) <br />
+                  <strong>Retired University Registrar</strong> | Chairman of the Board of Governors
                 </Typography>
               </Box>
             </Box>

@@ -50,7 +50,7 @@ const AppContent = () => {
         <Route path="/Presidentmessage" element={<Presidentmessage />} />
         <Route path="/leadersip-governance" element={<Leadersipgovernance />} />
         <Route path="/events" element={<Events />} />
-        <Route path="/events/uni-sittham" element={<Event_view />} />
+        <Route path="/events/uni-sittham-nes" element={<Event_view />} />
         <Route path="/partners" element={<Partners />} />
         <Route path="/student-life" element={<Studentlife />} />
         <Route path="/student-life/view" element={<Studentlifeview />} />

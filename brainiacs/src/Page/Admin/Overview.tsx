@@ -1,28 +1,72 @@
 import React, { useState, useEffect } from "react";
-import { Box, Typography, Stack, Paper, IconButton } from "@mui/material";
-import { ArrowBackIosNew, HomeWorkOutlined, ShoppingBagOutlined, VpnKeyOutlined, FormatPaintOutlined } from "@mui/icons-material";
+import { Box, Typography, Stack, Paper, Divider } from "@mui/material";
+import { 
+  ArrowForward, 
+  ViewCarouselOutlined, 
+  HowToRegOutlined, 
+  VerifiedOutlined, 
+  CampaignOutlined, 
+  QuestionAnswerOutlined, 
+  NewspaperOutlined, 
+  EventOutlined, 
+  SupportAgentOutlined, 
+  AccountBalanceOutlined, 
+  Diversity1Outlined, 
+  HandshakeOutlined, 
+  SettingsOutlined,
+  SchoolOutlined // Added for Courses
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
-const primaryTeal = "#004652", accentGold = "#CC9D2F", menuFont = "Tajawal, sans-serif";
+// Constants
+const primaryTeal = "#004652";
+const accentGold = "#CC9D2F";
+const primaryFont = "'Montserrat', sans-serif"; 
 
 const Overview = () => {
   const navigate = useNavigate();
-  const [counts, setCounts] = useState({ finishing: 0, sale: 0, buying: 0, rental: 0 });
+  const [counts, setCounts] = useState({
+    slider: 0, 
+    registration: 0, 
+    courses: 0, // Added
+    certificates: 0, 
+    offers: 0,
+    students: 0, 
+    news: 0, 
+    events: 0, 
+    consultation: 0,
+    faculties: 0, 
+    studentLife: 0, 
+    partners: 0, 
+    settings: "Active"
+  });
 
   useEffect(() => {
     const apiHost = import.meta.env.VITE_API_URL || "";
     const endpoints = {
-      finishing: "/api/save-service-contact",
-      sale: "/api/save-request",
-      buying: "/api/save",
-      rental: "/api/submit"
+      slider: "/api/sliders",
+      registration: "/api/registrations",
+      courses: "/api/courses", // Added
+      certificates: "/api/certificates",
+      offers: "/api/offers",
+      students: "/api/student-queries",
+      news: "/api/news",
+      events: "/api/events",
+      consultation: "/api/consultations",
+      faculties: "/api/faculties",
+      studentLife: "/api/activities",
+      partners: "/api/partners"
     };
 
     Object.entries(endpoints).forEach(([key, url]) => {
       fetch(`${apiHost}${url}`)
         .then(res => res.json())
         .then(data => {
-          const val = data.success && Array.isArray(data.data) ? data.data.length : (Array.isArray(data) ? data.length : 0);
+          // Robust data length checking
+          const val = data.success && Array.isArray(data.data) 
+            ? data.data.length 
+            : (Array.isArray(data) ? data.length : 0);
+          
           setCounts(prev => ({ ...prev, [key]: val }));
         })
         .catch(err => console.error(`Error fetching ${key}:`, err));
@@ -30,46 +74,150 @@ const Overview = () => {
   }, []);
 
   const services = [
-    { id: "sale", title: "بيع العقار", count: counts.sale, icon: <HomeWorkOutlined />, color: "#10B981" },
-    { id: "buying", title: "شراء العقار", count: counts.buying, icon: <ShoppingBagOutlined />, color: accentGold },
-    { id: "rental", title: "إيجار العقار", count: counts.rental, icon: <VpnKeyOutlined />, color: "#3B82F6" },
-    { id: "finishing", title: "تشطيب العقار", count: counts.finishing, icon: <FormatPaintOutlined />, color: "#8B5CF6" }
+    { id: "slider", title: "Home Slider", count: counts.slider, icon: <ViewCarouselOutlined />, color: "#3B82F6" },
+    { id: "registration", title: "Registration", count: counts.registration, icon: <HowToRegOutlined />, color: "#10B981" },
+    { id: "courses", title: "Courses", count: counts.courses, icon: <SchoolOutlined />, color: "#F97316" }, // Added
+    { id: "certificates", title: "Certificates", count: counts.certificates, icon: <VerifiedOutlined />, color: accentGold },
+    { id: "offers", title: "Campus Offers", count: counts.offers, icon: <CampaignOutlined />, color: "#F43F5E" },
+    { id: "students", title: "Student Queries", count: counts.students, icon: <QuestionAnswerOutlined />, color: "#8B5CF6" },
+    { id: "news", title: "Latest News", count: counts.news, icon: <NewspaperOutlined />, color: "#06B6D4" },
+    { id: "events", title: "Campus Events", count: counts.events, icon: <EventOutlined />, color: "#F59E0B" },
+    { id: "consultation", title: "Consultations", count: counts.consultation, icon: <SupportAgentOutlined />, color: "#EC4899" },
+    { id: "faculties", title: "Faculties", count: counts.faculties, icon: <AccountBalanceOutlined />, color: primaryTeal },
+    { id: "studentLife", title: "Student Life", count: counts.studentLife, icon: <Diversity1Outlined />, color: "#6366F1" },
+    { id: "partners", title: "Our Partners", count: counts.partners, icon: <HandshakeOutlined />, color: "#2DD4BF" },
+    { id: "settings", title: "Settings", count: "Active", icon: <SettingsOutlined />, color: "#64748B" }
   ];
 
   return (
-    <Box sx={{ direction: "rtl", width: "100%", pb: 5 }}>
-      <Stack direction="row" justifyContent="space-between" mb={6}>
-        <Box>
-          <Typography variant="h4" fontWeight={900} color={primaryTeal} fontFamily={menuFont}>إحصائيات الخدمات</Typography>
-          <Typography color="#64748B" fontFamily={menuFont}>تتبع أداء الأقسام والطلبات الجديدة</Typography>
-        </Box>
-      </Stack>
+    <Box sx={{ 
+      direction: "ltr", 
+      width: "100%", 
+      p: { xs: 2, md: 4 }, 
+      bgcolor: "#F8FAFC",
+      minHeight: "100vh" 
+    }}>
+      {/* Header Section */}
+      <Box sx={{ mb: 6 }}>
+        <Typography 
+          variant="h3" 
+          fontWeight={800} 
+          color={primaryTeal} 
+          sx={{ fontFamily: primaryFont, letterSpacing: "-1px" }}
+        >
+          Dashboard
+        </Typography>
+        <Typography 
+          variant="body1" 
+          color="text.secondary" 
+          sx={{ fontFamily: primaryFont, mt: 1 }}
+        >
+          Real-time metrics across all system modules.
+        </Typography>
+      </Box>
 
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+      {/* Grid Layout */}
+      <Box 
+        sx={{ 
+          display: "flex", 
+          flexWrap: "wrap", 
+          gap: "20px", 
+          justifyContent: "flex-start"
+        }}
+      >
         {services.map((s) => (
-          <Paper key={s.id} elevation={0} 
-            onClick={() => navigate(`/service-detail/${s.id}`)} 
-            sx={{
-              flex: { xs: "1 1 100%", sm: "1 1 calc(50% - 32px)", lg: "1 1 calc(25% - 32px)" },
-              p: 4, borderRadius: "40px", bgcolor: "rgba(255, 255, 255, 0.6)", backdropFilter: "blur(10px)", border: "1px solid #fff", cursor: "pointer", transition: "0.5s",
-              "&:hover": { transform: "translateY(-12px)", boxShadow: `0 40px 80px ${s.color}15`, bgcolor: "#fff" }
-            }}>
-            <Box sx={{ position: 'relative', mb: 4 }}>
-              <Box sx={{ width: 70, height: 70, bgcolor: "#fff", borderRadius: "24px", display: "flex", justifyContent: "center", alignItems: "center", color: s.color, boxShadow: "0 10px 20px rgba(0,0,0,0.05)", border: `1px solid ${s.color}20` }}>
-                {React.cloneElement(s.icon, { sx: { fontSize: 32 } })}
-              </Box>
-            </Box>
-            <Typography variant="h5" fontWeight={900} color={primaryTeal} fontFamily={menuFont} mb={1.5}>{s.title}</Typography>
-            <Box sx={{ mt: 3, p: 2, borderRadius: '24px', bgcolor: 'rgba(241, 245, 249, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box 
+            key={s.id}
+            sx={{ 
+              width: {
+                xs: "100%",                  
+                sm: "calc(50% - 10px)",          
+                md: "calc(33.33% - 14px)",       
+                lg: "calc(20% - 16px)"           
+              },
+              flexGrow: 0,
+              flexShrink: 0
+            }}
+          >
+            <Paper
+              elevation={0}
+              onClick={() => navigate(`/service-detail/${s.id}`)}
+              sx={{
+                p: 3,
+                height: "100%",
+                borderRadius: "20px",
+                border: "1px solid #E2E8F0",
+                bgcolor: "#FFFFFF",
+                cursor: "pointer",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                "&:hover": {
+                  borderColor: s.color,
+                  boxShadow: `0 12px 24px -10px ${s.color}40`,
+                  transform: "translateY(-5px)",
+                  "& .arrow-icon": { 
+                    transform: "translateX(4px)", 
+                    color: s.color 
+                  }
+                }
+              }}
+            >
               <Box>
-                <Typography fontSize="0.7rem" color="#94A3B8" fontWeight={700} fontFamily={menuFont}>الإجمالي</Typography>
-                <Typography fontWeight={900} color={primaryTeal} fontSize='1.8rem' fontFamily={menuFont}>{s.count}</Typography>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
+                  <Box 
+                    sx={{ 
+                      p: 1.5, 
+                      borderRadius: "12px", 
+                      bgcolor: `${s.color}10`, 
+                      color: s.color,
+                      display: "flex"
+                    }}
+                  >
+                    {React.cloneElement(s.icon, { sx: { fontSize: 28 } })}
+                  </Box>
+                  <ArrowForward className="arrow-icon" sx={{ fontSize: 20, color: "#CBD5E1", transition: "0.3s" }} />
+                </Stack>
+
+                <Typography 
+                  variant="body2" 
+                  fontWeight={700} 
+                  color="text.secondary" 
+                  sx={{ 
+                    fontFamily: primaryFont,
+                    textTransform: "uppercase", 
+                    letterSpacing: "1px", 
+                    mb: 0.5, 
+                    fontSize: "0.7rem" 
+                  }}
+                >
+                  {s.title}
+                </Typography>
+                
+                <Typography 
+                  variant="h4" 
+                  fontWeight={800} 
+                  color={primaryTeal} 
+                  sx={{ fontFamily: primaryFont }}
+                >
+                  {s.count}
+                </Typography>
               </Box>
-              <IconButton sx={{ bgcolor: "#fff", color: primaryTeal }}>
-                <ArrowBackIosNew sx={{ fontSize: 16 }} />
-              </IconButton>
-            </Box>
-          </Paper>
+
+              <Box sx={{ mt: 3 }}>
+                <Divider sx={{ mb: 2, opacity: 0.6 }} />
+                <Typography 
+                  variant="caption" 
+                  color="text.disabled" 
+                  fontWeight={600} 
+                  sx={{ fontFamily: primaryFont }}
+                >
+                  TOTAL RECORDS
+                </Typography>
+              </Box>
+            </Paper>
+          </Box>
         ))}
       </Box>
     </Box>

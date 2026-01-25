@@ -38,10 +38,17 @@ const Event_view: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>
-      {/* Event Title */}
+      {/* Event Title with Added Top Spacing */}
       <Typography
         variant="h4"
-        sx={{ ...fontStyle, fontWeight: "bold", mb: 2, color: "#1a1a1a" }}
+        sx={{ 
+          ...fontStyle, 
+          fontWeight: "bold", 
+          mt: 10, // Added Margin Top
+          pt: 2, // Added Padding Top
+          mb: 2, 
+          color: "#1a1a1a" 
+        }}
       >
         {event.title}
       </Typography>
@@ -49,7 +56,13 @@ const Event_view: React.FC = () => {
       {/* Event Description */}
       <Typography
         variant="body1"
-        sx={{ ...fontStyle, color: "#333", lineHeight: 1.8, textAlign: "justify", mb: 2 }}
+        sx={{ 
+          ...fontStyle, 
+          color: "#333", 
+          lineHeight: 1.8, 
+          textAlign: "justify", 
+          mb: 2 
+        }}
       >
         {event.description}
       </Typography>
@@ -88,13 +101,19 @@ const Event_view: React.FC = () => {
           transition: "transform 0.3s ease, boxShadow 0.3s ease",
           mb: 4,
           "&:hover": {
-            transform: "scale(1.03)",
+            transform: "scale(1.01)",
             boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
             cursor: "pointer",
           },
         }}
       >
-        <CardMedia component="img" height="400" image={images[0]} alt="Main event image" sx={{ objectFit: "cover" }} />
+        <CardMedia 
+          component="img" 
+          height="450" 
+          image={images[0]} 
+          alt="Main event image" 
+          sx={{ objectFit: "cover" }} 
+        />
       </Card>
 
       {/* Remaining Images */}
@@ -104,8 +123,7 @@ const Event_view: React.FC = () => {
             key={index}
             onClick={() => handleOpen(img)}
             sx={{
-              flex: "1 1 calc(33% - 16px)",
-              minWidth: 200,
+              flex: { xs: "1 1 100%", sm: "1 1 calc(48% - 16px)", md: "1 1 calc(32% - 16px)" },
               borderRadius: 2,
               overflow: "hidden",
               boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
@@ -117,15 +135,32 @@ const Event_view: React.FC = () => {
               },
             }}
           >
-            <CardMedia component="img" height="180" image={img} alt={`Event image ${index + 2}`} sx={{ objectFit: "cover" }} />
+            <CardMedia 
+              component="img" 
+              height="220" 
+              image={img} 
+              alt={`Event image ${index + 2}`} 
+              sx={{ objectFit: "cover" }} 
+            />
           </Card>
         ))}
       </Box>
 
       {/* Image Dialog */}
-      <Dialog open={open} onClose={handleClose} maxWidth="lg">
+      <Dialog 
+        open={open} 
+        onClose={handleClose} 
+        maxWidth="lg"
+        PaperProps={{
+          sx: { borderRadius: 2, overflow: "hidden" }
+        }}
+      >
         {selectedImage && (
-          <img src={selectedImage} alt="Enlarged event" style={{ width: "100%", height: "auto" }} />
+          <img 
+            src={selectedImage} 
+            alt="Enlarged event" 
+            style={{ width: "100%", height: "auto", display: "block" }} 
+          />
         )}
       </Dialog>
     </Container>
