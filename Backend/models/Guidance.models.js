@@ -7,6 +7,13 @@ const guidanceSchema = new mongoose.Schema({
   programme: { type: String, required: true },
   email: { type: String, required: true },
   contact: { type: String, required: true },
+  // New tracking fields
+  status: { 
+    type: String, 
+    enum: ['Pending', 'Closed'], 
+    default: 'Pending' 
+  },
+  adminReply: { type: String },
   createdAt: { type: Date, default: Date.now }
 });
 

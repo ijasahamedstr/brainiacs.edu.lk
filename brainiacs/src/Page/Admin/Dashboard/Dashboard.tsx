@@ -19,9 +19,11 @@ import {
 import { useNavigate } from "react-router-dom";
 
 // IMPORT SEPARATE PAGES
-import Properties from "./Properties";
-import Overview from "./Overview";
-import CreateAdmin from "./Settings";
+import Properties from "../Properties/Properties";
+import Overview from "../Overview/Overview";
+import CreateAdmin from "../Settings/Settings";
+import HomeSlider from "../HomeSlider/HomeSlider";
+import RequestConsultation from "../Request Consultation/RequestConsultation";
 
 const drawerWidth = 290;
 
@@ -167,17 +169,56 @@ const Dashboard: React.FC = () => {
         <Toolbar sx={{ justifyContent: "space-between", height: { xs: 85, md: 100 }, px: { xs: 3, md: 5 } }}>
           <Stack direction="row" alignItems="center" spacing={3}>
             {isMobile && <IconButton onClick={() => setMobileOpen(true)} sx={{ color: primaryTeal, bgcolor: '#f1f5f9' }}><MenuOpen /></IconButton>}
-            <Box>
-              <Typography variant="h4" sx={{ fontFamily: primaryFont, fontWeight: 900, color: primaryTeal, letterSpacing: '-1.5px', textTransform: 'capitalize' }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography 
+                variant="h4" 
+                sx={{ 
+                  fontFamily: primaryFont, 
+                  fontWeight: 900, 
+                  color: primaryTeal, 
+                  fontSize: { 
+                    xs: 'clamp(1.1rem, 5vw, 1.4rem)', 
+                    md: 'clamp(1.8rem, 3vw, 2.2rem)' 
+                  },
+                  letterSpacing: { xs: '-0.3px', md: '-1.5px' }, 
+                  textTransform: 'capitalize',
+                  lineHeight: 1.1,
+                  mb: 0.2,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: 'vertical'
+                }}
+              >
                 {activeTab}
               </Typography>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Box sx={{ width: 25, height: 3, bgcolor: accentGold, borderRadius: 2 }} />
-                <Typography sx={{ fontFamily: primaryFont, fontSize: '0.7rem', color: accentGold, fontWeight: 800, letterSpacing: '2.8px', textTransform: 'uppercase' }}>
+
+              <Stack direction="row" alignItems="center" spacing={{ xs: 0.8, md: 1.5 }}>
+                <Box sx={{ 
+                  width: { xs: 12, md: 25 }, 
+                  height: { xs: 1.5, md: 3 }, 
+                  bgcolor: accentGold, 
+                  borderRadius: 1,
+                  flexShrink: 0 
+                }} />
+                
+                <Typography 
+                  sx={{ 
+                    fontFamily: primaryFont, 
+                    fontSize: { xs: '0.5rem', sm: '0.6rem', md: '0.7rem' }, 
+                    color: accentGold, 
+                    fontWeight: 800, 
+                    letterSpacing: { xs: '0.5px', md: '2.8px' }, 
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                    opacity: 0.8
+                  }}
+                >
                   Campus Admin Console
                 </Typography>
               </Stack>
-            </Box>
+            </Box>       
           </Stack>
 
           <Stack direction="row" alignItems="center" spacing={3}>
@@ -203,11 +244,10 @@ const Dashboard: React.FC = () => {
             {activeTab === "Dashboard" && <Overview />}
             {activeTab === "All Courses" && <Properties />}
             {activeTab === "Settings" && <CreateAdmin />}
+            {activeTab === "Home Slider" && <HomeSlider />}
+            {activeTab === "Request Consultation" && <RequestConsultation />}
             
-            {/* NEW MODULES FALLBACKS */}
-            {activeTab === "Home Slider" && (
-                <Box sx={{ textAlign: 'center', py: 10 }}><Typography variant="h5">Slider Management Interface</Typography></Box>
-            )}
+            {/* REMAINING MODULES FALLBACKS */}
             {activeTab === "Student Registration" && (
                 <Box sx={{ textAlign: 'center', py: 10 }}><Typography variant="h5">Student Admissions & Enrollment</Typography></Box>
             )}
@@ -215,7 +255,7 @@ const Dashboard: React.FC = () => {
                 <Box sx={{ textAlign: 'center', py: 10 }}><Typography variant="h5">Certificate Verification & Issuance</Typography></Box>
             )}
 
-            {!["Dashboard", "All Courses", "Settings", "Home Slider", "Student Registration", "Certificates"].includes(activeTab) && (
+            {!["Dashboard", "All Courses", "Settings", "Home Slider", "Request Consultation", "Student Registration", "Certificates"].includes(activeTab) && (
               <Box sx={{ textAlign: 'center', py: 15, opacity: 0.6 }}>
                 <Typography variant="h5" sx={{ fontFamily: primaryFont, fontWeight: 700 }}>{activeTab} Module</Typography>
                 <Typography sx={{ fontFamily: primaryFont }}>System records for this section are currently being synchronized...</Typography>

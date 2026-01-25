@@ -1,8 +1,16 @@
 import express from 'express';
-import { createGuidanceRequest } from '../controller/Guidance.Controller.js';
+import { createGuidanceRequest, deleteGuidanceRequest, getAllGuidanceRequests, getSingleGuidanceRequest, updateGuidanceRequest } from '../controller/Guidance.Controller.js';
 
 const Guidancerouter = express.Router();
 
-Guidancerouter.post('/submit', createGuidanceRequest);
+Guidancerouter.post('/', createGuidanceRequest);
+
+Guidancerouter.get('/', getAllGuidanceRequests);
+
+Guidancerouter.get('/:id', getSingleGuidanceRequest);
+
+Guidancerouter.put('/:id', updateGuidanceRequest);
+
+Guidancerouter.delete('/:id', deleteGuidanceRequest);
 
 export default Guidancerouter;

@@ -56,20 +56,30 @@ const Guidance: React.FC = () => {
 
     try {
       const BASE_URL = import.meta.env.VITE_API_URL;
-      const response = await axios.post(`${BASE_URL}/api/submit`, form);
+      const response = await axios.post(`${BASE_URL}/api/guidance`, form);
 
       if (response.status === 201 || response.status === 200) {
         // 3. Success Feedback & Show Notification
         setSuccessMsg(true);
 
-        // 4. Construct WhatsApp Message
-        const message = `Hello I Need Guidance! %0A I'm ${form.firstName} ${form.lastName}.%0A Qualification: ${form.qualification}%0A Interest: ${form.programme}`;
-        const phoneNumber = "+94768696704";
+        // 4. Construct WhatsApp Message with custom footer
+        const message = 
+          `*◆ New Guidance Request Received*%0A%0A` +
+          `*Name:* ${form.firstName} ${form.lastName}%0A` +
+          `*Mobile:* ${form.contact}%0A` +
+          `*Email:* ${form.email}%0A%0A` +
+          `*Qualification:* ${form.qualification}%0A` +
+          `*Programme:* ${form.programme}%0A%0A` +
+          `*Status:* Pending Review%0A%0A` +
+          `---%0A` +
+          `*Brainiacs Campus*`;
+
+        const phoneNumber = "94768696704"; // Country code 94 + number
         
         // 5. Trigger WhatsApp Redirect
         window.open(`https://wa.me/${phoneNumber}?text=${message}`, "_blank");
 
-        // 6. Clear Form Data (Resetting state clears the controlled TextFields)
+        // 6. Clear Form Data
         setForm({
           firstName: "",
           lastName: "",
@@ -81,7 +91,7 @@ const Guidance: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Database Save Error:", error);
-      alert(error.response?.data?.message || "System Error: Could not save your request. Check your backend connection.");
+      alert(error.response?.data?.message || "System Error: Could not save your request.");
     } finally {
       setLoading(false);
     }
@@ -158,7 +168,6 @@ const Guidance: React.FC = () => {
               <Box sx={{ position: "relative", mt: 4, mb: 4 }}>
                 <Box component="img" src="https://i.ibb.co/ynPqgtGS/form-image.png" sx={{ width: "100%", height: "300px", objectFit: "cover", borderRadius: "30px 100px 30px 30px", boxShadow: "20px 20px 60px rgba(0,0,0,0.1)" }} />
                 
-                {/* Certified Badge */}
                 <Box sx={{ position: "absolute", top: -20, right: -10, bgcolor: "rgba(255,255,255,0.9)", p: 2, borderRadius: "20px", display: "flex", alignItems: "center", gap: 1.5, boxShadow: "0 10px 25px rgba(0,0,0,0.1)", backdropFilter: "blur(10px)" }}>
                     <VerifiedUserIcon sx={{ color: brandGreen }} />
                     <Typography sx={{ fontFamily: primaryFont, fontWeight: 700, fontSize: "0.8rem", color: "#0b1033" }}>
@@ -166,7 +175,6 @@ const Guidance: React.FC = () => {
                     </Typography>
                 </Box>
 
-                {/* Support Agent Badge (Using SupportAgentIcon) */}
                 <Box sx={{ position: "absolute", bottom: 20, left: -20, bgcolor: brandBlue, color: "#fff", p: 2, borderRadius: "20px", display: "flex", alignItems: "center", gap: 1.5, boxShadow: "0 10px 25px rgba(10, 83, 151, 0.3)" }}>
                     <SupportAgentIcon />
                     <Typography sx={{ fontFamily: primaryFont, fontWeight: 600, fontSize: "0.8rem" }}>

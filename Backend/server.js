@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import Adminrouter from "./routes/AccountRegisterAdmin.route.js";
 import Guidancerouter from "./routes/Guidance.route.js";
 import Eventrouter from "./routes/Event.route.js";
+import Sliderrouter from "./routes/Slider.route.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -33,9 +34,11 @@ app.get("/", (req, res) => {
 
 app.use('/api',Adminrouter);
 
-app.use('/api',Guidancerouter);
+app.use('/api/guidance',Guidancerouter);
 
 app.use('/api', Eventrouter);
+
+app.use('/api/sliders', Sliderrouter);
 
 // 7. Start server
 const port = 8001;

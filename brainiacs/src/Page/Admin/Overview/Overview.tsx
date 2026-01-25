@@ -52,7 +52,7 @@ const Overview = () => {
       students: "/api/student-queries",
       news: "/api/news",
       events: "/api/events",
-      consultation: "/api/consultations",
+      consultation: "/api/guidance",
       faculties: "/api/faculties",
       studentLife: "/api/activities",
       partners: "/api/partners"

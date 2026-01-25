@@ -16,8 +16,8 @@ import Studentlifeview from './Page/Student-life-view';
 import News from './Page/News';
 import NewsView from './Page/News-view';
 import Course from './Page/coures';
-import Login from './Page/Admin/Login';
-import Dashboard from "./Page/Admin/Dashboard";
+import Login from './Page/Admin/Login/Login';
+import Dashboard from "./Page/Admin/Dashboard/Dashboard";
 
 // --- Protected Route Component ---
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
