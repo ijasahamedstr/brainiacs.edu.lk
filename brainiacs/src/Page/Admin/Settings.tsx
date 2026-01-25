@@ -4,13 +4,12 @@ import {
   Box, Typography, Stack, Paper, TextField, Button, Avatar, IconButton,
   Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
-  Tooltip, Snackbar, Alert
+ Snackbar, Alert
 } from "@mui/material";
 import {
-  PersonOutline, MailOutline, Visibility, VisibilityOff, CloudUpload,
+ MailOutline, Visibility, VisibilityOff, CloudUpload,
   AddCircleOutline, RemoveRedEyeOutlined, ArrowBack, EditOutlined, Search,
   QrCode2, AccessTime, GppGoodOutlined, CheckCircle, DeleteOutline,
-  AdminPanelSettingsOutlined, HelpOutline
 } from "@mui/icons-material";
 
 const primaryTeal = "#004652";
