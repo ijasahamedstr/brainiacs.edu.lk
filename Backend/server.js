@@ -7,10 +7,10 @@ import { fileURLToPath } from 'url';
 // Route Imports
 import Adminrouter from "./routes/AccountRegisterAdmin.route.js";
 import Guidancerouter from "./routes/Guidance.route.js";
-import Eventrouter from "./routes/Event.route.js";
 import Sliderrouter from "./routes/Slider.route.js";
 import Partnerrouter from "./routes/Partner.route.js";
 import StudentLiferouter from "./routes/StudentLife.route.js";
+import Eventrouter from "./routes/Event.route.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -38,7 +38,7 @@ app.use('/api',Adminrouter);
 
 app.use('/api/guidance',Guidancerouter);
 
-app.use('/api', Eventrouter);
+app.use('/api/events',Eventrouter);
 
 app.use('/api/sliders', Sliderrouter);
 

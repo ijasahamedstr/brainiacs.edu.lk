@@ -1,16 +1,43 @@
 import mongoose from 'mongoose';
 
-const eventSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  place: { type: String, required: true },
-  time: { type: String, required: true },
-  startDate: { type: String, required: true },
-  endDate: { type: String, required: true },
-  images: { type: [String], required: true }, // Array of image URLs
-  note: { type: String, default: "Click on the desired image to get a larger preview" },
-  createdAt: { type: Date, default: Date.now }
+const EventSchema = new mongoose.Schema({
+  eventName: { 
+    type: String, 
+    required: [true, "Please provide an event name"], 
+    trim: true 
+  },
+  // Array of Strings for multiple paragraphs of the description
+  eventDescription: { 
+    type: [String], 
+    required: [true, "Description is required"],
+    default: [] 
+  },
+  eventPlace: {
+    type: String,
+    required: [true, "Please specify the event location"]
+  },
+  eventTime: {
+    type: String, // You can use String (e.g., "10:00 AM") or Date
+    required: [true, "Please specify the event time"]
+  },
+  startDate: {
+    type: Date,
+    required: [true, "Start date is required"]
+  },
+  finishDate: {
+    type: Date,
+    required: [true, "Finish date is required"]
+  },
+  // Array of Strings for multiple images
+  imageUrls: { 
+    type: [String], 
+    required: [true, "At least one image URL is required"],
+    default: []
+  },
+}, { 
+  timestamps: true 
 });
 
-const Event = mongoose.model('Event', eventSchema);
-export default Event;
+// Changed model name to 'Event' to match the new purpose
+const Eventmodel = mongoose.model('Eventmodel', EventSchema);
+export default Eventmodel;
