@@ -1,22 +1,37 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Box, Typography, Stack, Paper, TextField, Button, Avatar, IconButton,
   Divider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Chip, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
- Snackbar, Alert
+  Snackbar, Alert
 } from "@mui/material";
 import {
- MailOutline, Visibility, VisibilityOff, CloudUpload,
-  AddCircleOutline, RemoveRedEyeOutlined, ArrowBack, EditOutlined, Search,
-  QrCode2, AccessTime, GppGoodOutlined, CheckCircle, DeleteOutline,
+  MailOutline, Link as LinkIcon,
+  AddCircleOutline, ArrowBack, EditOutlined, Search,
+  QrCode2, AccessTime, DeleteOutline,
+  KeyboardArrowRight,
+  ShieldMoonOutlined, SecurityUpdateGood, CancelOutlined
 } from "@mui/icons-material";
 
+// --- GLOBAL THEME & COMPACT SIZING ---
 const primaryTeal = "#004652";
 const accentGold = "#CC9D2F";
 const dangerRed = "#E11D48";
-const menuFont = "Montserrat, sans-serif"; // Changed to English-friendly font
+const primaryFont = "'Montserrat', sans-serif";
 const BASE_URL = import.meta.env.VITE_API_URL;
+
+const montserratStyle = {
+  fontFamily: primaryFont,
+  letterSpacing: "-0.01em"
+};
+
+const pageIn = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+  exit: { opacity: 0, y: -10, transition: { duration: 0.2 } }
+};
 
 const AdminManagement: React.FC = () => {
   const [view, setView] = useState<"list" | "form" | "details">("list");
@@ -29,7 +44,7 @@ const AdminManagement: React.FC = () => {
   
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [adminToDelete, setAdminToDelete] = useState<string | null>(null);
-  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" as "success" | "error" });
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" as any });
 
   const fetchAdmins = async () => {
     setLoading(true);
@@ -38,7 +53,7 @@ const AdminManagement: React.FC = () => {
       setAdmins(response.data);
       setFilteredAdmins(response.data);
     } catch (error) {
-      console.error("Error fetching admins:", error);
+      console.error("Fetch Error:", error);
     } finally {
       setLoading(false);
     }
@@ -48,10 +63,8 @@ const AdminManagement: React.FC = () => {
 
   useEffect(() => {
     const query = searchQuery.toLowerCase();
-    const filtered = admins.filter(
-      (admin) =>
-        admin.name.toLowerCase().includes(query) ||
-        admin.email.toLowerCase().includes(query)
+    const filtered = admins.filter(a => 
+      a.name.toLowerCase().includes(query) || a.email.toLowerCase().includes(query)
     );
     setFilteredAdmins(filtered);
   }, [searchQuery, admins]);
@@ -67,15 +80,15 @@ const AdminManagement: React.FC = () => {
     try {
       if (isEditing && selectedAdmin) {
         await axios.put(`${BASE_URL}/api/edit/${selectedAdmin._id}`, formData);
-        setSnackbar({ open: true, message: "Admin updated successfully", severity: "success" });
+        setSnackbar({ open: true, message: "Profile Updated", severity: "success" });
       } else {
         await axios.post(`${BASE_URL}/api/create`, formData);
-        setSnackbar({ open: true, message: "New admin created successfully", severity: "success" });
+        setSnackbar({ open: true, message: "Admin Created", severity: "success" });
       }
       fetchAdmins();
       setView("list");
     } catch (error: any) {
-      setSnackbar({ open: true, message: error.response?.data?.message || "System error occurred", severity: "error" });
+      setSnackbar({ open: true, message: "Action Failed", severity: "error" });
     } finally {
       setLoading(false);
     }
@@ -83,114 +96,138 @@ const AdminManagement: React.FC = () => {
 
   const confirmDelete = async () => {
     if (!adminToDelete) return;
-    setLoading(true);
     try {
       await axios.delete(`${BASE_URL}/api/delete/${adminToDelete}`);
-      setSnackbar({ open: true, message: "Account deleted permanently", severity: "success" });
+      setSnackbar({ open: true, message: "Account Deleted", severity: "success" });
       fetchAdmins();
       setView("list");
-    } catch (error: any) {
-      setSnackbar({ open: true, message: "Delete failed, please try again", severity: "error" });
+    } catch {
+      setSnackbar({ open: true, message: "Delete Failed", severity: "error" });
     } finally {
-      setLoading(false);
       setDeleteDialogOpen(false);
-      setAdminToDelete(null);
     }
   };
 
   return (
-    <Box sx={{ direction: "ltr", width: "100%", pt: 0, pb: 5, px: { xs: 1, md: 0 }, textAlign: "left" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "#FAFAFB", p: { xs: 2, md: 4 } }}>
       <Snackbar 
-        open={snackbar.open} 
-        autoHideDuration={4000} 
+        open={snackbar.open} autoHideDuration={3000} 
         onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <Alert severity={snackbar.severity} variant="filled" sx={{ fontFamily: menuFont, fontWeight: 700, borderRadius: '15px' }}>
+        <Alert severity={snackbar.severity} sx={{ ...montserratStyle, borderRadius: '12px', fontWeight: 600, fontSize: '0.85rem' }}>
           {snackbar.message}
         </Alert>
       </Snackbar>
 
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-        <DialogTitle sx={{ fontFamily: menuFont, fontWeight: 900, color: dangerRed }}>Confirm Permanent Deletion</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ fontFamily: menuFont }}>
-            You are about to delete this admin account. This action will remove all permissions and data associated with this account and cannot be undone.
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+        <Box>
+          <Typography variant="h5" sx={{ ...montserratStyle, fontWeight: 800, color: primaryTeal }}>
+            {view === "list" ? "Admin Console" : "Security Hub"}
           </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ fontFamily: menuFont, color: "#64748B", fontWeight: 700 }}>Cancel</Button>
-          <Button onClick={confirmDelete} variant="contained" sx={{ bgcolor: dangerRed, fontFamily: menuFont, fontWeight: 800, px: 3 }}>Confirm Delete</Button>
-        </DialogActions>
-      </Dialog>
-
-      <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems="center" spacing={3} sx={{ mb: 5 }}>
-        <Typography variant="h3" sx={{ fontFamily: menuFont, fontWeight: 900, color: primaryTeal, fontSize: { xs: "2.2rem", md: "2.8rem" } }}>
-          {view === "list" && "Admin Management"}
-          {view === "form" && (isEditing ? "Edit Admin" : "Create New Admin")}
-          {view === "details" && "Admin Profile"}
-        </Typography>
-
+          <Typography sx={{ ...montserratStyle, color: "#64748B", fontWeight: 500, fontSize: "0.85rem" }}>
+            Identity & Privilege Management
+          </Typography>
+        </Box>
         {view === "list" ? (
-          <Button variant="contained" onClick={handleAddNew} startIcon={<AddCircleOutline />} sx={{ bgcolor: primaryTeal, fontFamily: menuFont, borderRadius: "14px", px: 4, py: 1.5, fontWeight: 800 }}>
-            Add New Admin
+          <Button 
+            component={motion.button} whileHover={{ scale: 1.02 }}
+            variant="contained" onClick={handleAddNew} startIcon={<AddCircleOutline />} 
+            sx={{ ...montserratStyle, bgcolor: primaryTeal, borderRadius: "10px", px: 3, py: 1, fontWeight: 700, fontSize: "0.8rem", textTransform: 'none' }}
+          >
+            Create Admin
           </Button>
         ) : (
-          <Button onClick={() => setView("list")} startIcon={<ArrowBack />} sx={{ fontFamily: menuFont, color: primaryTeal, fontWeight: 800 }}>
+          <Button onClick={() => setView("list")} startIcon={<ArrowBack />} sx={{ ...montserratStyle, fontWeight: 700, color: primaryTeal, fontSize: "0.8rem" }}>
             Back to List
           </Button>
         )}
       </Stack>
 
-      {view === "list" && (
-        <>
-          <TextField
-            placeholder="Search by name or email..."
-            fullWidth
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{ startAdornment: <Search sx={{ color: "#94A3B8", mr: 1 }} /> }}
-            sx={{ mb: 4, "& .MuiOutlinedInput-root": { borderRadius: "18px", bgcolor: "#F8FAFC" } }}
-          />
-          <AdminList admins={filteredAdmins} onView={(a:any) => {setSelectedAdmin(a); setView("details");}} onEdit={(a: any) => { setSelectedAdmin(a); setIsEditing(true); setView("form"); }} onDelete={(id:string) => {setAdminToDelete(id); setDeleteDialogOpen(true);}} />
-        </>
-      )}
-      {view === "form" && <AdminForm admin={selectedAdmin} isEditing={isEditing} onSave={handleFormSave} loading={loading} />}
-      {view === "details" && <AdminDetails admin={selectedAdmin} onEdit={() => { setIsEditing(true); setView("form"); }} onDelete={(id:string) => {setAdminToDelete(id); setDeleteDialogOpen(true);}} />}
+      <AnimatePresence mode="wait">
+        {view === "list" && (
+          <motion.div key="list" {...pageIn}>
+            <TextField
+              placeholder="Filter by credentials..."
+              fullWidth value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{ 
+                startAdornment: <Search sx={{ color: primaryTeal, mr: 1, fontSize: 20 }} />,
+                sx: { ...montserratStyle, borderRadius: "12px", bgcolor: "#FFF", fontSize: "0.85rem", border: '1px solid #E2E8F0' }
+              }}
+              sx={{ mb: 3 }}
+            />
+            <AdminList 
+                admins={filteredAdmins} 
+                onView={(a:any) => {setSelectedAdmin(a); setView("details");}} 
+                onEdit={(a: any) => { setSelectedAdmin(a); setIsEditing(true); setView("form"); }} 
+                onDelete={(id:string) => {setAdminToDelete(id); setDeleteDialogOpen(true);}} 
+            />
+          </motion.div>
+        )}
+
+        {view === "form" && (
+          <motion.div key="form" {...pageIn}>
+            <AdminForm admin={selectedAdmin} isEditing={isEditing} onSave={handleFormSave} loading={loading} />
+          </motion.div>
+        )}
+
+        {view === "details" && (
+          <motion.div key="details" {...pageIn}>
+            <AdminDetails admin={selectedAdmin} onEdit={() => { setIsEditing(true); setView("form"); }} onDelete={(id:any) => {setAdminToDelete(id); setDeleteDialogOpen(true);}} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} PaperProps={{ sx: { borderRadius: "15px" } }}>
+        <DialogTitle sx={{ ...montserratStyle, fontWeight: 800, fontSize: '1rem' }}>Terminate Access?</DialogTitle>
+        <DialogContent><Typography sx={{ ...montserratStyle, fontSize: '0.85rem' }}>This action will revoke all system permissions for this user.</Typography></DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ ...montserratStyle, fontSize: '0.75rem' }}>Cancel</Button>
+          <Button onClick={confirmDelete} variant="contained" sx={{ ...montserratStyle, bgcolor: dangerRed, fontSize: '0.75rem' }}>Confirm</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
 
-/* --- LIST VIEW --- */
+/* --- TABLE VIEW --- */
 const AdminList = ({ admins, onView, onEdit, onDelete }: any) => (
-  <TableContainer component={Paper} elevation={0} sx={{ borderRadius: "28px", border: "1px solid #E2E8F0" }}>
-    <Table sx={{ minWidth: 900 }}>
+  <TableContainer component={Paper} elevation={0} sx={{ borderRadius: "15px", border: "1px solid #E2E8F0", overflow: "hidden" }}>
+    <Table size="small">
       <TableHead sx={{ bgcolor: "#F8FAFC" }}>
         <TableRow>
-          <TableCell sx={{ fontFamily: menuFont, fontWeight: 900 }}>#</TableCell>
-          <TableCell sx={{ fontFamily: menuFont, fontWeight: 900 }}>Profile</TableCell>
-          <TableCell sx={{ fontFamily: menuFont, fontWeight: 900 }}>Full Name</TableCell>
-          <TableCell sx={{ fontFamily: menuFont, fontWeight: 900 }}>Status</TableCell>
-          <TableCell align="center" sx={{ fontFamily: menuFont, fontWeight: 900 }}>Actions</TableCell>
+          <TableCell sx={{ ...montserratStyle, fontWeight: 700, color: "#64748B", pl: 3, py: 2, fontSize: '0.75rem' }}>ADMINISTRATOR</TableCell>
+          <TableCell sx={{ ...montserratStyle, fontWeight: 700, color: "#64748B", fontSize: '0.75rem' }}>SECURITY</TableCell>
+          <TableCell align="right" sx={{ ...montserratStyle, fontWeight: 700, color: "#64748B", pr: 3, fontSize: '0.75rem' }}>ACTIONS</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
-        {admins.map((admin: any, index: number) => (
-          <TableRow key={admin._id} hover>
-            <TableCell sx={{ fontWeight: 900, color: "#94A3B8" }}>{index + 1}</TableCell>
-            <TableCell><Avatar src={admin.profileImage} sx={{ width: 50, height: 50 }} /></TableCell>
-            <TableCell>
-              <Typography sx={{ fontFamily: menuFont, fontWeight: 800, color: primaryTeal }}>{admin.name}</Typography>
-              <Typography variant="caption" sx={{ color: "#94A3B8" }}>{admin.email}</Typography>
+        {admins.map((admin: any) => (
+          <TableRow key={admin._id} hover component={motion.tr}>
+            <TableCell sx={{ pl: 3, py: 1.5 }}>
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Avatar src={admin.profileImage} sx={{ width: 36, height: 36 }} />
+                <Box>
+                  <Typography sx={{ ...montserratStyle, fontWeight: 700, color: primaryTeal, fontSize: "0.85rem" }}>{admin.name}</Typography>
+                  <Typography sx={{ ...montserratStyle, color: "#94A3B8", fontSize: "0.7rem" }}>{admin.email}</Typography>
+                </Box>
+              </Stack>
             </TableCell>
             <TableCell>
-              <Chip label={admin.twoFAEnabled ? "Active" : "Disabled"} sx={{ fontWeight: 800, bgcolor: admin.twoFAEnabled ? "#10B98115" : "#64748B15", color: admin.twoFAEnabled ? "#10B981" : "#64748B" }} />
+              <Chip 
+                label={admin.twoFAEnabled ? "2FA ACTIVE" : "STANDARD"} 
+                sx={{ 
+                    ...montserratStyle, fontWeight: 800, fontSize: '0.6rem', height: 22,
+                    bgcolor: admin.twoFAEnabled ? "#10B98115" : "#F1F5F9", 
+                    color: admin.twoFAEnabled ? "#059669" : "#64748B" 
+                }} 
+              />
             </TableCell>
-            <TableCell align="center">
-              <Stack direction="row" spacing={1} justifyContent="center">
-                <IconButton onClick={() => onView(admin)} sx={{ bgcolor: "#F1F5F9" }}><RemoveRedEyeOutlined /></IconButton>
-                <IconButton onClick={() => onEdit(admin)} sx={{ bgcolor: "#FFFBEB" }}><EditOutlined /></IconButton>
-                <IconButton onClick={() => onDelete(admin._id)} sx={{ bgcolor: "#FFF1F2" }}><DeleteOutline /></IconButton>
+            <TableCell align="right" sx={{ pr: 2 }}>
+              <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                <IconButton size="small" onClick={() => onView(admin)} sx={{ color: primaryTeal }}><KeyboardArrowRight fontSize="small" /></IconButton>
+                <IconButton size="small" onClick={() => onEdit(admin)} sx={{ color: accentGold }}><EditOutlined fontSize="small" /></IconButton>
+                <IconButton size="small" onClick={() => onDelete(admin._id)} sx={{ color: dangerRed }}><DeleteOutline fontSize="small" /></IconButton>
               </Stack>
             </TableCell>
           </TableRow>
@@ -200,11 +237,8 @@ const AdminList = ({ admins, onView, onEdit, onDelete }: any) => (
   </TableContainer>
 );
 
-/* --- FORM VIEW --- */
+/* --- FORM VIEW WITH IMAGE PREVIEW --- */
 const AdminForm = ({ admin, isEditing, onSave, loading }: any) => {
-  const [showPass, setShowPass] = useState(false);
-  const [openPopup, setOpenPopup] = useState(false);
-  const [tempUrl, setTempUrl] = useState("");
   const [formData, setFormData] = useState({
     name: admin?.name || "",
     email: admin?.email || "",
@@ -213,159 +247,179 @@ const AdminForm = ({ admin, isEditing, onSave, loading }: any) => {
   });
 
   return (
-    <Paper elevation={0} sx={{ p: 5, borderRadius: "40px", bgcolor: "#F8FAFC", border: "1px solid #E2E8F0", maxWidth: "800px", mx: "auto" }}>
-      <Stack spacing={4}>
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
-          <Box sx={{ position: "relative" }}>
-            <Avatar src={formData.profileImage} sx={{ width: 120, height: 120, border: "4px solid #fff", boxShadow: "0 10px 20px rgba(0,0,0,0.1)" }} />
-            <IconButton onClick={() => { setTempUrl(formData.profileImage); setOpenPopup(true); }} sx={{ position: "absolute", bottom: 0, right: 0, bgcolor: primaryTeal, color: "#fff", '&:hover': { bgcolor: '#00353d' } }}>
-              <CloudUpload />
-            </IconButton>
-          </Box>
+    <Paper elevation={0} sx={{ p: 4, borderRadius: "20px", border: "1px solid #E2E8F0", maxWidth: "600px", mx: "auto" }}>
+      <Stack spacing={3}>
+        <Box sx={{ textAlign: 'center' }}>
+          <motion.div animate={{ scale: formData.profileImage ? 1 : 0.9 }}>
+            <Avatar 
+                src={formData.profileImage} 
+                sx={{ width: 90, height: 90, mx: 'auto', border: `3px solid ${primaryTeal}`, boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }} 
+            />
+          </motion.div>
+          <Typography sx={{ ...montserratStyle, mt: 1.5, fontSize: '0.75rem', fontWeight: 700, color: primaryTeal }}>
+             {formData.profileImage ? "Live Preview Active" : "No Profile Image"}
+          </Typography>
         </Box>
-        <Stack spacing={3}>
-          <TextField fullWidth label="Full Name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} />
-          <TextField fullWidth label="Email Address" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
-          <TextField
-            fullWidth
-            type={showPass ? "text" : "password"}
-            label={isEditing ? "New Password (Leave blank to keep current)" : "Password"}
-            value={formData.password}
-            onChange={(e) => setFormData({...formData, password: e.target.value})}
-            InputProps={{ endAdornment: <IconButton onClick={() => setShowPass(!showPass)}>{showPass ? <VisibilityOff /> : <Visibility />}</IconButton> }}
+        <Stack spacing={2}>
+          <TextField 
+            fullWidth label="Photo Link (URL)" size="small" 
+            placeholder="https://example.com/photo.jpg"
+            value={formData.profileImage} onChange={(e) => setFormData({...formData, profileImage: e.target.value})}
+            InputProps={{ startAdornment: <LinkIcon sx={{ mr: 1, fontSize: 18, color: '#94A3B8' }} /> }}
+            InputLabelProps={{ sx: { ...montserratStyle, fontSize: '0.8rem' } }}
+          />
+          <TextField 
+            fullWidth label="Full Name" size="small" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})}
+            InputLabelProps={{ sx: { ...montserratStyle, fontSize: '0.8rem' } }}
+          />
+          <TextField 
+            fullWidth label="Email" size="small" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})}
+            InputLabelProps={{ sx: { ...montserratStyle, fontSize: '0.8rem' } }}
+          />
+          <TextField 
+            fullWidth type="password" label="Password" size="small" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})}
+            InputLabelProps={{ sx: { ...montserratStyle, fontSize: '0.8rem' } }}
           />
         </Stack>
-        <Button variant="contained" disabled={loading} onClick={() => onSave(formData)} sx={{ bgcolor: primaryTeal, py: 2, borderRadius: "15px", fontWeight: 900 }}>
-          {loading ? <CircularProgress size={24} color="inherit" /> : (isEditing ? "Update Admin" : "Create Account")}
+        <Button 
+          variant="contained" fullWidth disabled={loading} onClick={() => onSave(formData)} 
+          sx={{ ...montserratStyle, bgcolor: primaryTeal, py: 1.2, borderRadius: "8px", fontWeight: 700, fontSize: '0.8rem', textTransform: 'none' }}
+        >
+          {loading ? <CircularProgress size={20} color="inherit" /> : (isEditing ? "Update Credentials" : "Create Account")}
         </Button>
       </Stack>
-      <Dialog open={openPopup} onClose={() => setOpenPopup(false)}>
-        <DialogTitle>Profile Image URL</DialogTitle>
-        <DialogContent><TextField fullWidth autoFocus value={tempUrl} onChange={(e) => setTempUrl(e.target.value)} sx={{ mt: 1 }} /></DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenPopup(false)}>Cancel</Button>
-          <Button onClick={() => { setFormData({...formData, profileImage: tempUrl}); setOpenPopup(false); }} variant="contained">Update</Button>
-        </DialogActions>
-      </Dialog>
     </Paper>
   );
 };
 
-/* --- DETAILS VIEW (With 2FA Fix) --- */
+/* --- 2FA LOGIC DETAILS --- */
 const AdminDetails = ({ admin: initialAdmin, onEdit, onDelete }: any) => {
   const [admin, setAdmin] = useState(initialAdmin);
   const [qrCode, setQrCode] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [loading2FA, setLoading2FA] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "" });
 
   const handleSetup2FA = async () => {
+    setLoading2FA(true);
     try {
       const res = await axios.post(`${BASE_URL}/api/setup-2fa`, { adminId: admin._id });
       setQrCode(res.data.qrCode);
       setIsVerifying(true);
-    } catch (error) {
-      setSnackbar({ open: true, message: "Failed to generate QR Code" });
+    } catch (err) {
+      setSnackbar({ open: true, message: "Security Error" });
+    } finally {
+      setLoading2FA(false);
     }
   };
 
   const handleVerifyAndEnable = async () => {
+    setLoading2FA(true);
     try {
-      const res = await axios.post(`${BASE_URL}/api/verify-2fa`, { 
-        adminId: admin._id, 
-        token: verificationCode 
-      });
+      const res = await axios.post(`${BASE_URL}/api/verify-2fa`, { adminId: admin._id, token: verificationCode });
       if (res.data.success) {
         setAdmin({ ...admin, twoFAEnabled: true });
         setIsVerifying(false);
         setQrCode("");
-        setSnackbar({ open: true, message: "2FA Enabled Successfully!" });
+        setSnackbar({ open: true, message: "2FA Verified" });
       }
-    } catch (error) {
-      setSnackbar({ open: true, message: "Invalid verification code" });
+    } catch (err) {
+      setSnackbar({ open: true, message: "Invalid Code" });
+    } finally {
+      setLoading2FA(false);
     }
   };
 
   return (
-    <Paper elevation={0} sx={{ p: 5, borderRadius: "40px", border: "1px solid #E2E8F0", bgcolor: "#fff", maxWidth: "900px", mx: "auto" }}>
-      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
-        <Alert severity="info">{snackbar.message}</Alert>
+    <Paper elevation={0} sx={{ p: 4, borderRadius: "20px", border: "1px solid #E2E8F0" }}>
+      <Snackbar open={snackbar.open} autoHideDuration={2000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert severity="info" sx={{ ...montserratStyle, fontSize: '0.75rem' }}>{snackbar.message}</Alert>
       </Snackbar>
-      <Stack spacing={5}>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={3} alignItems="center" justifyContent="space-between">
-          <Stack direction="row" spacing={3} alignItems="center">
-            <Avatar src={admin?.profileImage} sx={{ width: 120, height: 120, bgcolor: primaryTeal }}>{admin.name[0]}</Avatar>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 900, color: primaryTeal }}>{admin.name}</Typography>
-              <Typography sx={{ color: "#64748B", fontWeight: 700 }}>System Administrator</Typography>
-            </Box>
-          </Stack>
-          <Stack direction="row" spacing={2}>
-             <Button variant="outlined" onClick={onEdit} sx={{ borderColor: accentGold, color: accentGold }}>Edit</Button>
-             <Button variant="outlined" onClick={() => onDelete(admin._id)} sx={{ borderColor: dangerRed, color: dangerRed }}>Delete</Button>
-          </Stack>
+
+      <Stack spacing={3}>
+        <Stack direction="row" spacing={3} alignItems="center">
+          <Avatar src={admin.profileImage} sx={{ width: 100, height: 100, borderRadius: "20px" }} />
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" sx={{ ...montserratStyle, fontWeight: 800, color: primaryTeal, fontSize: '1.1rem' }}>{admin.name}</Typography>
+            <Typography sx={{ ...montserratStyle, color: "#64748B", fontWeight: 600, fontSize: '0.75rem' }}>Admin Node</Typography>
+            <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+               <Button size="small" variant="contained" onClick={onEdit} sx={{ ...montserratStyle, bgcolor: accentGold, borderRadius: "6px", fontSize: '0.65rem', textTransform: 'none' }}>Edit</Button>
+               <Button size="small" variant="outlined" onClick={() => onDelete(admin._id)} sx={{ ...montserratStyle, color: dangerRed, borderColor: dangerRed, borderRadius: "6px", fontSize: '0.65rem', textTransform: 'none' }}>Revoke</Button>
+            </Stack>
+          </Box>
         </Stack>
-        
+
         <Divider />
 
-        <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: 3 }}>
-          <DetailItem label="Email Address" value={admin.email} icon={<MailOutline />} />
-          <DetailItem label="Join Date" value={new Date(admin.createdAt).toLocaleDateString()} icon={<AccessTime />} />
-        </Box>
-
-        <Paper variant="outlined" sx={{ p: 4, borderRadius: "30px", bgcolor: "#F8FAFC", border: "1px dashed #E2E8F0" }}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={4} alignItems="center">
-            <Box sx={{ bgcolor: "#fff", p: 2, borderRadius: "20px", border: "1px solid #E2E8F0", textAlign: 'center' }}>
+        <Paper 
+          component={motion.div} layout
+          sx={{ 
+            p: 3, borderRadius: "15px", 
+            background: admin.twoFAEnabled ? "linear-gradient(135deg, #065F46 0%, #10B981 100%)" : "#1E293B",
+            color: "#FFF"
+          }}
+        >
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={3} alignItems="center">
+            <Box sx={{ bgcolor: "#FFF", p: 1, borderRadius: "12px", minWidth: 100, minHeight: 100, display: 'flex', alignItems: 'center' }}>
               {qrCode ? (
-                <Stack spacing={2} alignItems="center">
-                   <img src={qrCode} alt="QR Code" style={{ width: '160px' }} />
-                   <Typography variant="caption" color="primary" fontWeight={700}>Scan with Authenticator</Typography>
-                </Stack>
+                <motion.img initial={{ scale: 0 }} animate={{ scale: 1 }} src={qrCode} style={{ width: 90 }} />
               ) : (
-                <QrCode2 sx={{ fontSize: '100px', color: primaryTeal, opacity: admin.twoFAEnabled ? 1 : 0.2 }} />
+                <QrCode2 sx={{ fontSize: 50, color: admin.twoFAEnabled ? "#10B981" : "#475569" }} />
               )}
             </Box>
+
             <Box sx={{ flexGrow: 1 }}>
-              <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
-                <Typography sx={{ fontWeight: 900, color: primaryTeal, fontSize: '1.3rem' }}>Account Security (2FA)</Typography>
-                {admin.twoFAEnabled ? <CheckCircle sx={{ color: '#10B981' }} /> : <GppGoodOutlined sx={{ color: '#94A3B8' }} />}
-              </Stack>
-              <Typography sx={{ color: "#64748B", mb: 3 }}>
-                {admin.twoFAEnabled 
-                  ? "Two-factor authentication is protecting your account." 
-                  : "Protect your account using Google Authenticator or Authy app."}
+              <Typography sx={{ ...montserratStyle, fontWeight: 800, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+                {admin.twoFAEnabled ? <SecurityUpdateGood fontSize="small" /> : <ShieldMoonOutlined fontSize="small" />}
+                {admin.twoFAEnabled ? "2FA Hardened" : "Two-Step Verification"}
+              </Typography>
+              <Typography sx={{ ...montserratStyle, opacity: 0.8, mt: 0.5, fontSize: '0.7rem' }}>
+                {admin.twoFAEnabled ? "Biometric & Token protection active." : "Enhance security by adding a mobile token layer."}
               </Typography>
 
               {!admin.twoFAEnabled && !isVerifying && (
-                <Button variant="contained" onClick={handleSetup2FA} sx={{ bgcolor: primaryTeal }}>Enable 2FA</Button>
+                <Button 
+                  size="small" variant="contained" onClick={handleSetup2FA} 
+                  sx={{ ...montserratStyle, bgcolor: "#FFF", color: "#000", mt: 1.5, fontSize: '0.65rem', textTransform: 'none' }}
+                >
+                  {loading2FA ? <CircularProgress size={14} /> : "Enable 2FA"}
+                </Button>
               )}
 
               {isVerifying && (
-                <Stack direction="row" spacing={2}>
+                <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
                   <TextField 
-                    size="small" 
-                    placeholder="Enter 6-digit code"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
+                    placeholder="6-Digit" size="small"
+                    value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)}
+                    InputProps={{ sx: { ...montserratStyle, bgcolor: "#FFF", borderRadius: "6px", fontSize: '0.7rem', width: 90 } }}
                   />
-                  <Button variant="contained" onClick={handleVerifyAndEnable} sx={{ bgcolor: "#10B981" }}>Verify & Activate</Button>
+                  <Button onClick={handleVerifyAndEnable} variant="contained" sx={{ ...montserratStyle, bgcolor: "#10B981", fontSize: '0.65rem' }}>Verify</Button>
+                  <IconButton onClick={() => setIsVerifying(false)} size="small" sx={{ color: "#FFF" }}><CancelOutlined fontSize="small" /></IconButton>
                 </Stack>
               )}
             </Box>
           </Stack>
         </Paper>
+
+        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+          <DetailItem label="Channel" value={admin.email} icon={<MailOutline fontSize="small" />} />
+          <DetailItem label="Provisioned" value={new Date(admin.createdAt).toLocaleDateString()} icon={<AccessTime fontSize="small" />} />
+        </Box>
       </Stack>
     </Paper>
   );
 };
 
 const DetailItem = ({ label, value, icon }: any) => (
-  <Box sx={{ p: 3, bgcolor: "#F8FAFC", borderRadius: "20px", border: "1px solid #E2E8F0" }}>
-    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
+  <Box sx={{ p: 2, bgcolor: "#F8FAFC", borderRadius: "12px", border: "1px solid #E2E8F0" }}>
+    <Stack direction="row" spacing={1} alignItems="center">
       <Box sx={{ color: primaryTeal }}>{icon}</Box>
-      <Typography variant="caption" sx={{ color: "#94A3B8", fontWeight: 800 }}>{label}</Typography>
+      <Box>
+        <Typography sx={{ ...montserratStyle, color: "#94A3B8", fontWeight: 700, fontSize: '0.6rem', textTransform: 'uppercase' }}>{label}</Typography>
+        <Typography sx={{ ...montserratStyle, fontWeight: 700, color: primaryTeal, fontSize: '0.75rem' }}>{value}</Typography>
+      </Box>
     </Stack>
-    <Typography sx={{ fontWeight: 800, color: primaryTeal }}>{value}</Typography>
   </Box>
 );
 

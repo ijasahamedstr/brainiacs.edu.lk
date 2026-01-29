@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion"; // NEW: Framer Motion
 import { 
   Box, Typography, Stack, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Avatar, 
@@ -22,6 +23,21 @@ const primaryFont = "'Montserrat', sans-serif";
 const primaryTeal = "#004652";
 const surfaceColor = "#F8FAFC";
 
+// Animation Variants
+const containerVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { staggerChildren: 0.1, duration: 0.5 } 
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -10 },
+  visible: { opacity: 1, x: 0 }
+};
+
 // Interface
 interface Slider {
   _id: string;
@@ -36,34 +52,24 @@ const HomeSlider = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   
-  // 1. Data & Loading States
   const [sliders, setSliders] = useState<Slider[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // 2. Navigation & Modal States
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingSlider, setEditingSlider] = useState<Slider | null>(null);
-  const [viewingSlider, setViewingSlider] = useState<Slider | null>(null); // New State for View Pop-up
-  
-  // 3. Delete Confirmation State
+  const [viewingSlider, setViewingSlider] = useState<Slider | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [sliderToDelete, setSliderToDelete] = useState<string | null>(null);
-
-  // 4. Filter & Pagination States
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [page, setPage] = useState(1);
   const rowsPerPage = 5;
 
-  // --- API: FETCH ALL ---
   const fetchSliders = async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/sliders`);
       const data = await response.json();
-      if (response.ok) {
-        setSliders(data);
-      }
+      if (response.ok) setSliders(data);
     } catch (error) {
       console.error("Failed to fetch sliders:", error);
     } finally {
@@ -71,7 +77,6 @@ const HomeSlider = () => {
     }
   };
 
-  // --- DELETE CONFIRMATION HANDLERS ---
   const openDeleteDialog = (id: string) => {
     setSliderToDelete(id);
     setDeleteDialogOpen(true);
@@ -91,8 +96,6 @@ const HomeSlider = () => {
       if (response.ok) {
         setSliders((prev) => prev.filter((s) => s._id !== sliderToDelete));
         closeDeleteDialog();
-      } else {
-        alert("Failed to delete slider");
       }
     } catch (error) {
       console.error("Delete error:", error);
@@ -103,7 +106,6 @@ const HomeSlider = () => {
     fetchSliders();
   }, []);
 
-  // --- FILTER & PAGINATION ---
   const filteredData = useMemo(() => {
     return sliders.filter((s) => {
       const matchText = s.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -117,121 +119,119 @@ const HomeSlider = () => {
     return filteredData.slice(start, start + rowsPerPage);
   }, [filteredData, page]);
 
-  // --- CONDITIONAL RENDERING ---
+  // --- TRANSITION RENDERING ---
   if (showAddForm) {
     return (
-      <Box sx={{ bgcolor: surfaceColor, p: 3, minHeight: "100vh" }}>
-        <AddSliderForm onBack={() => {
-          setShowAddForm(false);
-          fetchSliders();
-        }} />
-      </Box>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <Box sx={{ bgcolor: surfaceColor, p: 3, minHeight: "100vh" }}>
+          <AddSliderForm onBack={() => { setShowAddForm(false); fetchSliders(); }} />
+        </Box>
+      </motion.div>
     );
   }
 
   if (editingSlider) {
     return (
-      <Box sx={{ bgcolor: surfaceColor, p: 3, minHeight: "100vh" }}>
-        <UpdateSliderForm
-          sliderData={editingSlider} 
-          onBack={() => {
-            setEditingSlider(null);
-            fetchSliders();
-          }} 
-        />
-      </Box>
+      <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
+        <Box sx={{ bgcolor: surfaceColor, p: 3, minHeight: "100vh" }}>
+          <UpdateSliderForm sliderData={editingSlider} onBack={() => { setEditingSlider(null); fetchSliders(); }} />
+        </Box>
+      </motion.div>
     );
   }
 
   return (
-    <Fade in={!showAddForm && !editingSlider} timeout={500}>
-      <Box sx={{ width: "100%", bgcolor: surfaceColor, p: { xs: 2, md: 4 } }}>
-        
-        {/* HEADER SECTION */}
-        <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }} spacing={3} mb={4}>
-          <Box>
-             <Typography variant="h4" sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal }}>
+    <Box 
+      component={motion.div} 
+      initial="hidden" 
+      animate="visible" 
+      variants={containerVariants}
+      sx={{ width: "100%", bgcolor: surfaceColor, p: { xs: 2, md: 4 } }}
+    >
+      {/* HEADER SECTION */}
+      <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }} spacing={3} mb={4}>
+        <Box>
+            <Typography variant="h4" sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal }}>
               Home Sliders
             </Typography>
             <Typography variant="body1" sx={{ fontFamily: primaryFont, color: "#64748B", mt: 0.5, fontWeight: 500 }}>
               Manage your homepage hero banners and redirects.
             </Typography>
-          </Box>
-          <Button 
-            variant="contained" 
-            onClick={() => setShowAddForm(true)} 
-            startIcon={<AddPhotoAlternateOutlined />}
-            sx={{ 
-              bgcolor: primaryTeal, borderRadius: "12px", px: 4, py: 2, 
-              fontFamily: primaryFont, fontWeight: 700, textTransform: "none",
-              fontSize: "0.95rem", boxShadow: "0 10px 20px -5px rgba(0, 70, 82, 0.4)",
-              '&:hover': { bgcolor: "#002d35", transform: "translateY(-2px)" },
-              transition: "all 0.3s ease"
-            }}
-          >
-            Create New Slider
-          </Button>
-        </Stack>
+        </Box>
+        <Button 
+          component={motion.button}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          variant="contained" 
+          onClick={() => setShowAddForm(true)} 
+          startIcon={<AddPhotoAlternateOutlined />}
+          sx={{ 
+            bgcolor: primaryTeal, borderRadius: "12px", px: 4, py: 2, 
+            fontFamily: primaryFont, fontWeight: 700, textTransform: "none",
+            fontSize: "0.95rem", boxShadow: "0 10px 20px -5px rgba(0, 70, 82, 0.4)",
+            '&:hover': { bgcolor: "#002d35" }
+          }}
+        >
+          Create New Slider
+        </Button>
+      </Stack>
 
-        {/* FILTER BAR */}
-        <Paper elevation={0} sx={{ 
-          p: 2.5, mb: 4, borderRadius: "20px", border: "1px solid #E2E8F0", 
-          display: "flex", flexWrap: "wrap", gap: 3, bgcolor: "#FFF"
-        }}>
-          <TextField
-            fullWidth
-            placeholder="Search by slider name..."
-            variant="outlined"
-            value={searchQuery}
-            onChange={(e) => {setSearchQuery(e.target.value); setPage(1);}}
-            sx={{ flex: 2, minWidth: "280px" }}
-            InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchOutlined sx={{ color: primaryTeal }} /></InputAdornment>,
+      {/* FILTER BAR */}
+      <Paper 
+        component={motion.div}
+        variants={itemVariants}
+        elevation={0} sx={{ 
+        p: 2.5, mb: 4, borderRadius: "20px", border: "1px solid #E2E8F0", 
+        display: "flex", flexWrap: "wrap", gap: 3, bgcolor: "#FFF"
+      }}>
+        <TextField
+          fullWidth
+          placeholder="Search by slider name..."
+          variant="outlined"
+          value={searchQuery}
+          onChange={(e) => {setSearchQuery(e.target.value); setPage(1);}}
+          sx={{ flex: 2, minWidth: "280px" }}
+          InputProps={{
+            startAdornment: <InputAdornment position="start"><SearchOutlined sx={{ color: primaryTeal }} /></InputAdornment>,
+            sx: { borderRadius: "12px", fontFamily: primaryFont, fontWeight: 600 }
+          }}
+        />
+        
+        <TextField
+          select
+          label="Filter Status"
+          value={statusFilter}
+          onChange={(e) => {setStatusFilter(e.target.value); setPage(1);}}
+          sx={{ flex: 1, minWidth: "160px" }}
+          InputLabelProps={{ sx: { fontFamily: primaryFont, fontWeight: 600 } }}
+          InputProps={{ 
+              startAdornment: <InputAdornment position="start"><FilterList fontSize="small" /></InputAdornment>,
               sx: { borderRadius: "12px", fontFamily: primaryFont, fontWeight: 600 }
-            }}
-          />
-          
-          <TextField
-            select
-            label="Filter Status"
-            value={statusFilter}
-            onChange={(e) => {setStatusFilter(e.target.value); setPage(1);}}
-            sx={{ flex: 1, minWidth: "160px" }}
-            InputLabelProps={{ sx: { fontFamily: primaryFont, fontWeight: 600 } }}
-            InputProps={{ 
-                startAdornment: <InputAdornment position="start"><FilterList fontSize="small" /></InputAdornment>,
-                sx: { borderRadius: "12px", fontFamily: primaryFont, fontWeight: 600 }
-            }}
-            SelectProps={{
-              MenuProps: {
-                PaperProps: {
-                  sx: {
-                    borderRadius: "12px",
-                    mt: 1,
-                    '& .MuiMenuItem-root': { fontFamily: primaryFont, fontWeight: 600, fontSize: "0.85rem" }
-                  }
-                }
-              }
-            }}
-          >
-            <MenuItem value="All">All Sliders</MenuItem>
-            <MenuItem value="Active">Active</MenuItem>
-            <MenuItem value="Inactive">Inactive</MenuItem>
-          </TextField>
-        </Paper>
+          }}
+        >
+          <MenuItem value="All">All Sliders</MenuItem>
+          <MenuItem value="Active">Active</MenuItem>
+          <MenuItem value="Inactive">Inactive</MenuItem>
+        </TextField>
+      </Paper>
 
-        {/* DATA TABLE */}
-        <TableContainer component={Paper} elevation={0} sx={{ borderRadius: "24px", border: "1px solid #E2E8F0", overflow: "hidden", bgcolor: "#FFF" }}>
-          <Table>
-            <TableHead sx={{ bgcolor: "#F1F5F9" }}>
-              <TableRow>
-                <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", py: 3, fontSize: "0.75rem" }}>PREVIEW</TableCell>
-                <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem" }}>DETAILS</TableCell>
-                <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem" }}>STATUS</TableCell>
-                <TableCell align="right" sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem", pr: 4 }}>ACTIONS</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+      {/* DATA TABLE */}
+      <TableContainer 
+        component={Paper} 
+        elevation={0} 
+        sx={{ borderRadius: "24px", border: "1px solid #E2E8F0", overflow: "hidden", bgcolor: "#FFF" }}
+      >
+        <Table>
+          <TableHead sx={{ bgcolor: "#F1F5F9" }}>
+            <TableRow>
+              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", py: 3, fontSize: "0.75rem" }}>PREVIEW</TableCell>
+              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem" }}>DETAILS</TableCell>
+              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem" }}>STATUS</TableCell>
+              <TableCell align="right" sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem", pr: 4 }}>ACTIONS</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody component={motion.tbody}>
+            <AnimatePresence>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={4} align="center" sx={{ py: 10 }}>
@@ -240,7 +240,15 @@ const HomeSlider = () => {
                 </TableRow>
               ) : paginatedData.length > 0 ? (
                 paginatedData.map((slider) => (
-                  <TableRow key={slider._id} hover>
+                  <TableRow 
+                    key={slider._id} 
+                    component={motion.tr}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    layout
+                    hover
+                  >
                     <TableCell>
                       <Avatar 
                         src={slider.imageUrl} 
@@ -270,24 +278,15 @@ const HomeSlider = () => {
                     </TableCell>
                     <TableCell align="right" sx={{ pr: 3 }}>
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        {/* VIEW ICON */}
-                        <Tooltip title="View Details">
-                          <IconButton onClick={() => setViewingSlider(slider)} size="small" sx={{ color: primaryTeal, '&:hover': { bgcolor: "#E0F2F1" } }}>
-                            <VisibilityOutlined fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        
-                        <Tooltip title="Edit">
-                          <IconButton onClick={() => setEditingSlider(slider)} size="small" sx={{ color: "#64748B", '&:hover': { bgcolor: "#F1F5F9" } }}>
-                            <EditOutlined fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        
-                        <Tooltip title="Delete">
-                          <IconButton onClick={() => openDeleteDialog(slider._id)} size="small" sx={{ color: "#F43F5E", '&:hover': { bgcolor: "#FFF1F2" } }}>
-                            <DeleteOutline fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton onClick={() => setViewingSlider(slider)} size="small" sx={{ color: primaryTeal }}>
+                          <VisibilityOutlined fontSize="small" />
+                        </IconButton>
+                        <IconButton onClick={() => setEditingSlider(slider)} size="small" sx={{ color: "#64748B" }}>
+                          <EditOutlined fontSize="small" />
+                        </IconButton>
+                        <IconButton onClick={() => openDeleteDialog(slider._id)} size="small" sx={{ color: "#F43F5E" }}>
+                          <DeleteOutline fontSize="small" />
+                        </IconButton>
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -299,127 +298,112 @@ const HomeSlider = () => {
                   </TableCell>
                 </TableRow>
               )}
-            </TableBody>
-          </Table>
+            </AnimatePresence>
+          </TableBody>
+        </Table>
 
-          {/* PAGINATION */}
-          <Box sx={{ p: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Typography sx={{ fontFamily: primaryFont, color: "#64748B", fontWeight: 700, fontSize: "0.8rem" }}>
-              Displaying {paginatedData.length} of {filteredData.length} sliders
-            </Typography>
-            <Pagination 
-              count={Math.ceil(filteredData.length / rowsPerPage)} 
-              page={page}
-              onChange={(e, v) => setPage(v)}
-              sx={{ '& .Mui-selected': { bgcolor: `${primaryTeal} !important`, color: "#FFF" }, '& .MuiPaginationItem-root': { fontFamily: primaryFont, fontWeight: 600 } }}
-            />
-          </Box>
-        </TableContainer>
+        {/* PAGINATION */}
+        <Box sx={{ p: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Typography sx={{ fontFamily: primaryFont, color: "#64748B", fontWeight: 700, fontSize: "0.8rem" }}>
+            Displaying {paginatedData.length} of {filteredData.length} sliders
+          </Typography>
+          <Pagination 
+            count={Math.ceil(filteredData.length / rowsPerPage)} 
+            page={page}
+            onChange={(e, v) => setPage(v)}
+            sx={{ '& .Mui-selected': { bgcolor: `${primaryTeal} !important`, color: "#FFF" }, '& .MuiPaginationItem-root': { fontFamily: primaryFont, fontWeight: 600 } }}
+          />
+        </Box>
+      </TableContainer>
 
-        {/* --- VIEW DETAILS DIALOG --- */}
-        <Dialog 
-          open={Boolean(viewingSlider)} 
-          onClose={() => setViewingSlider(null)}
-          maxWidth="sm"
-          fullWidth
-          PaperProps={{ sx: { borderRadius: "24px", p: 1 } }}
-        >
-          {viewingSlider && (
-            <>
-              <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, fontSize: "1.2rem" }}>
-                  Slider Details
-                </Typography>
-                <IconButton onClick={() => setViewingSlider(null)} size="small">
-                  <CloseOutlined />
-                </IconButton>
-              </DialogTitle>
-              <DialogContent>
-                <Box sx={{ width: "100%", borderRadius: "16px", overflow: "hidden", mb: 3, border: "1px solid #E2E8F0" }}>
-                   <img src={viewingSlider.imageUrl} alt={viewingSlider.name} style={{ width: "100%", display: "block", objectFit: "cover" }} />
+      {/* --- VIEW DETAILS DIALOG --- */}
+      <Dialog 
+        open={Boolean(viewingSlider)} 
+        onClose={() => setViewingSlider(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ component: motion.div, initial: { scale: 0.9, opacity: 0 }, animate: { scale: 1, opacity: 1 }, sx: { borderRadius: "24px", p: 1 } }}
+      >
+        {viewingSlider && (
+          <>
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, fontSize: "1.2rem" }}>
+                Slider Details
+              </Typography>
+              <IconButton onClick={() => setViewingSlider(null)} size="small">
+                <CloseOutlined />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent>
+              <Box sx={{ width: "100%", borderRadius: "16px", overflow: "hidden", mb: 3, border: "1px solid #E2E8F0" }}>
+                 <img src={viewingSlider.imageUrl} alt={viewingSlider.name} style={{ width: "100%", display: "block", objectFit: "cover" }} />
+              </Box>
+              <Stack spacing={2.5}>
+                <Box>
+                  <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
+                    Banner Name
+                  </Typography>
+                  <Typography sx={{ fontFamily: primaryFont, fontWeight: 600, color: primaryTeal }}>
+                    {viewingSlider.name}
+                  </Typography>
                 </Box>
-                
-                <Stack spacing={2.5}>
-                  <Box>
-                    <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
-                      Banner Name
+                <Divider />
+                <Box>
+                  <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
+                    Redirect Link
+                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <LinkOutlined sx={{ fontSize: 18, color: primaryTeal }} />
+                    <Typography sx={{ fontFamily: primaryFont, fontWeight: 500, color: "#475569", fontSize: "0.9rem" }}>
+                      {viewingSlider.redirectLink || "No link provided"}
                     </Typography>
-                    <Typography sx={{ fontFamily: primaryFont, fontWeight: 600, color: primaryTeal }}>
-                      {viewingSlider.name}
-                    </Typography>
-                  </Box>
+                  </Stack>
+                </Box>
+              </Stack>
+            </DialogContent>
+            <DialogActions sx={{ p: 3 }}>
+              <Button 
+                onClick={() => setViewingSlider(null)} 
+                fullWidth 
+                variant="contained" 
+                sx={{ bgcolor: primaryTeal, borderRadius: "12px", textTransform: "none", fontFamily: primaryFont, fontWeight: 700 }}
+              >
+                Close Preview
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
 
-                  <Divider />
-
-                  <Box>
-                    <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
-                      Redirect Link
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <LinkOutlined sx={{ fontSize: 18, color: primaryTeal }} />
-                      <Typography sx={{ fontFamily: primaryFont, fontWeight: 500, color: "#475569", fontSize: "0.9rem" }}>
-                        {viewingSlider.redirectLink || "No link provided"}
-                      </Typography>
-                    </Stack>
-                  </Box>
-
-                  <Box>
-                    <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
-                      Created At
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <CalendarTodayOutlined sx={{ fontSize: 16, color: "#94A3B8" }} />
-                      <Typography sx={{ fontFamily: primaryFont, fontWeight: 500, color: "#475569", fontSize: "0.9rem" }}>
-                        {new Date(viewingSlider.createdAt).toLocaleDateString(undefined, { dateStyle: 'long' })}
-                      </Typography>
-                    </Stack>
-                  </Box>
-                </Stack>
-              </DialogContent>
-              <DialogActions sx={{ p: 3 }}>
-                <Button 
-                  onClick={() => setViewingSlider(null)} 
-                  fullWidth 
-                  variant="contained" 
-                  sx={{ bgcolor: primaryTeal, borderRadius: "12px", textTransform: "none", fontFamily: primaryFont, fontWeight: 700 }}
-                >
-                  Close Preview
-                </Button>
-              </DialogActions>
-            </>
-          )}
-        </Dialog>
-
-        {/* --- DELETE DIALOG --- */}
-        <Dialog
-          open={deleteDialogOpen}
-          onClose={closeDeleteDialog}
-          PaperProps={{ sx: { borderRadius: "20px", padding: "8px", width: "100%", maxWidth: "400px" } }}
-        >
-          <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontFamily: primaryFont, fontWeight: 800, color: "#1E293B" }}>
-            <WarningAmberRounded sx={{ color: "#F43F5E", fontSize: "32px" }} />
-            Confirm Delete
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText sx={{ fontFamily: primaryFont, fontWeight: 500, color: "#64748B" }}>
-              Are you sure you want to delete this slider? This action cannot be undone.
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions sx={{ padding: "16px 24px" }}>
-            <Button onClick={closeDeleteDialog} sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "none" }}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={confirmDelete} 
-              variant="contained"
-              sx={{ bgcolor: "#F43F5E", fontFamily: primaryFont, fontWeight: 700, textTransform: "none", borderRadius: "10px", px: 3 }}
-            >
-              Delete Slider
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
-    </Fade>
+      {/* --- DELETE DIALOG --- */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={closeDeleteDialog}
+        PaperProps={{ sx: { borderRadius: "20px", padding: "8px", width: "100%", maxWidth: "400px" } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontFamily: primaryFont, fontWeight: 800, color: "#1E293B" }}>
+          <WarningAmberRounded sx={{ color: "#F43F5E", fontSize: "32px" }} />
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ fontFamily: primaryFont, fontWeight: 500, color: "#64748B" }}>
+            Are you sure you want to delete this slider? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ padding: "16px 24px" }}>
+          <Button onClick={closeDeleteDialog} sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "none" }}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={confirmDelete} 
+            variant="contained"
+            sx={{ bgcolor: "#F43F5E", fontFamily: primaryFont, fontWeight: 700, textTransform: "none", borderRadius: "10px", px: 3 }}
+          >
+            Delete Slider
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 };
 

@@ -24,6 +24,8 @@ import Overview from "../Overview/Overview";
 import CreateAdmin from "../Settings/Settings";
 import HomeSlider from "../HomeSlider/HomeSlider";
 import RequestConsultation from "../Request Consultation/RequestConsultation";
+import PartnerManagement from "../Partners/Partners";
+import StudentLifeManager from "../Student Life/StudentLife";
 
 const drawerWidth = 290;
 
@@ -246,7 +248,10 @@ const Dashboard: React.FC = () => {
             {activeTab === "Settings" && <CreateAdmin />}
             {activeTab === "Home Slider" && <HomeSlider />}
             {activeTab === "Request Consultation" && <RequestConsultation />}
+            {activeTab === "Partners" && <PartnerManagement/>}
+            {activeTab === "Student Life" && <StudentLifeManager/>}
             
+
             {/* REMAINING MODULES FALLBACKS */}
             {activeTab === "Student Registration" && (
                 <Box sx={{ textAlign: 'center', py: 10 }}><Typography variant="h5">Student Admissions & Enrollment</Typography></Box>
@@ -255,7 +260,7 @@ const Dashboard: React.FC = () => {
                 <Box sx={{ textAlign: 'center', py: 10 }}><Typography variant="h5">Certificate Verification & Issuance</Typography></Box>
             )}
 
-            {!["Dashboard", "All Courses", "Settings", "Home Slider", "Request Consultation", "Student Registration", "Certificates"].includes(activeTab) && (
+            {!["Dashboard", "All Courses", "Settings", "Home Slider", "Request Consultation", "Student Registration", "Partners","Student Life", "Certificates"].includes(activeTab) && (
               <Box sx={{ textAlign: 'center', py: 15, opacity: 0.6 }}>
                 <Typography variant="h5" sx={{ fontFamily: primaryFont, fontWeight: 700 }}>{activeTab} Module</Typography>
                 <Typography sx={{ fontFamily: primaryFont }}>System records for this section are currently being synchronized...</Typography>

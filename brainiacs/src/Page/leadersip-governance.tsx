@@ -61,7 +61,9 @@ const LeadershipGovernance: React.FC = () => {
       <Box
         sx={{
           backgroundColor: "#f9fbff",
-          py: { xs: 6, md: 10 },
+          // UPDATED: Increased Padding Top here
+          pt: { xs: 15, md: 25 }, 
+          pb: { xs: 6, md: 10 },
           position: "relative",
           overflow: "hidden",
         }}
@@ -252,7 +254,6 @@ const LeadershipGovernance: React.FC = () => {
           </Swiper>
         </Container>
       </Box>
-
     </>
   );
 };
