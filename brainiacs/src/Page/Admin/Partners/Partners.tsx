@@ -130,7 +130,7 @@ const PartnerManagement = () => {
     return (
       <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
         <Box sx={{ bgcolor: surfaceColor, p: 3, minHeight: "100vh" }}>
-          <UpdatePartnerForm partnerData={editingPartner} onBack={() => { setEditingPartner(null); fetchPartners(); }} />
+          {/* <UpdatePartnerForm partnerData={editingPartner} onBack={() => { setEditingPartner(null); fetchPartners(); }} /> */}
         </Box>
       </motion.div>
     );

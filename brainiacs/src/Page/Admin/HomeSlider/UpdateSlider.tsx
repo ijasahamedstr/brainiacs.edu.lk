@@ -8,7 +8,6 @@ import {
   ArrowBackIosNewOutlined, 
   TitleOutlined, 
   LinkOutlined, PhotoSizeSelectActualOutlined,
-  RemoveRedEyeOutlined,
   SaveOutlined,
   InfoOutlined
 } from "@mui/icons-material";

@@ -228,13 +228,18 @@ const RequestConsultation = () => {
               Showing {paginatedData.length} of {filteredData.length} records
             </Typography>
             <Pagination 
-              count={Math.ceil(filteredData.length / rowsPerPage)} page={page} onChange={(e, v) => setPage(v)} 
-              sx={{ '& .Mui-selected': { bgcolor: `${primaryTeal} !important`, color: "#FFF" }, '& .MuiPaginationItem-root': { fontFamily: primaryFont, fontWeight: 600 } }} 
+              count={Math.ceil(filteredData.length / rowsPerPage)} 
+              page={page} 
+              onChange={(_, v) => setPage(v)} 
+              sx={{ 
+                '& .Mui-selected': { bgcolor: `${primaryTeal} !important`, color: "#FFF" }, 
+                '& .MuiPaginationItem-root': { fontFamily: primaryFont, fontWeight: 600 } 
+              }} 
             />
           </Box>
         </TableContainer>
 
-        {/* VIEW DETAILS DIALOG - UPDATED FOR ALL DATA */}
+        {/* VIEW DETAILS DIALOG */}
         <Dialog open={Boolean(viewingRequest)} onClose={() => setViewingRequest(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "24px", p: 1 } }}>
           {viewingRequest && (
             <>
@@ -244,7 +249,6 @@ const RequestConsultation = () => {
               </DialogTitle>
               <DialogContent>
                 <Stack spacing={2.5} sx={{ mt: 1 }}>
-                  {/* Personal and Qualification Info */}
                   <Box>
                     <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1.2 }}>Personal Details</Typography>
                     <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1 }}>
@@ -257,7 +261,6 @@ const RequestConsultation = () => {
                     </Stack>
                   </Box>
                   <Divider />
-                  {/* Contact Info */}
                   <Box>
                     <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>Contact Information</Typography>
                     <Stack spacing={1} sx={{ mt: 1 }}>
@@ -272,7 +275,6 @@ const RequestConsultation = () => {
                     </Stack>
                   </Box>
                   <Divider />
-                  {/* Programme Info */}
                   <Box>
                     <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>Selected Programme & Date</Typography>
                     <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1 }}>

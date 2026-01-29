@@ -3,15 +3,15 @@ import { motion, AnimatePresence } from "framer-motion"; // NEW: Framer Motion
 import { 
   Box, Typography, Stack, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Avatar, 
-  Chip, Button, Fade, TextField, MenuItem, InputAdornment, 
-  Pagination, Tooltip, useTheme, useMediaQuery, CircularProgress,
+  Chip, Button, TextField, MenuItem, InputAdornment, 
+  Pagination, CircularProgress,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
   Divider
 } from "@mui/material";
 import { 
   DeleteOutline, EditOutlined, AddPhotoAlternateOutlined, 
   SearchOutlined, FiberManualRecord, FilterList, WarningAmberRounded,
-  VisibilityOutlined, LinkOutlined, CalendarTodayOutlined,
+  VisibilityOutlined, LinkOutlined,
   CloseOutlined
 } from "@mui/icons-material";
 import AddSliderForm from "./CreateNewSlider";
@@ -49,8 +49,6 @@ interface Slider {
 }
 
 const HomeSlider = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   
   const [sliders, setSliders] = useState<Slider[]>([]);
   const [isLoading, setIsLoading] = useState(true);

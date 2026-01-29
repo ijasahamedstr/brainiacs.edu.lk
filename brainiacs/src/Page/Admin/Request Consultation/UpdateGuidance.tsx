@@ -8,7 +8,6 @@ import {
 import { 
   ArrowBackIosNewOutlined, BadgeOutlined, SchoolOutlined, 
   LocalPhoneOutlined, EmailOutlined, WhatsApp, DoneAllOutlined, SaveOutlined,
-  CalendarMonthOutlined, AccessTimeOutlined
 } from "@mui/icons-material";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
