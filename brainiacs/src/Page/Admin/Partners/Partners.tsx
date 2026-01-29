@@ -3,20 +3,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Box, Typography, Stack, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Avatar, 
-  Button, TextField, InputAdornment, 
-  Pagination, CircularProgress,
+  Button, TextField, InputAdornment, Pagination, CircularProgress,
   Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  Divider
+  Tooltip, Checkbox, Chip, Link
 } from "@mui/material";
 import { 
-  DeleteOutline, EditOutlined, 
-  SearchOutlined, WarningAmberRounded,
-  VisibilityOutlined, LinkOutlined,
-  CloseOutlined, HandshakeOutlined, LanguageOutlined,
-  DescriptionOutlined
+  DeleteOutline, EditOutlined, SearchOutlined, WarningAmberRounded, 
+  VisibilityOutlined, DescriptionOutlined, RefreshOutlined, 
+  LanguageOutlined, BusinessOutlined, AddBusinessOutlined
 } from "@mui/icons-material";
-import AddPartnerForm from "./AddPartnerForm";
-import UpdatePartnerForm from "./UpdatePartnerForm";
+
+// Components
+import CreatePartner from "./AddPartnerForm";
+import UpdatePartner from "./UpdatePartnerForm";
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -24,429 +23,299 @@ const primaryFont = "'Montserrat', sans-serif";
 const primaryTeal = "#004652";
 const surfaceColor = "#F8FAFC";
 
-// Animation Variants
-const containerVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { staggerChildren: 0.1, duration: 0.5 } 
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: { opacity: 1, x: 0 }
-};
-
-// Updated Interface for Partner Schema
 interface Partner {
   _id: string;
   name: string;
   logoUrl: string;
-  description: string;
   websiteUrl?: string;
+  description: string[]; 
   createdAt: string;
 }
 
-const PartnerManagement = () => {
-  
-  const [partners, setPartners] = useState<Partner[]>([]);
+const PartnerManager = () => {
+  // --- States ---
+  const [data, setData] = useState<Partner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
-  const [viewingPartner, setViewingPartner] = useState<Partner | null>(null);
+  const [editingItem, setEditingItem] = useState<Partner | null>(null);
+  const [viewingItem, setViewingItem] = useState<Partner | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [partnerToDelete, setPartnerToDelete] = useState<string | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const rowsPerPage = 6;
 
-  const fetchPartners = async () => {
+  // --- API Actions ---
+  const fetchData = async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/partners`);
-      const data = await response.json();
-      if (response.ok) setPartners(data);
+      const result = await response.json();
+      if (response.ok) setData(result);
     } catch (error) {
-      console.error("Failed to fetch partners:", error);
+      console.error("Fetch error:", error);
     } finally {
-      setIsLoading(false);
+      setTimeout(() => setIsLoading(false), 500);
     }
   };
 
-  useEffect(() => {
-    fetchPartners();
-  }, []);
-
-  const openDeleteDialog = (id: string) => {
-    setPartnerToDelete(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const closeDeleteDialog = () => {
-    setPartnerToDelete(null);
-    setDeleteDialogOpen(false);
-  };
+  useEffect(() => { fetchData(); }, []);
 
   const confirmDelete = async () => {
-    if (!partnerToDelete) return;
+    if (!itemToDelete) return;
     try {
-      const response = await fetch(`${API_BASE_URL}/api/partners/${partnerToDelete}`, {
+      const response = await fetch(`${API_BASE_URL}/api/partners/${itemToDelete}`, {
         method: "DELETE",
       });
       if (response.ok) {
-        setPartners((prev) => prev.filter((p) => p._id !== partnerToDelete));
-        closeDeleteDialog();
+        setData((prev) => prev.filter((item) => item._id !== itemToDelete));
+        setDeleteDialogOpen(false);
+        setItemToDelete(null);
       }
     } catch (error) {
       console.error("Delete error:", error);
     }
   };
 
+  // --- Logic Helpers ---
   const filteredData = useMemo(() => {
-    return partners.filter((p) => 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchQuery.toLowerCase())
+    return data.filter((item) => 
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }, [searchQuery, partners]);
+  }, [searchQuery, data]);
 
   const paginatedData = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     return filteredData.slice(start, start + rowsPerPage);
   }, [filteredData, page]);
 
-  if (showAddForm) {
-    return (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-        <Box sx={{ bgcolor: surfaceColor, p: 3, minHeight: "100vh" }}>
-          <AddPartnerForm onBack={() => { setShowAddForm(false); fetchPartners(); }} />
-        </Box>
-      </motion.div>
-    );
-  }
+  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      setSelectedItems(paginatedData.map(n => n._id));
+      return;
+    }
+    setSelectedItems([]);
+  };
 
-  if (editingPartner) {
-    return (
-      <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }}>
-        <Box sx={{ bgcolor: surfaceColor, p: 3, minHeight: "100vh" }}>
-          {/* <UpdatePartnerForm partnerData={editingPartner} onBack={() => { setEditingPartner(null); fetchPartners(); }} /> */}
-        </Box>
-      </motion.div>
+  const handleSelectItem = (id: string) => {
+    setSelectedItems(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
-  }
+  };
+
+  if (showAddForm) return <CreatePartner onBack={() => { setShowAddForm(false); fetchData(); }} />;
+  if (editingItem) return <UpdatePartner itemData={editingItem} onBack={() => { setEditingItem(null); fetchData(); }} />;
 
   return (
-    <Box 
-      component={motion.div} 
-      initial="hidden" 
-      animate="visible" 
-      variants={containerVariants}
-      sx={{ width: "100%", bgcolor: surfaceColor, p: { xs: 2, md: 4 } }}
-    >
-      {/* HEADER SECTION */}
-      <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "center" }} spacing={3} mb={4}>
+    <Box sx={{ width: "100%", bgcolor: surfaceColor, p: { xs: 2, md: 4 }, minHeight: "100vh" }}>
+      
+      {/* 1. TOP UTILITY BAR */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Chip 
+          label="Corporate Relations" 
+          size="small" 
+          sx={{ fontFamily: primaryFont, fontWeight: 700, bgcolor: "rgba(0, 70, 82, 0.1)", color: primaryTeal }} 
+        />
+        <Typography variant="caption" sx={{ fontFamily: primaryFont, color: "#94A3B8" }}>
+          Database active: {new Date().toLocaleTimeString()}
+        </Typography>
+      </Stack>
+
+      {/* 2. HEADER SECTION */}
+      <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{md: "center"}} spacing={3} mb={4}>
         <Box>
-            <Typography variant="h4" sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal }}>
-              Network Partners
-            </Typography>
-            <Typography variant="body1" sx={{ fontFamily: primaryFont, color: "#64748B", mt: 0.5, fontWeight: 500 }}>
-              Manage corporate collaborations and institutional partnerships.
-            </Typography>
+          <Typography variant="h4" sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, letterSpacing: "-1px" }}>
+            Partner Directory
+          </Typography>
+          <Typography variant="body1" sx={{ fontFamily: primaryFont, color: "#64748B", mt: 0.5, fontWeight: 500 }}>
+            Manage official partnerships, logos, and organization profiles.
+          </Typography>
         </Box>
+        
         <Button 
-          component={motion.button}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
           variant="contained" 
           onClick={() => setShowAddForm(true)} 
-          startIcon={<HandshakeOutlined />}
+          startIcon={<AddBusinessOutlined />}
           sx={{ 
-            bgcolor: primaryTeal, borderRadius: "12px", px: 4, py: 2, 
-            fontFamily: primaryFont, fontWeight: 700, textTransform: "none",
-            fontSize: "0.95rem", boxShadow: "0 10px 20px -5px rgba(0, 70, 82, 0.4)",
+            fontFamily: primaryFont, bgcolor: primaryTeal, borderRadius: "12px", px: 4, py: 1.2,
+            textTransform: "none", fontWeight: 700, boxShadow: "0 8px 16px rgba(0, 70, 82, 0.2)",
             '&:hover': { bgcolor: "#002d35" }
           }}
         >
-          Add New Partner
+          Add Partner
         </Button>
       </Stack>
 
-      {/* FILTER BAR */}
-      <Paper 
-        component={motion.div}
-        variants={itemVariants}
-        elevation={0} sx={{ 
-        p: 2.5, mb: 4, borderRadius: "20px", border: "1px solid #E2E8F0", 
-        display: "flex", flexWrap: "wrap", gap: 3, bgcolor: "#FFF"
-      }}>
+      {/* 3. SEARCH & FILTERS */}
+      <Paper elevation={0} sx={{ p: 2, mb: 4, borderRadius: "16px", border: "1px solid #E2E8F0", display: 'flex', gap: 2, alignItems: 'center' }}>
         <TextField
           fullWidth
-          placeholder="Search partners by name or description..."
-          variant="outlined"
+          size="small"
+          placeholder="Search partners by name..."
           value={searchQuery}
-          onChange={(e) => {setSearchQuery(e.target.value); setPage(1);}}
-          sx={{ flex: 1 }}
+          onChange={(e) => setSearchQuery(e.target.value)}
           InputProps={{
             startAdornment: <InputAdornment position="start"><SearchOutlined sx={{ color: primaryTeal }} /></InputAdornment>,
-            sx: { borderRadius: "12px", fontFamily: primaryFont, fontWeight: 600 }
+            sx: { borderRadius: "10px", fontFamily: primaryFont }
           }}
         />
+        <Tooltip title="Refresh Data">
+          <IconButton onClick={fetchData} sx={{ border: "1px solid #E2E8F0" }}>
+            <RefreshOutlined />
+          </IconButton>
+        </Tooltip>
       </Paper>
 
-      {/* DATA TABLE */}
-      <TableContainer 
-        component={Paper} 
-        elevation={0} 
-        sx={{ borderRadius: "24px", border: "1px solid #E2E8F0", overflow: "hidden", bgcolor: "#FFF" }}
-      >
-        <Table>
-          <TableHead sx={{ bgcolor: "#F1F5F9" }}>
+      {/* 4. DATA TABLE */}
+      <TableContainer component={Paper} elevation={0} sx={{ borderRadius: "20px", border: "1px solid #E2E8F0", overflow: "hidden", bgcolor: "#FFF" }}>
+        <Table sx={{ minWidth: 800 }}>
+          <TableHead sx={{ bgcolor: "#F8FAFC" }}>
             <TableRow>
-              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", py: 3, fontSize: "0.75rem" }}>LOGO</TableCell>
-              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem" }}>PARTNER INFO</TableCell>
-              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem", display: { xs: 'none', md: 'table-cell' } }}>DESCRIPTION</TableCell>
-              <TableCell align="right" sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem", pr: 4 }}>ACTIONS</TableCell>
+              <TableCell padding="checkbox">
+                <Checkbox 
+                  indeterminate={selectedItems.length > 0 && selectedItems.length < paginatedData.length}
+                  checked={paginatedData.length > 0 && selectedItems.length === paginatedData.length}
+                  onChange={handleSelectAll}
+                />
+              </TableCell>
+              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.7rem" }}>LOGO</TableCell>
+              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.7rem" }}>PARTNER INFO</TableCell>
+              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.7rem" }}>DESCRIPTION</TableCell>
+              <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.7rem" }}>JOINED DATE</TableCell>
+              <TableCell align="right" sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.7rem", pr: 4 }}>ACTIONS</TableCell>
             </TableRow>
           </TableHead>
-          <TableBody component={motion.tbody}>
-            <AnimatePresence>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 10 }}>
-                    <CircularProgress sx={{ color: primaryTeal }} />
+          <TableBody>
+            <AnimatePresence mode="popLayout">
+            {isLoading ? (
+              <TableRow><TableCell colSpan={6} align="center" sx={{ py: 12 }}><CircularProgress size={30} sx={{ color: primaryTeal }} /></TableCell></TableRow>
+            ) : paginatedData.length > 0 ? (
+              paginatedData.map((item) => (
+                <TableRow 
+                  component={motion.tr} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  key={item._id} hover 
+                >
+                  <TableCell padding="checkbox">
+                    <Checkbox checked={selectedItems.includes(item._id)} onChange={() => handleSelectItem(item._id)} />
                   </TableCell>
-                </TableRow>
-              ) : paginatedData.length > 0 ? (
-                paginatedData.map((partner) => (
-                  <TableRow 
-                    key={partner._id} 
-                    component={motion.tr}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    layout
-                    hover
-                  >
-                    <TableCell>
-                      <Avatar 
-                        src={partner.logoUrl} 
-                        variant="square" 
-                        sx={{ width: 60, height: 60, borderRadius: "12px", p: 0.5, bgcolor: "#f8f9fa", border: "1px solid #E2E8F0", '& img': { objectFit: 'contain' } }} 
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={{ fontFamily: primaryFont, fontWeight: 700, color: primaryTeal }}>
-                        {partner.name}
-                      </Typography>
-                      {partner.websiteUrl && (
-                        <Stack direction="row" spacing={0.5} alignItems="center">
-                           <LanguageOutlined sx={{ fontSize: 12, color: "#94A3B8" }} />
-                           <Typography sx={{ fontFamily: primaryFont, fontSize: "0.7rem", color: "#94A3B8" }}>
-                            {partner.websiteUrl.replace(/^https?:\/\//, '')}
-                          </Typography>
-                        </Stack>
-                      )}
-                    </TableCell>
-                    <TableCell sx={{ display: { xs: 'none', md: 'table-cell' }, maxWidth: "300px" }}>
-                      <Typography noWrap sx={{ fontFamily: primaryFont, fontSize: "0.85rem", color: "#64748B" }}>
-                        {partner.description}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right" sx={{ pr: 3 }}>
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <IconButton onClick={() => setViewingPartner(partner)} size="small" sx={{ color: primaryTeal }}>
+                  <TableCell>
+                    <Avatar 
+                        src={item.logoUrl} 
+                        variant="rounded" 
+                        sx={{ width: 48, height: 48, border: '1px solid #E2E8F0', bgcolor: '#FFF', p: 0.5 }}
+                    >
+                        <BusinessOutlined />
+                    </Avatar>
+                  </TableCell>
+                  <TableCell>
+                    <Typography sx={{ fontFamily: primaryFont, fontWeight: 700, color: primaryTeal, fontSize: "0.95rem" }}>{item.name}</Typography>
+                    {item.websiteUrl && (
+                        <Link href={item.websiteUrl} target="_blank" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, textDecoration: 'none', color: '#94A3B8', fontSize: '0.75rem' }}>
+                            <LanguageOutlined sx={{ fontSize: 12 }} /> Visit Website
+                        </Link>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 600, color: "#475569", display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <DescriptionOutlined sx={{ fontSize: 14 }} /> {item.description.length} Para(s)
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography sx={{ fontFamily: primaryFont, fontSize: "0.85rem", color: "#64748B" }}>
+                      {new Date(item.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right" sx={{ pr: 3 }}>
+                    <Stack direction="row" spacing={1} justifyContent="flex-end">
+                      <Tooltip title="View Profile">
+                        <IconButton onClick={() => setViewingItem(item)} sx={{ color: primaryTeal, bgcolor: "#F0F5F6" }}>
                           <VisibilityOutlined fontSize="small" />
                         </IconButton>
-                        <IconButton onClick={() => setEditingPartner(partner)} size="small" sx={{ color: "#64748B" }}>
+                      </Tooltip>
+                      <Tooltip title="Edit Partner">
+                        <IconButton onClick={() => setEditingItem(item)} sx={{ color: "#64748B", bgcolor: "#F8FAFC" }}>
                           <EditOutlined fontSize="small" />
                         </IconButton>
-                        <IconButton onClick={() => openDeleteDialog(partner._id)} size="small" sx={{ color: "#F43F5E" }}>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton onClick={() => { setItemToDelete(item._id); setDeleteDialogOpen(true); }} sx={{ color: "#F43F5E", bgcolor: "#FFF1F2" }}>
                           <DeleteOutline fontSize="small" />
                         </IconButton>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} align="center" sx={{ py: 10 }}>
-                    <Typography sx={{ fontFamily: primaryFont, color: "#94A3B8" }}>No partners found.</Typography>
+                      </Tooltip>
+                    </Stack>
                   </TableCell>
                 </TableRow>
-              )}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} align="center" sx={{ py: 10 }}>
+                  <SearchOutlined sx={{ fontSize: 48, color: "#CBD5E1", mb: 2 }} />
+                  <Typography sx={{ fontFamily: primaryFont, color: "#64748B", fontWeight: 600 }}>No partners found</Typography>
+                </TableCell>
+              </TableRow>
+            )}
             </AnimatePresence>
           </TableBody>
         </Table>
-
-        {/* PAGINATION */}
-        <Box sx={{ p: 3, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Typography sx={{ fontFamily: primaryFont, color: "#64748B", fontWeight: 700, fontSize: "0.8rem" }}>
-            Displaying {paginatedData.length} of {filteredData.length} partners
-          </Typography>
+        
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ p: 3, borderTop: "1px solid #E2E8F0" }}>
+          <Box>
+            {selectedItems.length > 0 && (
+              <Button size="small" variant="text" color="error" startIcon={<DeleteOutline />} sx={{ fontFamily: primaryFont, fontWeight: 700, textTransform: 'none' }}>
+                Remove Selected ({selectedItems.length})
+              </Button>
+            )}
+          </Box>
           <Pagination 
             count={Math.ceil(filteredData.length / rowsPerPage)} 
-            page={page}
-            onChange={(e, v) => setPage(v)}
-            sx={{ '& .Mui-selected': { bgcolor: `${primaryTeal} !important`, color: "#FFF" }, '& .MuiPaginationItem-root': { fontFamily: primaryFont, fontWeight: 600 } }}
+            page={page} 
+            onChange={(_, v) => setPage(v)}
+            sx={{ '& .Mui-selected': { bgcolor: `${primaryTeal} !important`, color: "#FFF" } }}
           />
-        </Box>
+        </Stack>
       </TableContainer>
 
-      <Dialog 
-          open={Boolean(viewingPartner)} 
-          onClose={() => setViewingPartner(null)}
-          maxWidth="sm"
-          fullWidth
-          PaperProps={{ 
-            component: motion.div, 
-            initial: { scale: 0.9, opacity: 0 }, 
-            animate: { scale: 1, opacity: 1 }, 
-            sx: { borderRadius: "24px", p: 1 } 
-          }}
-        >
-          {viewingPartner && (
-            <>
-              <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, fontSize: "1.2rem" }}>
-                  Partner Profile
-                </Typography>
-                <IconButton onClick={() => setViewingPartner(null)} size="small">
-                  <CloseOutlined />
-                </IconButton>
-              </DialogTitle>
+      {/* 5. VIEW MODAL */}
+      <Dialog open={Boolean(viewingItem)} onClose={() => setViewingItem(null)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: "24px" } }}>
+        {viewingItem && (
+          <>
+            <DialogTitle sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar src={viewingItem.logoUrl} variant="rounded" sx={{ width: 40, height: 40, border: '1px solid #E2E8F0' }} />
+              {viewingItem.name}
+            </DialogTitle>
+            <DialogContent dividers>
+              <Typography variant="subtitle2" sx={{ fontFamily: primaryFont, fontWeight: 700, mb: 2, color: "#1E293B" }}>About Organization</Typography>
+              {viewingItem.description.map((text, i) => (
+                <Paper key={i} elevation={0} sx={{ p: 2, borderRadius: "12px", mb: 2, bgcolor: "#F8FAFC", border: "1px solid #E2E8F0" }}>
+                  <Typography sx={{ fontFamily: primaryFont, color: "#475569", lineHeight: 1.6, fontSize: "0.9rem" }}>{text}</Typography>
+                </Paper>
+              ))}
+            </DialogContent>
+            <DialogActions sx={{ p: 3 }}>
+              <Button onClick={() => setViewingItem(null)} fullWidth variant="contained" sx={{ bgcolor: primaryTeal, borderRadius: "12px", py: 1.5, textTransform: 'none', fontFamily: primaryFont, fontWeight: 700 }}>Close Profile</Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
 
-              <DialogContent>
-                {/* Logo Section */}
-                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4, p: 3, bgcolor: '#f8f9fa', borderRadius: '16px' }}>
-                  <img 
-                    src={viewingPartner.logoUrl} 
-                    alt={viewingPartner.name} 
-                    style={{ maxHeight: "120px", maxWidth: "100%", objectFit: "contain" }} 
-                  />
-                </Box>
-
-                <Stack spacing={2.5}>
-                  {/* Partner Name */}
-                  <Box>
-                    <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
-                      Partner Name
-                    </Typography>
-                    <Typography sx={{ fontFamily: primaryFont, fontWeight: 700, color: primaryTeal, fontSize: '1.1rem' }}>
-                      {viewingPartner.name}
-                    </Typography>
-                  </Box>
-
-                  <Divider />
-
-                  {/* Updated Description Section (Handling Array) */}
-                  <Box>
-                    <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
-                      Description
-                    </Typography>
-                    
-                    <Stack spacing={1.5} sx={{ mt: 1 }}>
-                      {Array.isArray(viewingPartner.description) ? (
-                        viewingPartner.description.map((point, index) => (
-                          <Stack key={index} direction="row" spacing={1.5} alignItems="flex-start">
-                            <DescriptionOutlined sx={{ fontSize: 18, color: primaryTeal, mt: 0.4 }} />
-                            <Typography sx={{ fontFamily: primaryFont, color: "#475569", lineHeight: 1.6, flex: 1 }}>
-                              {point}
-                            </Typography>
-                          </Stack>
-                        ))
-                      ) : (
-                        // Fallback if data is a string
-                        <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                          <DescriptionOutlined sx={{ fontSize: 18, color: primaryTeal, mt: 0.4 }} />
-                          <Typography sx={{ fontFamily: primaryFont, color: "#475569", lineHeight: 1.6 }}>
-                            {viewingPartner.description}
-                          </Typography>
-                        </Stack>
-                      )}
-                    </Stack>
-                  </Box>
-
-                  {/* Website Section */}
-                  {viewingPartner.websiteUrl && (
-                    <Box>
-                      <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>
-                        Official Website
-                      </Typography>
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.5 }}>
-                        <LinkOutlined sx={{ fontSize: 18, color: primaryTeal }} />
-                        <Typography 
-                          component="a" 
-                          href={viewingPartner.websiteUrl} 
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          sx={{ 
-                            fontFamily: primaryFont, 
-                            fontWeight: 600, 
-                            color: primaryTeal, 
-                            textDecoration: 'none', 
-                            '&:hover': { textDecoration: 'underline' } 
-                          }}
-                        >
-                          {viewingPartner.websiteUrl}
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  )}
-                </Stack>
-              </DialogContent>
-
-              <DialogActions sx={{ p: 3 }}>
-                <Button 
-                  onClick={() => setViewingPartner(null)} 
-                  fullWidth 
-                  variant="contained" 
-                  sx={{ 
-                    bgcolor: primaryTeal, 
-                    borderRadius: "12px", 
-                    textTransform: "none", 
-                    fontFamily: primaryFont, 
-                    fontWeight: 700,
-                    '&:hover': { bgcolor: primaryTeal, opacity: 0.9 }
-                  }}
-                >
-                  Close Profile
-                </Button>
-              </DialogActions>
-            </>
-          )}
-        </Dialog>
-
-      {/* --- DELETE DIALOG --- */}
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={closeDeleteDialog}
-        PaperProps={{ sx: { borderRadius: "20px", padding: "8px", width: "100%", maxWidth: "400px" } }}
-      >
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontFamily: primaryFont, fontWeight: 800, color: "#1E293B" }}>
-          <WarningAmberRounded sx={{ color: "#F43F5E", fontSize: "32px" }} />
-          Confirm Removal
+      {/* 6. DELETE CONFIRMATION */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} PaperProps={{ sx: { borderRadius: "20px" } }}>
+        <DialogTitle sx={{ fontFamily: primaryFont, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <WarningAmberRounded sx={{ color: "#F43F5E" }} /> Remove Partner?
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ fontFamily: primaryFont, fontWeight: 500, color: "#64748B" }}>
-            Removing this partner will delete their profile from the directory. Do you wish to proceed?
+          <DialogContentText sx={{ fontFamily: primaryFont, fontWeight: 500 }}>
+            This will permanently remove the partner profile and their logo from the system. This action cannot be reversed.
           </DialogContentText>
         </DialogContent>
-        <DialogActions sx={{ padding: "16px 24px" }}>
-          <Button onClick={closeDeleteDialog} sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "none" }}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={confirmDelete} 
-            variant="contained"
-            sx={{ bgcolor: "#F43F5E", fontFamily: primaryFont, fontWeight: 700, textTransform: "none", borderRadius: "10px", px: 3 }}
-          >
-            Remove Partner
-          </Button>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setDeleteDialogOpen(false)} sx={{ fontFamily: primaryFont, color: "#94A3B8", textTransform: 'none', fontWeight: 700 }}>Cancel</Button>
+          <Button onClick={confirmDelete} variant="contained" sx={{ fontFamily: primaryFont, bgcolor: "#F43F5E", borderRadius: "10px", textTransform: 'none', fontWeight: 700 }}>Confirm Delete</Button>
         </DialogActions>
       </Dialog>
     </Box>
   );
 };
 
-export default PartnerManagement;
+export default PartnerManager;
