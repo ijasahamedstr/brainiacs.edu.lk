@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion"; // NEW: Framer Motion
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Box, Typography, Stack, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Avatar, 
@@ -308,7 +308,7 @@ const HomeSlider = () => {
           <Pagination 
             count={Math.ceil(filteredData.length / rowsPerPage)} 
             page={page}
-            onChange={(e, v) => setPage(v)}
+            onChange={(_, v) => setPage(v)} // FIXED: Replaced unused 'e' with '_'
             sx={{ '& .Mui-selected': { bgcolor: `${primaryTeal} !important`, color: "#FFF" }, '& .MuiPaginationItem-root': { fontFamily: primaryFont, fontWeight: 600 } }}
           />
         </Box>
