@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { 
   Box, Typography, Avatar, IconButton, List, ListItemButton, 
   ListItemIcon, ListItemText, Drawer, AppBar, Toolbar, Stack, 
   useTheme, useMediaQuery, Divider, Dialog, DialogTitle, 
   DialogContent, DialogActions, Button, Tooltip,
-  Fade, Collapse
+  Fade, Collapse, Breadcrumbs, Link, Paper, Badge, Menu, MenuItem,
+  CircularProgress, Snackbar, Alert, Tab, Tabs
 } from "@mui/material";
 import { 
   DashboardOutlined, ExpandLess, ExpandMore, SchoolOutlined,
@@ -14,11 +15,17 @@ import {
   LogoutOutlined, MenuOpen, ArrowForwardIos,
   NotificationsActiveOutlined, CategoryOutlined,
   AutoStoriesOutlined, Circle, ViewCarouselOutlined,
-  HowToRegOutlined, VerifiedOutlined
+  HowToRegOutlined, VerifiedOutlined, ChevronRight,
+  GavelOutlined, GroupsOutlined, PeopleAltOutlined,
+  AssignmentIndOutlined, AdminPanelSettingsOutlined,
+  MailOutline, KeyboardArrowDownOutlined, ListAltOutlined,
+  CloudDoneOutlined, SecurityOutlined, SpeedOutlined,
+  HubOutlined, StorageOutlined, LanguageOutlined,
+  TranslateOutlined, PsychologyOutlined, WorkspacePremiumOutlined
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
-// IMPORT SEPARATE PAGES
+// MODULE IMPORTS
 import Properties from "../Properties/Properties";
 import Overview from "../Overview/Overview";
 import CreateAdmin from "../Settings/Settings";
@@ -28,106 +35,197 @@ import PartnerManagement from "../Partners/Partners";
 import StudentLifeManager from "../Student Life/StudentLife";
 import EventManager from "../Events/Events";
 import NewsManager from "../News/News";
+import BoardGovernanceManager from "../Board of Governance/BoardofGovernance";
+import OurTeamManager from "../Our Team/OurTeam";
 
-const drawerWidth = 290;
+// CONSTANTS
+const DRAWER_WIDTH = 290;
+const PRIMARY_TEAL = "#004652";
+const ACCENT_GOLD = "#CC9D2F";
+const PRIMARY_FONT = "'Montserrat', sans-serif";
+const LOGO_URL = "https://i.ibb.co/6RkH7J3r/Small-scaled.webp";
+
+// TYPES
+interface NavItem {
+  text: string;
+  icon: React.ReactNode;
+  isNested?: boolean;
+  path?: string;
+  children?: NavItem[];
+}
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  // State Management
+  // --- EXTENDED STATE ---
   const [activeTab, setActiveTab] = useState("Dashboard");
+  const [activeSubTab, setActiveSubTab] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-  const [userData, setUserData] = useState({ name: "System Admin", profileImage: "", role: "Super User" });
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [syncStatus, setSyncStatus] = useState("Online");
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(5);
+  
+  const [userData, setUserData] = useState({ 
+    name: "System Administrator", 
+    profileImage: "", 
+    role: "Super Admin",
+    lastLogin: new Date().toLocaleString()
+  });
 
-  // Design Tokens
-  const primaryTeal = "#004652";
-  const accentGold = "#CC9D2F";
-  const primaryFont = '"Montserrat", sans-serif';
-  const LOGO_URL = "https://i.ibb.co/6RkH7J3r/Small-scaled.webp";
-
+  // --- INITIALIZATION ---
   useEffect(() => {
-    setIsLoaded(true);
+    const timer = setTimeout(() => setIsLoaded(true), 400);
     const savedData = localStorage.getItem("adminData");
     if (savedData) {
-      try { setUserData(JSON.parse(savedData)); } catch (e) { console.error(e); }
+      try { setUserData(prev => ({ ...prev, ...JSON.parse(savedData) })); } catch (e) { console.error(e); }
     }
+    return () => clearTimeout(timer);
   }, []);
 
-  const handleConfirmLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("adminData");
+  // --- HANDLERS ---
+  const handleProfileMenu = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget);
+  const handleCloseProfile = () => setAnchorEl(null);
+  
+  const handleLogout = () => {
+    setLogoutDialogOpen(false);
+    localStorage.clear();
     navigate("/login");
   };
 
-  const handleSubmenuToggle = (menuText: string) => {
-    setOpenSubmenu(openSubmenu === menuText ? null : menuText);
-  };
-
-  const handleTabChange = (tabName: string) => {
-    setActiveTab(tabName);
+  const handleNavigation = (text: string) => {
+    setActiveTab(text);
     if (isMobile) setMobileOpen(false);
+    setSnackbarOpen(true); // Feedback on module change
   };
 
-  // Full Menu Configuration Including Slider, Registration, and Certificates
-  const menuConfig = [
-    { text: "Dashboard", icon: <DashboardOutlined />, isNested: false },
+  // --- NAVIGATION CONFIG ---
+  const NAVIGATION_MAP: NavItem[] = useMemo(() => [
+    { text: "Dashboard", icon: <DashboardOutlined /> },
     { 
-      text: "Courses", icon: <SchoolOutlined />, isNested: true,
+      text: "Academic", icon: <SchoolOutlined />, isNested: true,
       children: [
         { text: "All Courses", icon: <AutoStoriesOutlined /> },
-        { text: "Course Category", icon: <CategoryOutlined /> }
+        { text: "Course Category", icon: <CategoryOutlined /> },
+        { text: "Faculties", icon: <AccountBalanceOutlined /> }
       ]
     },
-    { text: "Home Slider", icon: <ViewCarouselOutlined />, isNested: false },
-    { text: "Student Registration", icon: <HowToRegOutlined />, isNested: false },
-    { text: "Certificates", icon: <VerifiedOutlined />, isNested: false },
-    { text: "Campus Offer", icon: <CampaignOutlined />, isNested: false },
-    { text: "Ask Our Student", icon: <QuestionAnswerOutlined />, isNested: false },
-    { text: "News", icon: <NewspaperOutlined />, isNested: false },
-    { text: "Event", icon: <EventOutlined />, isNested: false },
-    { text: "Request Consultation", icon: <SupportAgentOutlined />, isNested: false },
-    { text: "Faculties", icon: <AccountBalanceOutlined />, isNested: false },
-    { text: "Student Life", icon: <Diversity1Outlined />, isNested: false },
-    { text: "Partners", icon: <HandshakeOutlined />, isNested: false },
-    { text: "Settings", icon: <SettingsOutlined />, isNested: false },
-  ];
+    { 
+      text: "Academic Staffs", icon: <PeopleAltOutlined />, isNested: true,
+      children: [
+        { text: "Professors", icon: <VerifiedOutlined /> },
+        { text: "Lecturers", icon: <AssignmentIndOutlined /> },
+        { text: "Staff Directory", icon: <GroupsOutlined /> }
+      ]
+    },
+    { 
+      text: "Administration", icon: <GavelOutlined />, isNested: true,
+      children: [
+        { text: "Board of Governance", icon: <AdminPanelSettingsOutlined /> },
+        { text: "Our Team", icon: <GroupsOutlined /> },
+        { text: "Partners", icon: <HandshakeOutlined /> }
+      ]
+    },
+    { text: "Home Slider", icon: <ViewCarouselOutlined /> },
+    { text: "Student Registration", icon: <HowToRegOutlined /> },
+    { text: "Certificates", icon: <WorkspacePremiumOutlined /> },
+    { text: "Campus Offer", icon: <CampaignOutlined /> },
+    { text: "Ask Our Student", icon: <QuestionAnswerOutlined /> },
+    { text: "News", icon: <NewspaperOutlined /> },
+    { text: "Event", icon: <EventOutlined /> },
+    { text: "Student Life", icon: <Diversity1Outlined /> },
+    { text: "Request Consultation", icon: <SupportAgentOutlined /> },
+    { text: "System Settings", icon: <SettingsOutlined />, path: "Settings" },
+  ], []);
 
-  const sidebarContent = (
-    <Box sx={{ 
-      height: "100%", display: "flex", flexDirection: "column", 
-      bgcolor: primaryTeal, color: "white",
-      background: `linear-gradient(185deg, ${primaryTeal} 0%, #002d35 100%)`,
-      position: 'relative', overflowX: 'hidden'
-    }}>
-      <Box sx={{ pt: { xs: 12, md: 5 }, px: 3, textAlign: "center", zIndex: 1 }}>
-        <Box sx={{ 
-          mb: 4, display: 'inline-flex', bgcolor: '#FFFFFF', p: 2, 
-          borderRadius: '20px', boxShadow: '0 12px 30px rgba(0,0,0,0.2)'
-        }}>
-          <Box component="img" src={LOGO_URL} alt="Logo" sx={{ width: 180, height: 'auto' }} />
+  // --- MODULE RENDERING LOGIC ---
+  const ModuleWrapper = ({ title, subtitle, children }: { title: string, subtitle: string, children: React.ReactNode }) => (
+    <Box sx={{ p: { xs: 1, md: 2 } }}>
+      <Stack direction={{ xs: "column", sm: "row" }} justifyContent="space-between" alignItems={{ sm: "center" }} mb={4} spacing={2}>
+        <Box>
+          <Typography variant="h4" sx={{ fontFamily: PRIMARY_FONT, fontWeight: 900, color: PRIMARY_TEAL, letterSpacing: "-1px" }}>{title}</Typography>
+          <Typography variant="body2" sx={{ color: '#64748B', fontWeight: 500 }}>{subtitle}</Typography>
         </Box>
+        <Stack direction="row" spacing={1.5}>
+          <Button variant="outlined" sx={{ borderRadius: "10px", textTransform: "none", fontWeight: 700, borderColor: "#E2E8F0", color: "#64748B" }}>Export</Button>
+          <Button variant="contained" sx={{ bgcolor: PRIMARY_TEAL, borderRadius: "10px", textTransform: "none", fontWeight: 700, px: 3 }}>Add New</Button>
+        </Stack>
+      </Stack>
+      {children}
+    </Box>
+  );
+
+  const ActiveContent = () => {
+    switch (activeTab) {
+      case "Dashboard": return <Overview />;
+      case "All Courses": return <Properties />;
+      case "Home Slider": return <HomeSlider />;
+      case "Partners": return <PartnerManagement />;
+      case "Student Life": return <StudentLifeManager />;
+      case "Event": return <EventManager />;
+      case "News": return <NewsManager />;
+      case "Request Consultation": return <RequestConsultation />;
+      case "System Settings": return <CreateAdmin />;
+      case "Board of Governance": return <BoardGovernanceManager />;
+      case "Our Team": return <OurTeamManager />;
+      
+      // ACADEMIC STAFFS MODULES
+      case "Professors":
+      case "Lecturers":
+      case "Staff Directory":
+        return (
+          <ModuleWrapper title={`${activeTab} Management`} subtitle={`Configure and manage university ${activeTab.toLowerCase()} records.`}>
+            <Tabs value={activeSubTab} onChange={(_, v) => setActiveSubTab(v)} sx={{ mb: 3, borderBottom: "1px solid #E2E8F0" }}>
+              <Tab label="Active Members" sx={{ fontFamily: PRIMARY_FONT, fontWeight: 700, textTransform: "none" }} />
+              <Tab label="Pending Approval" sx={{ fontFamily: PRIMARY_FONT, fontWeight: 700, textTransform: "none" }} />
+              <Tab label="Archived" sx={{ fontFamily: PRIMARY_FONT, fontWeight: 700, textTransform: "none" }} />
+            </Tabs>
+            <Paper variant="outlined" sx={{ p: 12, textAlign: 'center', borderRadius: '24px', borderStyle: 'dashed', bgcolor: '#F8FAFC' }}>
+              <CircularProgress size={40} sx={{ color: PRIMARY_TEAL, mb: 3 }} />
+              <Typography sx={{ fontFamily: PRIMARY_FONT, fontWeight: 700, color: '#94A3B8' }}>Retrieving {activeTab} Records from Secure Server...</Typography>
+            </Paper>
+          </ModuleWrapper>
+        );
+
+      default:
+        return (
+          <Box sx={{ textAlign: 'center', py: 20 }}>
+            <PsychologyOutlined sx={{ fontSize: 80, color: '#E2E8F0', mb: 2 }} />
+            <Typography variant="h5" sx={{ fontFamily: PRIMARY_FONT, fontWeight: 800, color: PRIMARY_TEAL }}>{activeTab} Expansion</Typography>
+            <Typography sx={{ fontFamily: PRIMARY_FONT, color: '#94A3B8' }}>This module is currently being optimized for high-volume data.</Typography>
+          </Box>
+        );
+    }
+  };
+
+  // --- SIDEBAR COMPONENT ---
+  const Sidebar = (
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", bgcolor: PRIMARY_TEAL, color: "white" }}>
+      <Box sx={{ p: 4, textAlign: "center" }}>
+        <Paper elevation={0} sx={{ p: 2, borderRadius: '20px', bgcolor: 'white' }}>
+          <Box component="img" src={LOGO_URL} sx={{ width: "100%", maxWidth: 150 }} />
+        </Paper>
       </Box>
 
-      <List sx={{ px: 2, flexGrow: 1, mt: 1, pb: 4, overflowY: 'auto', '&::-webkit-scrollbar': { width: '4px' }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.2)', borderRadius: '10px' } }}>
-        {menuConfig.map((item) => (
+      <List sx={{ px: 2, flexGrow: 1, overflowY: 'auto', '&::-webkit-scrollbar': { width: 4 }, '&::-webkit-scrollbar-thumb': { bgcolor: 'rgba(255,255,255,0.1)' } }}>
+        {NAVIGATION_MAP.map((item) => (
           <React.Fragment key={item.text}>
             <ListItemButton 
-              onClick={() => item.isNested ? handleSubmenuToggle(item.text) : handleTabChange(item.text)} 
+              onClick={() => item.isNested ? setOpenSubmenu(openSubmenu === item.text ? null : item.text) : handleNavigation(item.text)} 
               sx={{ 
-                borderRadius: "14px", mb: 0.5, py: 1.4,
+                borderRadius: "14px", mb: 0.8, py: 1.5,
                 bgcolor: activeTab === item.text || openSubmenu === item.text ? "rgba(255,255,255,0.12)" : "transparent",
-                color: activeTab === item.text ? "white" : "rgba(255,255,255,0.7)",
-                "&:hover": { bgcolor: "rgba(255,255,255,0.15)", transform: "translateX(4px)" }
+                "&:hover": { bgcolor: "rgba(255,255,255,0.08)" }
               }}
             >
-              <ListItemIcon sx={{ color: "inherit", minWidth: 40 }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} primaryTypographyProps={{ fontFamily: primaryFont, fontWeight: 600, fontSize: '0.88rem' }} />
-              {item.isNested ? (openSubmenu === item.text ? <ExpandLess sx={{ opacity: 0.5 }} /> : <ExpandMore sx={{ opacity: 0.5 }} />) : (activeTab === item.text && <ArrowForwardIos sx={{ fontSize: 10 }} />)}
+              <ListItemIcon sx={{ color: activeTab === item.text ? ACCENT_GOLD : "white", minWidth: 42 }}>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.text} primaryTypographyProps={{ fontFamily: PRIMARY_FONT, fontWeight: 700, fontSize: '0.85rem' }} />
+              {item.isNested ? (openSubmenu === item.text ? <ExpandLess /> : <ExpandMore />) : (activeTab === item.text && <ArrowForwardIos sx={{ fontSize: 10, color: ACCENT_GOLD }} />)}
             </ListItemButton>
 
             {item.isNested && item.children && (
@@ -135,16 +233,16 @@ const Dashboard: React.FC = () => {
                 <List component="div" disablePadding sx={{ mb: 1 }}>
                   {item.children.map((child) => (
                     <ListItemButton
-                      key={child.text} onClick={() => handleTabChange(child.text)}
+                      key={child.text} onClick={() => handleNavigation(child.text)}
                       sx={{ 
-                        pl: 6, py: 1, borderRadius: "10px", mx: 1, mb: 0.2,
+                        pl: 7, py: 1.2, borderRadius: "12px", mx: 1, mb: 0.3,
                         bgcolor: activeTab === child.text ? "rgba(204, 157, 47, 0.15)" : "transparent",
-                        color: activeTab === child.text ? accentGold : "rgba(255,255,255,0.5)",
-                        "&:hover": { color: "white", bgcolor: "rgba(255,255,255,0.05)" }
                       }}
                     >
-                      <ListItemIcon sx={{ minWidth: 25, color: 'inherit' }}><Circle sx={{ fontSize: 6 }} /></ListItemIcon>
-                      <ListItemText primary={child.text} primaryTypographyProps={{ fontFamily: primaryFont, fontSize: '0.82rem', fontWeight: 500 }} />
+                      <ListItemText 
+                        primary={child.text} 
+                        primaryTypographyProps={{ fontFamily: PRIMARY_FONT, fontSize: '0.8rem', fontWeight: 600, color: activeTab === child.text ? ACCENT_GOLD : "rgba(255,255,255,0.5)" }} 
+                      />
                     </ListItemButton>
                   ))}
                 </List>
@@ -153,135 +251,126 @@ const Dashboard: React.FC = () => {
           </React.Fragment>
         ))}
       </List>
-      <Box sx={{ px: 3, pb: 4 }}>
-        <Divider sx={{ bgcolor: "rgba(255,255,255,0.08)", mb: 3 }} />
-        <Button fullWidth variant="outlined" onClick={() => setLogoutDialogOpen(true)} startIcon={<LogoutOutlined />} sx={{ borderRadius: "14px", color: "#FF8E8E", borderColor: "rgba(255,142,142,0.3)", fontFamily: primaryFont, fontWeight: 700, textTransform: 'none', py: 1.2 }}>Sign Out</Button>
+      
+      <Box sx={{ p: 3, bgcolor: 'rgba(0,0,0,0.15)' }}>
+        <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+          <CloudDoneOutlined sx={{ fontSize: 18, color: '#10B981' }} />
+          <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#10B981' }}>SYSTEM SECURE & SYNCED</Typography>
+        </Stack>
+        <Button 
+          fullWidth variant="contained" startIcon={<LogoutOutlined />} 
+          onClick={() => setLogoutDialogOpen(true)}
+          sx={{ bgcolor: 'rgba(255,142,142,0.1)', color: '#FF8E8E', fontWeight: 800, textTransform: 'none', borderRadius: '12px', "&:hover": { bgcolor: 'rgba(255,142,142,0.2)' } }}
+        >
+          Sign Out
+        </Button>
       </Box>
     </Box>
   );
 
   return (
-    <Box sx={{ display: "flex", bgcolor: "#F0F4F8", minHeight: "100vh" }}>
-      <AppBar 
-        position="fixed" elevation={0} 
-        sx={{ 
-          width: { md: `calc(100% - ${drawerWidth}px)` }, ml: { md: `${drawerWidth}px` },
-          bgcolor: "rgba(255, 255, 255, 0.95)", backdropFilter: "blur(12px)", 
-          borderBottom: `2px solid ${primaryTeal}10`, zIndex: (theme) => theme.zIndex.drawer + 1 
-        }}
-      >
-        <Toolbar sx={{ justifyContent: "space-between", height: { xs: 85, md: 100 }, px: { xs: 3, md: 5 } }}>
-          <Stack direction="row" alignItems="center" spacing={3}>
-            {isMobile && <IconButton onClick={() => setMobileOpen(true)} sx={{ color: primaryTeal, bgcolor: '#f1f5f9' }}><MenuOpen /></IconButton>}
-            <Box sx={{ minWidth: 0 }}>
-              <Typography 
-                variant="h4" 
-                sx={{ 
-                  fontFamily: primaryFont, 
-                  fontWeight: 900, 
-                  color: primaryTeal, 
-                  fontSize: { 
-                    xs: 'clamp(1.1rem, 5vw, 1.4rem)', 
-                    md: 'clamp(1.8rem, 3vw, 2.2rem)' 
-                  },
-                  letterSpacing: { xs: '-0.3px', md: '-1.5px' }, 
-                  textTransform: 'capitalize',
-                  lineHeight: 1.1,
-                  mb: 0.2,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  display: '-webkit-box',
-                  WebkitLineClamp: 1,
-                  WebkitBoxOrient: 'vertical'
-                }}
-              >
-                {activeTab}
-              </Typography>
-
-              <Stack direction="row" alignItems="center" spacing={{ xs: 0.8, md: 1.5 }}>
-                <Box sx={{ 
-                  width: { xs: 12, md: 25 }, 
-                  height: { xs: 1.5, md: 3 }, 
-                  bgcolor: accentGold, 
-                  borderRadius: 1,
-                  flexShrink: 0 
-                }} />
-                
-                <Typography 
-                  sx={{ 
-                    fontFamily: primaryFont, 
-                    fontSize: { xs: '0.5rem', sm: '0.6rem', md: '0.7rem' }, 
-                    color: accentGold, 
-                    fontWeight: 800, 
-                    letterSpacing: { xs: '0.5px', md: '2.8px' }, 
-                    textTransform: 'uppercase',
-                    whiteSpace: 'nowrap',
-                    opacity: 0.8
-                  }}
-                >
-                  Campus Admin Console
-                </Typography>
-              </Stack>
-            </Box>       
+    <Box sx={{ display: "flex", bgcolor: "#F4F7F9", minHeight: "100vh" }}>
+      {/* HEADERBAR */}
+      <AppBar position="fixed" elevation={0} sx={{ width: { md: `calc(100% - ${DRAWER_WIDTH}px)` }, ml: { md: `${DRAWER_WIDTH}px` }, bgcolor: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)", borderBottom: "1px solid #E2E8F0", zIndex: 1201 }}>
+        <Toolbar sx={{ height: 90, px: 4, justifyContent: "space-between" }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            {isMobile && <IconButton onClick={() => setMobileOpen(true)} sx={{ color: PRIMARY_TEAL }}><MenuOpen /></IconButton>}
+            <Box>
+              <Breadcrumbs separator={<ChevronRight fontSize="small" sx={{ color: '#94A3B8' }} />}>
+                <Link underline="hover" color="#94A3B8" sx={{ fontSize: '0.75rem', fontWeight: 700, fontFamily: PRIMARY_FONT }}>ADMIN</Link>
+                <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, fontFamily: PRIMARY_FONT, color: ACCENT_GOLD }}>{activeTab.toUpperCase()}</Typography>
+              </Breadcrumbs>
+              <Typography variant="h5" sx={{ fontWeight: 900, color: PRIMARY_TEAL, fontFamily: PRIMARY_FONT }}>{activeTab}</Typography>
+            </Box>
           </Stack>
 
-          <Stack direction="row" alignItems="center" spacing={3}>
-            <Tooltip title="Alerts"><IconButton sx={{ border: '1.5px solid #F1F5F9', color: '#64748B' }}><NotificationsActiveOutlined sx={{ fontSize: 20 }} /></IconButton></Tooltip>
-            <Stack direction="row" alignItems="center" spacing={2} sx={{ pl: 2, borderLeft: '1px solid #E2E8F0' }}>
-              <Box sx={{ textAlign: "right", display: { xs: "none", sm: "block" } }}>
-                <Typography sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, fontSize: "0.95rem" }}>{userData.name}</Typography>
-                <Typography sx={{ fontFamily: primaryFont, color: "#10B981", fontSize: "0.7rem", fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}><Circle sx={{ fontSize: 8 }} /> ONLINE</Typography>
+          <Stack direction="row" alignItems="center" spacing={2.5}>
+            <Tooltip title="Help Center"><IconButton sx={{ bgcolor: '#F1F5F9' }}><SupportAgentOutlined sx={{ color: '#64748B', fontSize: 20 }} /></IconButton></Tooltip>
+            <Tooltip title="Notifications">
+              <IconButton onClick={() => setNotificationCount(0)} sx={{ bgcolor: '#F1F5F9' }}>
+                <Badge badgeContent={notificationCount} color="error"><NotificationsActiveOutlined sx={{ color: '#64748B', fontSize: 20 }} /></Badge>
+              </IconButton>
+            </Tooltip>
+            <Divider orientation="vertical" flexItem sx={{ height: 35, my: 'auto' }} />
+            <Box onClick={handleProfileMenu} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.5, p: 0.8, borderRadius: '50px', transition: '0.2s', "&:hover": { bgcolor: '#F1F5F9' } }}>
+              <Avatar src={userData.profileImage} sx={{ width: 44, height: 44, border: `2px solid ${ACCENT_GOLD}` }} />
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: PRIMARY_TEAL, fontFamily: PRIMARY_FONT }}>{userData.name}</Typography>
+                <Typography sx={{ fontSize: '0.65rem', color: '#10B981', fontWeight: 700 }}>● {userData.role}</Typography>
               </Box>
-              <Avatar src={userData.profileImage} sx={{ width: 52, height: 52, border: `2px solid ${primaryTeal}20`, boxShadow: '0 8px 16px rgba(0,0,0,0.08)' }}>{!userData.profileImage && "A"}</Avatar>
-            </Stack>
+              <KeyboardArrowDownOutlined sx={{ color: '#64748B' }} />
+            </Box>
           </Stack>
         </Toolbar>
       </AppBar>
 
-      <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: 0 }}>
-        <Drawer variant={isMobile ? "temporary" : "permanent"} open={isMobile ? mobileOpen : true} onClose={() => setMobileOpen(false)} sx={{ "& .MuiDrawer-paper": { width: drawerWidth, border: "none", boxShadow: "10px 0 40px rgba(0,0,0,0.03)" } }}>{sidebarContent}</Drawer>
+      {/* DRAWER */}
+      <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: 0 }}>
+        <Drawer variant={isMobile ? "temporary" : "permanent"} open={isMobile ? mobileOpen : true} onClose={() => setMobileOpen(false)} sx={{ "& .MuiDrawer-paper": { width: DRAWER_WIDTH, border: "none", boxShadow: "15px 0 35px rgba(0,0,0,0.03)" } }}>
+          {Sidebar}
+        </Drawer>
       </Box>
 
-      <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, mt: { xs: "85px", md: "100px" }, width: "100%" }}>
+      {/* MAIN VIEWPORT */}
+      <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, mt: "90px" }}>
         <Fade in={isLoaded} timeout={600}>
-          <Box sx={{ bgcolor: 'white', borderRadius: '32px', minHeight: 'calc(100vh - 185px)', p: { xs: 2, md: 4 }, boxShadow: '0 10px 40px rgba(0,0,0,0.03)', border: '1px solid rgba(255,255,255,0.8)' }}>
-            {activeTab === "Dashboard" && <Overview />}
-            {activeTab === "All Courses" && <Properties />}
-            {activeTab === "Settings" && <CreateAdmin />}
-            {activeTab === "Home Slider" && <HomeSlider />}
-            {activeTab === "Request Consultation" && <RequestConsultation />}
-            {activeTab === "Partners" && <PartnerManagement/>}
-            {activeTab === "Student Life" && <StudentLifeManager/>}
-            {activeTab === "Event" && <EventManager/>}
-            {activeTab === "News" && <NewsManager/>}
+          <Box>
+            <Paper elevation={0} sx={{ p: { xs: 2, md: 5 }, borderRadius: '32px', minHeight: '80vh', border: '1px solid #E2E8F0', bgcolor: 'white' }}>
+              <ActiveContent />
+            </Paper>
             
-
-            {/* REMAINING MODULES FALLBACKS */}
-            {activeTab === "Student Registration" && (
-                <Box sx={{ textAlign: 'center', py: 10 }}><Typography variant="h5">Student Admissions & Enrollment</Typography></Box>
-            )}
-            {activeTab === "Certificates" && (
-                <Box sx={{ textAlign: 'center', py: 10 }}><Typography variant="h5">Certificate Verification & Issuance</Typography></Box>
-            )}
-
-            {!["Dashboard", "All Courses", "Settings", "Home Slider", "Request Consultation", "Student Registration", "Partners","Student Life","Event","News","Certificates"].includes(activeTab) && (
-              <Box sx={{ textAlign: 'center', py: 15, opacity: 0.6 }}>
-                <Typography variant="h5" sx={{ fontFamily: primaryFont, fontWeight: 700 }}>{activeTab} Module</Typography>
-                <Typography sx={{ fontFamily: primaryFont }}>System records for this section are currently being synchronized...</Typography>
-              </Box>
-            )}
+            <Stack direction="row" justifyContent="center" spacing={4} sx={{ mt: 5, opacity: 0.5 }}>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <SecurityOutlined sx={{ fontSize: 16 }} />
+                <Typography sx={{ fontSize: '0.65rem', fontWeight: 700 }}>SSL ENCRYPTED</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <StorageOutlined sx={{ fontSize: 16 }} />
+                <Typography sx={{ fontSize: '0.65rem', fontWeight: 700 }}>DATABASE: {syncStatus}</Typography>
+              </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <SpeedOutlined sx={{ fontSize: 16 }} />
+                <Typography sx={{ fontSize: '0.65rem', fontWeight: 700 }}>LATENCY: 24ms</Typography>
+              </Stack>
+            </Stack>
           </Box>
         </Fade>
       </Box>
 
-      <Dialog open={logoutDialogOpen} onClose={() => setLogoutDialogOpen(false)} PaperProps={{ sx: { borderRadius: "24px", p: 1 } }}>
-        <DialogTitle sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal }}>Confirm Logout</DialogTitle>
-        <DialogContent><Typography sx={{ fontFamily: primaryFont, color: "#64748B" }}>Are you sure you want to end your current session? All unsaved changes will be lost.</Typography></DialogContent>
-        <DialogActions sx={{ p: 3, gap: 1 }}>
-          <Button onClick={() => setLogoutDialogOpen(false)} sx={{ fontWeight: 700, color: "#94A3B8" }}>Cancel</Button>
-          <Button onClick={handleConfirmLogout} variant="contained" sx={{ bgcolor: "#FF7070", borderRadius: "12px", px: 3, fontWeight: 700, "&:hover": { bgcolor: "#E65F5F" } }}>Logout Now</Button>
+      {/* OVERLAYS */}
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleCloseProfile} PaperProps={{ sx: { mt: 1, width: 220, borderRadius: '18px', p: 1, boxShadow: '0 10px 40px rgba(0,0,0,0.1)' } }}>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '0.75rem', color: '#94A3B8' }}>ACCOUNT SETTINGS</Typography>
+        </Box>
+        <MenuItem onClick={handleCloseProfile} sx={{ borderRadius: '10px', py: 1.2, mb: 0.5 }}>
+          <ListItemIcon><AdminPanelSettingsOutlined fontSize="small" /></ListItemIcon>
+          <ListItemText primary="Admin Profile" primaryTypographyProps={{ fontWeight: 600, fontSize: '0.85rem' }} />
+        </MenuItem>
+        <MenuItem onClick={handleCloseProfile} sx={{ borderRadius: '10px', py: 1.2 }}>
+          <ListItemIcon><TranslateOutlined fontSize="small" /></ListItemIcon>
+          <ListItemText primary="Language" primaryTypographyProps={{ fontWeight: 600, fontSize: '0.85rem' }} />
+        </MenuItem>
+        <Divider sx={{ my: 1 }} />
+        <MenuItem onClick={() => setLogoutDialogOpen(true)} sx={{ borderRadius: '10px', color: 'error.main' }}>
+          <ListItemIcon><LogoutOutlined fontSize="small" color="error" /></ListItemIcon>
+          <ListItemText primary="Sign Out" primaryTypographyProps={{ fontWeight: 700, fontSize: '0.85rem' }} />
+        </MenuItem>
+      </Menu>
+
+      <Dialog open={logoutDialogOpen} onClose={() => setLogoutDialogOpen(false)} PaperProps={{ sx: { borderRadius: "28px", p: 2, maxWidth: 400 } }}>
+        <DialogTitle sx={{ fontFamily: PRIMARY_FONT, fontWeight: 900, color: PRIMARY_TEAL, textAlign: "center", fontSize: "1.5rem" }}>Security Protocol</DialogTitle>
+        <DialogContent sx={{ textAlign: "center" }}>
+          <Typography sx={{ color: "#64748B", fontWeight: 500 }}>Confirming session termination. You will need to re-authenticate to access the management modules.</Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, justifyContent: "center", gap: 2 }}>
+          <Button fullWidth onClick={() => setLogoutDialogOpen(false)} sx={{ color: "#94A3B8", fontWeight: 800, textTransform: "none", py: 1.5, borderRadius: "12px", bgcolor: "#F1F5F9" }}>Keep Session</Button>
+          <Button fullWidth onClick={handleLogout} variant="contained" sx={{ bgcolor: "#F43F5E", fontWeight: 800, textTransform: "none", py: 1.5, borderRadius: "12px", "&:hover": { bgcolor: "#E11D48" } }}>Logout</Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={() => setSnackbarOpen(false)} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
+        <Alert severity="info" variant="filled" sx={{ borderRadius: '12px', fontWeight: 700, fontFamily: PRIMARY_FONT }}>Module: {activeTab} Loaded Successfully</Alert>
+      </Snackbar>
     </Box>
   );
 };

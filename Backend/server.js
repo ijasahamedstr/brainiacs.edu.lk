@@ -12,6 +12,8 @@ import Partnerrouter from "./routes/Partner.route.js";
 import StudentLiferouter from "./routes/StudentLife.route.js";
 import Eventrouter from "./routes/Event.route.js";
 import Newsrouter from "./routes/News.route.js";
+import BoardGovernancerouter from "./routes/BoardGovernance.route.js";
+import OurTeamrouter from "./routes/OurTeam.route.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -48,6 +50,10 @@ app.use('/api/partners',Partnerrouter);
 app.use('/api/student-life',StudentLiferouter);
 
 app.use('/api/news',Newsrouter);
+
+app.use('/api/board-governance', BoardGovernancerouter);
+
+app.use('/api/team',OurTeamrouter);
 
 // 7. Start server
 const port = 8001;
