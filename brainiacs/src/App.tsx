@@ -18,6 +18,7 @@ import NewsView from './Page/News-view';
 import Course from './Page/coures';
 import Login from './Page/Admin/Login/Login';
 import Dashboard from "./Page/Admin/Dashboard/Dashboard";
+import StudentRegistration from "./Page/StudentRegistration";
 
 // --- Protected Route Component ---
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -57,6 +58,7 @@ const AppContent = () => {
         <Route path="/News" element={<News />} />
         <Route path="/news/view" element={<NewsView />} />
         <Route path="/programmes/foundation-business" element={<Course />} />
+        <Route path="/register-online" element={<StudentRegistration/>} />
         <Route path="/pricing" element={<div>Pricing Page</div>} />
         <Route path="/blog" element={<div>Blog Page</div>} />
         
