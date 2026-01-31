@@ -11,6 +11,7 @@ import Sliderrouter from "./routes/Slider.route.js";
 import Partnerrouter from "./routes/Partner.route.js";
 import StudentLiferouter from "./routes/StudentLife.route.js";
 import Eventrouter from "./routes/Event.route.js";
+import Newsrouter from "./routes/News.route.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -45,6 +46,8 @@ app.use('/api/sliders', Sliderrouter);
 app.use('/api/partners',Partnerrouter);
 
 app.use('/api/student-life',StudentLiferouter);
+
+app.use('/api/news',Newsrouter);
 
 // 7. Start server
 const port = 8001;
