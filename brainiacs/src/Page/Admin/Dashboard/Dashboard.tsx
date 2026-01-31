@@ -14,13 +14,13 @@ import {
   Diversity1Outlined, HandshakeOutlined, SettingsOutlined, 
   LogoutOutlined, MenuOpen, ArrowForwardIos,
   NotificationsActiveOutlined, CategoryOutlined,
-  AutoStoriesOutlined, Circle, ViewCarouselOutlined,
+  AutoStoriesOutlined, ViewCarouselOutlined,
   HowToRegOutlined, VerifiedOutlined, ChevronRight,
   GavelOutlined, GroupsOutlined, PeopleAltOutlined,
   AssignmentIndOutlined, AdminPanelSettingsOutlined,
-  MailOutline, KeyboardArrowDownOutlined, ListAltOutlined,
+  KeyboardArrowDownOutlined,
   CloudDoneOutlined, SecurityOutlined, SpeedOutlined,
-  HubOutlined, StorageOutlined, LanguageOutlined,
+  StorageOutlined,
   TranslateOutlined, PsychologyOutlined, WorkspacePremiumOutlined
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";

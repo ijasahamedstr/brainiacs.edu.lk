@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { 
   DeleteOutline, EditOutlined, SearchOutlined, WarningAmberRounded, 
-  VisibilityOutlined, FileDownloadOutlined,
+  VisibilityOutlined,
   RefreshOutlined, ChevronRightRounded, 
   WorkOutline, PersonAddOutlined, CorporateFare, BadgeOutlined
 } from "@mui/icons-material";
@@ -103,19 +103,6 @@ const BoardGovernanceManager = () => {
     setSelectedItems(prev => 
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
-  };
-
-  const exportToCSV = () => {
-    const headers = ["ID,Name,JobDescription,CreatedAt\n"];
-    const rows = filteredData.map(item => 
-      `${item._id},${item.name},"${item.jobDescription}",${item.createdAt}`
-    );
-    const blob = new Blob([...headers, rows.join("\n")], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `board-governance-list.csv`;
-    a.click();
   };
 
   // --- Conditional Renders ---

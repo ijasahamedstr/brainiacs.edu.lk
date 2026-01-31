@@ -3,10 +3,10 @@ import {
   Box, Typography, Stack, Paper, Button, TextField, 
   InputLabel, CircularProgress, Dialog, DialogTitle, 
   DialogContent, DialogContentText, DialogActions,
-  Avatar, Divider
+  Avatar
 } from "@mui/material";
 import { 
-  ArrowBackIosNewOutlined, TitleOutlined, 
+  ArrowBackIosNewOutlined, 
   PhotoSizeSelectActualOutlined, WorkOutline,
   PersonAddOutlined, BadgeOutlined, DescriptionOutlined
 } from "@mui/icons-material";
