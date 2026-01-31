@@ -8,7 +8,7 @@ import {
 import { 
   ArrowBackIosNewOutlined, 
   PhotoSizeSelectActualOutlined, WorkOutline,
-  PersonAddOutlined, BadgeOutlined, DescriptionOutlined,
+  BadgeOutlined, DescriptionOutlined,
   GroupsOutlined
 } from "@mui/icons-material";
 

@@ -67,7 +67,7 @@ const Dashboard: React.FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [syncStatus, setSyncStatus] = useState("Online");
+  const [syncStatus] = useState("Online");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(5);
   

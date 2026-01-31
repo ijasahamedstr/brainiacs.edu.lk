@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, 
-  PhotoSizeSelectActualOutlined, SaveOutlined,
+  PhotoSizeSelectActualOutlined,
   DeleteOutline,
   CloudUploadOutlined
 } from "@mui/icons-material";
