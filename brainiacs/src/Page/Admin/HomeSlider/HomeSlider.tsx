@@ -72,9 +72,6 @@ interface Slider {
  * Advanced Image & Text Compositing Previews, Extensive Logging.
  */
 const HomeSlider = () => {
-  const parentTheme = useTheme();
-  const isMobile = useMediaQuery(parentTheme.breakpoints.down("sm"));
-
   // 1. STATE MANAGEMENT (HYDRATED)
   const [sliders, setSliders] = useState<Slider[]>(() => {
     const cached = localStorage.getItem(CACHE_KEY);

@@ -18,7 +18,6 @@ import {
   Paper,
   Grow,
   Popper,
-  Divider,
   ClickAwayListener,
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
@@ -28,7 +27,6 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import ArrowOutwardIcon from '@mui/icons-material/ArrowOutward';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
