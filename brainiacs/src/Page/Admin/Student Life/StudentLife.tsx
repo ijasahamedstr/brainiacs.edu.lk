@@ -3,18 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Box, Typography, Stack, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Avatar, 
-  Button, TextField, Pagination, Dialog, DialogTitle, DialogContent, 
-  DialogContentText, DialogActions, AvatarGroup, Tooltip, Checkbox, 
-  Chip, Divider, ToggleButtonGroup, ToggleButton, Snackbar, Alert, 
+  Button, TextField, Pagination, Dialog, DialogContent, 
+  DialogActions, AvatarGroup, Tooltip, Checkbox, 
+  ToggleButtonGroup, ToggleButton, Snackbar, Alert, 
   Breadcrumbs, Link, ThemeProvider, createTheme, Card, CardMedia, CardContent
 } from "@mui/material";
 import { 
   DeleteOutline, EditOutlined, AddPhotoAlternateOutlined, 
   SearchOutlined, WarningAmberRounded, VisibilityOutlined, 
   DescriptionOutlined, CollectionsOutlined, FileDownloadOutlined,
-  RefreshOutlined, ChevronRightRounded, NavigateNext, 
+   NavigateNext, 
   HistoryToggleOffOutlined, GridViewOutlined, ViewListOutlined, 
-  CheckCircleOutline, CloseOutlined, PhotoLibraryOutlined
+  CheckCircleOutline, CloseOutlined
 } from "@mui/icons-material";
 
 import CreateStudentLife from "./CreateStudentLife";

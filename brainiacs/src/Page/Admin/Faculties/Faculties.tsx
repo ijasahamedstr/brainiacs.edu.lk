@@ -5,14 +5,14 @@ import {
   TableContainer, TableHead, TableRow, IconButton, Avatar, 
   Button, TextField, Pagination, Dialog, Tooltip, ToggleButtonGroup, ToggleButton,
   Snackbar, Alert, Checkbox, Breadcrumbs, Link, ThemeProvider, createTheme,
-  Chip, Divider, Card, CardMedia, CardContent, DialogTitle, DialogContent, DialogContentText, DialogActions
+  Chip, Divider, Card, CardMedia, CardContent, DialogContent, 
 } from "@mui/material";
 import { 
   DeleteOutline, EditOutlined, SearchOutlined, WarningAmberRounded,
   VisibilityOutlined, CloseOutlined, CheckCircleOutline, NavigateNext, 
   HistoryToggleOffOutlined, GridViewOutlined, ViewListOutlined,
   AddPhotoAlternateOutlined, FileDownloadOutlined, DescriptionOutlined, 
-  CollectionsOutlined, ChevronRightRounded, ImageOutlined, BusinessOutlined
+  CollectionsOutlined, BusinessOutlined
 } from "@mui/icons-material";
 
 import CreateFaculty from "./CreateFaculties";

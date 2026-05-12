@@ -9,7 +9,7 @@ import {
   Chip, Divider
 } from "@mui/material";
 import { 
-  DeleteOutline, EditOutlined, SearchOutlined, WarningAmberRounded,
+  DeleteOutline, SearchOutlined, WarningAmberRounded,
   VisibilityOutlined, CloseOutlined, CheckCircleOutline, NavigateNext, 
   HistoryToggleOffOutlined, GridViewOutlined, ViewListOutlined,
   SchoolOutlined, CalendarMonthOutlined, LocalOfferOutlined, LayersOutlined
@@ -82,7 +82,6 @@ const CourseManager = () => {
   
   const [syncStatus, setSyncStatus] = useState<"online" | "offline">("online");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<Course | null>(null);
   const [viewingItem, setViewingItem] = useState<Course | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string | null }>({ open: false, id: null });
   

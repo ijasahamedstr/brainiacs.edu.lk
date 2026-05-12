@@ -3,15 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Box, Typography, Stack, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Avatar, // ✅ Added Avatar import
-  Button, TextField, MenuItem, InputAdornment, 
-  Pagination, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions,
+  Button, TextField, MenuItem, 
+  Pagination, Tooltip, Dialog, DialogContent, DialogActions,
   Divider, Chip, Breadcrumbs, Link, ThemeProvider, createTheme, Snackbar, Alert
 } from "@mui/material";
 import { 
   SearchOutlined, EmailOutlined, ContactPhoneOutlined, SchoolOutlined, 
-  CalendarMonthOutlined, VisibilityOutlined, CloseOutlined, SearchOffOutlined, 
-  EditOutlined, BadgeOutlined, WorkspacePremiumOutlined, CheckCircleOutline,
-  HourglassEmptyOutlined, InfoOutlined, NavigateNext, HistoryToggleOffOutlined
+ VisibilityOutlined, CloseOutlined, SearchOffOutlined, 
+  EditOutlined, WorkspacePremiumOutlined, CheckCircleOutline,
+  HourglassEmptyOutlined, NavigateNext, HistoryToggleOffOutlined
 } from "@mui/icons-material";
 import UpdateGuidance from "./UpdateGuidance";
 

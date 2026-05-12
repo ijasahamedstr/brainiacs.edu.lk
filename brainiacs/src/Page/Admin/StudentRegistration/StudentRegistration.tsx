@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Box, Typography, Stack, Paper, Table, TableBody, TableCell, 
   TableContainer, TableHead, TableRow, IconButton, Avatar, 
-  Button, TextField, Pagination, Dialog, DialogTitle, DialogContent, 
-  DialogActions, Tooltip, Checkbox, Chip, Divider, List, ListItem, 
-  ListItemText, ListItemIcon, ToggleButtonGroup, ToggleButton, 
+  Button, TextField, Pagination, Dialog, DialogContent, 
+  DialogActions, Tooltip, Checkbox, Chip, Divider,
+  ToggleButtonGroup, ToggleButton, 
   Snackbar, Alert, Breadcrumbs, Link, ThemeProvider, createTheme,
   Card, CardContent
 } from "@mui/material";
@@ -14,7 +14,7 @@ import {
   FileDownloadOutlined, RefreshOutlined, SchoolOutlined,
   EmailOutlined, PhoneIphoneOutlined, HomeOutlined, PersonOutline,
   BadgeOutlined, PublicOutlined, EscalatorWarningOutlined, 
-  DescriptionOutlined, NavigateNext, HistoryToggleOffOutlined,
+  NavigateNext, HistoryToggleOffOutlined,
   GridViewOutlined, ViewListOutlined, CheckCircleOutline, CloseOutlined,
   WarningAmberRounded, InfoOutlined, AssignmentIndOutlined
 } from "@mui/icons-material";
