@@ -7,15 +7,26 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 interface SliderItem {
   _id: string;
   imageUrl: string;
+  mobileImageUrl: string;
   redirectLink?: string;
   status: 'Active' | 'Inactive';
 }
 
-const SLIDER_HEIGHT = '600px';
-
 function Slider() {
   const [data, setData] = useState<SliderItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 1. Unified Breakpoint Logic
+  useEffect(() => {
+    const handleResize = () => {
+      // Logic covering mobile & small tablets based on your list
+      setIsMobile(window.innerWidth <= 768); 
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -32,56 +43,92 @@ function Slider() {
     fetchData();
   }, [fetchData]);
 
+  // 2. Preload Logic
   useEffect(() => {
     if (data.length > 0) {
       data.forEach((item) => {
         const img = new Image();
-        img.src = item.imageUrl;
+        img.src = isMobile && item.mobileImageUrl ? item.mobileImageUrl : item.imageUrl;
       });
     }
-  }, [data]);
+  }, [data, isMobile]);
 
-  // --- Mobile Responsive Styles ---
-  const arrowStyle: React.CSSProperties = {
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: '50%',
-    width: '40px', // Slightly smaller for mobile touch
-    height: '40px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  };
-
-  const containerStyle: React.CSSProperties = { 
-    height: SLIDER_HEIGHT, // Forces same height on mobile
-    width: '100%',
-    backgroundColor: '#1a1a1a', 
-    display: 'flex', 
-    justifyContent: 'center', 
-    alignItems: 'center',
-    backgroundSize: 'cover', // Ensures image fills the 600px height
-    backgroundPosition: 'center', // Keeps subject centered
-    backgroundRepeat: 'no-repeat'
-  };
-
-  if (data.length === 0) {
-    return <div style={{ height: SLIDER_HEIGHT, backgroundColor: '#1a1a1a' }} />;
-  }
+  if (data.length === 0) return null;
 
   return (
-    <div className="slider-wrapper" style={{ width: '100%', overflow: 'hidden' }}>
+    <div className="slider-wrapper">
       <style>
         {`
-          /* Custom overrides for Bootstrap indicators on mobile */
-          .carousel-indicators [data-bs-target] {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin: 0 5px;
+          :root {
+            /* Fluid height using aspect ratio is better for 4K/TVs and Mobile */
+            --slider-aspect-ratio: 21 / 9; 
+            --slider-mobile-aspect-ratio: 4 / 5;
           }
-          /* Ensure the carousel item doesn't collapse */
+
+          .slider-wrapper {
+            width: 100%;
+            overflow: hidden;
+            background-color: #000;
+          }
+
           .carousel-item {
-            height: ${SLIDER_HEIGHT};
+            /* This ensures the slider grows perfectly with screen width */
+            width: 100%;
+            aspect-ratio: var(--slider-aspect-ratio);
+            min-height: 300px; /* Prevents it from disappearing */
+            max-height: 85vh;   /* Prevents it from being too tall on huge monitors */
+          }
+
+          .slide-image-container {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: transform 0.5s ease;
+          }
+
+          /* Handle Mobile Resolutions (iPhone 16, Samsung S series, etc) */
+          @media (max-width: 768px) {
+            .carousel-item {
+              aspect-ratio: var(--slider-mobile-aspect-ratio);
+              max-height: 70vh;
+            }
+          }
+
+          /* Custom Arrows & Indicators */
+          .carousel-control-prev, .carousel-control-next {
+            width: 5%;
+            opacity: 0.8;
+          }
+
+          .nav-circle {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            border-radius: 50%;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+          }
+
+          .nav-circle:hover {
+            background: rgba(0, 0, 0, 0.6);
+            transform: scale(1.1);
+          }
+
+          .carousel-indicators [data-bs-target] {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin: 0 6px;
+            border: 2px solid #fff;
+            background-color: transparent;
+          }
+
+          .carousel-indicators .active {
+            background-color: #fff;
           }
         `}
       </style>
@@ -91,27 +138,38 @@ function Slider() {
         onSelect={(idx) => setActiveIndex(idx)}
         interval={5000}
         pause="hover"
-        nextIcon={<div style={arrowStyle}><svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg></div>}
-        prevIcon={<div style={arrowStyle}><svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg></div>}
-        indicators={true}
         fade={true}
+        indicators={true}
+        nextIcon={
+          <div className="nav-circle">
+            <svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
+          </div>
+        }
+        prevIcon={
+          <div className="nav-circle">
+            <svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></svg>
+          </div>
+        }
       >
-        {data.map((slide) => (
-          <Carousel.Item key={slide._id}>
-            <a 
-              href={slide.redirectLink || '#'} 
-              target={slide.redirectLink ? "_blank" : "_self"} 
-              rel="noreferrer"
-            >
-              <div 
-                style={{ 
-                  ...containerStyle,
-                  backgroundImage: `url(${slide.imageUrl})`,
-                }}
-              />
-            </a>
-          </Carousel.Item>
-        ))}
+        {data.map((slide) => {
+          const activeImage = isMobile && slide.mobileImageUrl ? slide.mobileImageUrl : slide.imageUrl;
+
+          return (
+            <Carousel.Item key={slide._id}>
+              <a 
+                href={slide.redirectLink || '#'} 
+                target={slide.redirectLink ? "_blank" : "_self"} 
+                rel="noreferrer"
+                style={{ textDecoration: 'none' }}
+              >
+                <div 
+                  className="slide-image-container"
+                  style={{ backgroundImage: `url(${activeImage})` }}
+                />
+              </a>
+            </Carousel.Item>
+          );
+        })}
       </Carousel>
     </div>
   );

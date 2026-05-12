@@ -1,26 +1,38 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Box, Typography, Stack, Paper, Table, TableBody, TableCell, 
-  TableContainer, TableHead, TableRow, IconButton, 
-  Button, Fade, TextField, MenuItem, InputAdornment, 
-  Pagination, Tooltip, CircularProgress,
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Divider, Chip
+  TableContainer, TableHead, TableRow, IconButton, Avatar, // ✅ Added Avatar import
+  Button, TextField, MenuItem, InputAdornment, 
+  Pagination, Tooltip, Dialog, DialogTitle, DialogContent, DialogActions,
+  Divider, Chip, Breadcrumbs, Link, ThemeProvider, createTheme, Snackbar, Alert
 } from "@mui/material";
 import { 
   SearchOutlined, EmailOutlined, ContactPhoneOutlined, SchoolOutlined, 
   CalendarMonthOutlined, VisibilityOutlined, CloseOutlined, SearchOffOutlined, 
   EditOutlined, BadgeOutlined, WorkspacePremiumOutlined, CheckCircleOutline,
-  HourglassEmptyOutlined, InfoOutlined
+  HourglassEmptyOutlined, InfoOutlined, NavigateNext, HistoryToggleOffOutlined
 } from "@mui/icons-material";
 import UpdateGuidance from "./UpdateGuidance";
 
-// Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-const primaryFont = "'Montserrat', sans-serif";
-const primaryTeal = "#004652";
-const surfaceColor = "#F8FAFC";
-const accentGold = "#CC9D2F";
+// --- CONFIGURATION & CONSTANTS ---
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const CACHE_KEY = "GUIDANCE_CONSULTATION_VAULT";
+const PRIMARY_TEAL = "#004652";
+const ACCENT_GOLD = "#CC9D2F";
+
+// Create a strict Montserrat theme override
+const montserratTheme = createTheme({
+  typography: {
+    fontFamily: "'Montserrat', sans-serif",
+    allVariants: { fontFamily: "'Montserrat', sans-serif" },
+  },
+  components: {
+    MuiButton: { styleOverrides: { root: { textTransform: 'none', fontWeight: 700 } } },
+    MuiChip: { styleOverrides: { root: { fontWeight: 700 } } },
+    MuiTableCell: { styleOverrides: { root: { fontFamily: "'Montserrat', sans-serif" } } },
+  }
+});
 
 interface Guidance {
   _id: string;
@@ -36,37 +48,56 @@ interface Guidance {
 }
 
 const RequestConsultation = () => {
-  const [requests, setRequests] = useState<Guidance[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // 1. STATE MANAGEMENT (HYDRATED INSTANTLY FROM CACHE)
+  const [requests, setRequests] = useState<Guidance[]>(() => {
+    const cached = localStorage.getItem(CACHE_KEY);
+    return cached ? JSON.parse(cached) : [];
+  });
+  
+  const [syncStatus, setSyncStatus] = useState<"online" | "offline">("online");
   const [viewingRequest, setViewingRequest] = useState<Guidance | null>(null);
   const [editingRequest, setEditingRequest] = useState<Guidance | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [programmeFilter, setProgrammeFilter] = useState("All");
   const [page, setPage] = useState(1);
-  const rowsPerPage = 6;
+  const [history, setHistory] = useState<string[]>([]);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" as "success" | "error" });
+  const rowsPerPage = 8;
 
-  const fetchRequests = async () => {
-    setIsLoading(true);
+  // 2. SILENT BACKGROUND FETCH LOGIC (NO LOADING SPINNERS)
+  const fetchRequests = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/guidance`);
-      const data = await response.json();
-      if (response.ok) setRequests(data);
+      if (!response.ok) throw new Error("Connection Interrupted");
+      const fetchedData: Guidance[] = await response.json();
+      
+      const newDataString = JSON.stringify(fetchedData);
+      const currentCache = localStorage.getItem(CACHE_KEY);
+
+      if (currentCache !== newDataString) {
+        setRequests(fetchedData);
+        localStorage.setItem(CACHE_KEY, newDataString);
+      }
+      setSyncStatus("online");
     } catch (error) {
-      console.error("Failed to fetch guidance data:", error);
-    } finally {
-      setIsLoading(false);
+      setSyncStatus("offline");
     }
-  };
+  }, []);
 
-  useEffect(() => { fetchRequests(); }, []);
+  useEffect(() => {
+    fetchRequests();
+    const interval = setInterval(() => fetchRequests(), 3000);
+    return () => clearInterval(interval);
+  }, [fetchRequests]);
 
+  // 3. LOGIC HELPERS
   const filteredData = useMemo(() => {
     return requests.filter((r) => {
       const fullName = `${r.firstName} ${r.lastName}`.toLowerCase();
       const matchText = fullName.includes(searchQuery.toLowerCase()) || r.email.toLowerCase().includes(searchQuery.toLowerCase());
       const matchProg = programmeFilter === "All" || r.programme === programmeFilter;
       return matchText && matchProg;
-    });
+    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [searchQuery, programmeFilter, requests]);
 
   const paginatedData = useMemo(() => {
@@ -79,232 +110,277 @@ const RequestConsultation = () => {
     return ["All", ...progs];
   }, [requests]);
 
+  const triggerSnackbar = (message: string, severity: "success" | "error") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  // ✅ FIXED: Corrected type and callback logic for onBack
   if (editingRequest) {
     return (
-      <Box sx={{ bgcolor: surfaceColor, p: 3, minHeight: "100vh" }}>
+      <ThemeProvider theme={montserratTheme}>
         <UpdateGuidance 
           data={editingRequest} 
-          onBack={() => { setEditingRequest(null); fetchRequests(); }} 
+          onBack={(wasUpdated?: boolean) => { 
+            if(wasUpdated) {
+                setHistory(prev => [`Processed Inquiry: ${editingRequest.firstName}`, ...prev].slice(0, 8));
+                triggerSnackbar("Consultation updated successfully", "success");
+            }
+            setEditingRequest(null); 
+            fetchRequests(); 
+          }} 
         />
-      </Box>
+      </ThemeProvider>
     );
   }
 
   return (
-    <Fade in={true} timeout={500}>
-      <Box sx={{ width: "100%", bgcolor: surfaceColor, p: { xs: 2, md: 4 } }}>
+    <ThemeProvider theme={montserratTheme}>
+      <Box sx={{ width: "100%", minHeight: "100vh", bgcolor: "#F4F7FA", p: { xs: 1.5, md: 3 } }}>
         
-        {/* HEADER */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
+        <Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'flex-end' }} mb={3} spacing={2}>
           <Box>
-            <Typography variant="h4" sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal }}>
+            <Breadcrumbs separator={<NavigateNext sx={{ fontSize: '0.8rem' }} />} sx={{ mb: 0.5 }}>
+              <Link underline="hover" color="inherit" href="/" sx={{ fontSize: '0.65rem', fontWeight: 700 }}>DASHBOARD</Link>
+              <Typography color="text.primary" sx={{ fontSize: '0.65rem', fontWeight: 800, color: PRIMARY_TEAL }}>STUDENT AFFAIRS</Typography>
+            </Breadcrumbs>
+            <Typography variant="h5" sx={{ fontWeight: 800, color: PRIMARY_TEAL, letterSpacing: "-0.5px", fontSize: '1.4rem' }}>
               Consultation Records
             </Typography>
-            <Typography variant="body1" sx={{ fontFamily: primaryFont, color: "#64748B", mt: 0.5, fontWeight: 500 }}>
-              Review and finalize student inquiries.
-            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center" mt={0.5}>
+               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: syncStatus === 'online' ? '#10B981' : '#EF4444' }} />
+               <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: "#64748B", letterSpacing: 0.5 }}>
+                 {syncStatus === 'online' ? 'LIVE SYNC ACTIVE' : 'OFFLINE MODE'}
+               </Typography>
+            </Stack>
           </Box>
         </Stack>
 
-        {/* FILTER BAR */}
-        <Paper elevation={0} sx={{ p: 2.5, mb: 4, borderRadius: "20px", border: "1px solid #E2E8F0", display: "flex", flexWrap: "wrap", gap: 3, bgcolor: "#FFF" }}>
-          <TextField
-            fullWidth placeholder="Search student by name or email..." variant="outlined" value={searchQuery}
-            onChange={(e) => {setSearchQuery(e.target.value); setPage(1);}}
-            sx={{ flex: 2 }}
-            InputProps={{
-              startAdornment: <InputAdornment position="start"><SearchOutlined sx={{ color: primaryTeal }} /></InputAdornment>,
-              sx: { borderRadius: "12px", fontFamily: primaryFont, fontWeight: 600 }
-            }}
-          />
-          <TextField
-            select label="Programme Filter" value={programmeFilter}
-            onChange={(e) => {setProgrammeFilter(e.target.value); setPage(1);}}
-            sx={{ flex: 1, minWidth: "200px" }}
-            InputLabelProps={{ sx: { fontFamily: primaryFont, fontWeight: 600 } }}
-            InputProps={{ sx: { borderRadius: "12px", fontFamily: primaryFont, fontWeight: 600 } }}
-          >
-            {programmes.map((prog) => (<MenuItem key={prog} value={prog} sx={{fontFamily: primaryFont}}>{prog}</MenuItem>))}
-          </TextField>
-        </Paper>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mb: 3 }}>
+          <Box sx={{ flex: 2 }}>
+            <Paper elevation={0} sx={{ p: 1, px: 2, borderRadius: "12px", border: "1px solid #E2E8F0", display: 'flex', alignItems: 'center', gap: 2, height: '100%' }}>
+              <TextField
+                fullWidth size="small" variant="standard"
+                placeholder="Search student by name or email..."
+                value={searchQuery}
+                onChange={(e) => {setSearchQuery(e.target.value); setPage(1);}}
+                InputProps={{
+                  disableUnderline: true,
+                  startAdornment: <SearchOutlined sx={{ mr: 1, color: PRIMARY_TEAL, fontSize: '1.2rem' }} />,
+                  sx: { fontWeight: 600, fontSize: '0.85rem' }
+                }}
+              />
+            </Paper>
+          </Box>
+          <Box sx={{ flex: 1 }}>
+            <Paper elevation={0} sx={{ p: 1, px: 2, borderRadius: "12px", border: "1px solid #E2E8F0", height: '100%' }}>
+              <TextField
+                select fullWidth size="small" variant="standard"
+                label="Filter by Programme"
+                value={programmeFilter}
+                onChange={(e) => {setProgrammeFilter(e.target.value); setPage(1);}}
+                InputProps={{ disableUnderline: true, sx: { fontWeight: 700, fontSize: '0.8rem', color: PRIMARY_TEAL } }}
+                InputLabelProps={{ sx: { fontSize: '0.65rem', fontWeight: 800, textTransform: 'uppercase' } }}
+              >
+                {programmes.map((prog) => (
+                  <MenuItem key={prog} value={prog} sx={{ fontSize: '0.8rem', fontWeight: 600 }}>{prog}</MenuItem>
+                ))}
+              </TextField>
+            </Paper>
+          </Box>
+        </Stack>
 
-        {/* TABLE */}
-        <TableContainer component={Paper} elevation={0} sx={{ borderRadius: "24px", border: "1px solid #E2E8F0", bgcolor: "#FFF", overflow: 'hidden' }}>
-          <Table>
-            <TableHead sx={{ bgcolor: "#F1F5F9" }}>
+        <TableContainer component={Paper} elevation={0} sx={{ borderRadius: "16px", border: "1px solid #E2E8F0", overflow: "hidden" }}>
+          <Table size="medium">
+            <TableHead sx={{ bgcolor: "#F8FAFC" }}>
               <TableRow>
-                <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", py: 3, fontSize: "0.75rem" }}>STUDENT & STATUS</TableCell>
-                <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem" }}>PROGRAMME</TableCell>
-                <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem" }}>CONTACT INFO</TableCell>
-                <TableCell sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", fontSize: "0.75rem" }}>REQUESTED DATE</TableCell>
-                <TableCell align="right" sx={{ fontFamily: primaryFont, fontWeight: 800, color: "#64748B", pr: 4, fontSize: "0.75rem" }}>ACTIONS</TableCell>
+                <TableCell sx={{ fontWeight: 800, fontSize: "0.7rem", color: "#64748B", letterSpacing: 0.5 }}>STUDENT & STATUS</TableCell>
+                <TableCell sx={{ fontWeight: 800, fontSize: "0.7rem", color: "#64748B", letterSpacing: 0.5 }}>PROGRAMME</TableCell>
+                <TableCell sx={{ fontWeight: 800, fontSize: "0.7rem", color: "#64748B", letterSpacing: 0.5 }}>CONTACT INFO</TableCell>
+                <TableCell sx={{ fontWeight: 800, fontSize: "0.7rem", color: "#64748B", letterSpacing: 0.5 }}>REQUESTED DATE</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 800, fontSize: "0.7rem", color: "#64748B", pr: 4, letterSpacing: 0.5 }}>CONTROLS</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {isLoading ? (
-                <TableRow><TableCell colSpan={5} align="center" sx={{ py: 10 }}><CircularProgress sx={{ color: primaryTeal }} /></TableCell></TableRow>
-              ) : paginatedData.length > 0 ? (
-                paginatedData.map((req) => (
-                  <TableRow key={req._id} hover>
+              <AnimatePresence mode="popLayout">
+                {paginatedData.map((req) => (
+                  <TableRow 
+                    key={req._id} component={motion.tr} 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                  >
                     <TableCell>
-                      <Stack direction="row" spacing={2} alignItems="center">
-                        <Box>
-                          <Typography sx={{ fontFamily: primaryFont, fontWeight: 700, color: primaryTeal }}>{req.firstName} {req.lastName}</Typography>
-                          <Chip 
-                            size="small"
-                            label={req.status || 'Pending'}
-                            icon={req.status === 'Closed' ? <CheckCircleOutline /> : <HourglassEmptyOutlined />}
-                            sx={{ 
-                              mt: 0.5, 
-                              fontFamily: primaryFont, 
-                              fontWeight: 700, 
-                              fontSize: '0.65rem',
-                              bgcolor: req.status === 'Closed' ? '#ECFDF5' : '#FFF7ED',
-                              color: req.status === 'Closed' ? '#10B981' : '#F97316',
-                              borderColor: 'transparent'
-                            }}
-                          />
-                        </Box>
-                      </Stack>
+                      <Typography sx={{ fontWeight: 800, color: PRIMARY_TEAL, fontSize: "0.85rem" }}>
+                        {req.firstName} {req.lastName}
+                      </Typography>
+                      <Chip 
+                        size="small"
+                        label={req.status || 'Pending'}
+                        icon={req.status === 'Closed' ? <CheckCircleOutline sx={{ fontSize: '1rem !important' }} /> : <HourglassEmptyOutlined sx={{ fontSize: '1rem !important' }} />}
+                        sx={{ 
+                          mt: 0.5, height: 20, fontSize: '0.6rem',
+                          bgcolor: req.status === 'Closed' ? '#ECFDF5' : '#FFF7ED',
+                          color: req.status === 'Closed' ? '#10B981' : '#F97316'
+                        }}
+                      />
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        <SchoolOutlined sx={{ fontSize: 18, color: primaryTeal }} />
-                        <Typography sx={{ fontFamily: primaryFont, fontWeight: 600, fontSize: "0.85rem" }}>{req.programme}</Typography>
+                        <SchoolOutlined sx={{ fontSize: 16, color: PRIMARY_TEAL }} />
+                        <Typography sx={{ fontWeight: 600, fontSize: "0.8rem", color: "#475569" }}>{req.programme}</Typography>
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      <Stack spacing={0.5}>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <EmailOutlined sx={{ fontSize: 14, color: "#94A3B8" }} />
-                          <Typography sx={{ fontFamily: primaryFont, fontSize: "0.8rem", fontWeight: 500 }}>{req.email}</Typography>
-                        </Stack>
-                        <Stack direction="row" spacing={1} alignItems="center">
-                          <ContactPhoneOutlined sx={{ fontSize: 14, color: "#94A3B8" }} />
-                          <Typography sx={{ fontFamily: primaryFont, fontSize: "0.8rem", fontWeight: 500 }}>{req.contact}</Typography>
-                        </Stack>
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <CalendarMonthOutlined sx={{ fontSize: 16, color: "#94A3B8" }} />
-                        <Typography sx={{ fontFamily: primaryFont, fontSize: "0.8rem", fontWeight: 600, color: "#64748B" }}>
-                          {new Date(req.createdAt).toLocaleDateString()}
+                      <Stack spacing={0.2}>
+                        <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#64748B", display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <EmailOutlined sx={{ fontSize: 14 }} /> {req.email}
+                        </Typography>
+                        <Typography sx={{ fontSize: "0.75rem", fontWeight: 600, color: "#64748B", display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <ContactPhoneOutlined sx={{ fontSize: 14 }} /> {req.contact}
                         </Typography>
                       </Stack>
                     </TableCell>
-                    <TableCell align="right" sx={{ pr: 3 }}>
+                    <TableCell>
+                      <Typography sx={{ fontSize: "0.8rem", fontWeight: 700, color: "#64748B" }}>
+                        {new Date(req.createdAt).toLocaleDateString()}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right" sx={{ pr: 2 }}>
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        <Tooltip title="View Full Details">
-                          <IconButton onClick={() => setViewingRequest(req)} size="small" sx={{ color: primaryTeal, border: '1px solid #E2E8F0' }}>
+                        <Tooltip title="Quick View">
+                          <IconButton onClick={() => setViewingRequest(req)} size="small" sx={{ color: PRIMARY_TEAL, bgcolor: '#F1F5F9' }}>
                             <VisibilityOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title={req.status === 'Closed' ? "View Processing" : "Finalize Inquiry"}>
-                          <IconButton onClick={() => setEditingRequest(req)} size="small" sx={{ color: req.status === 'Closed' ? "#64748B" : accentGold, border: '1px solid #E2E8F0' }}>
+                        <Tooltip title="Process Inquiry">
+                          <IconButton onClick={() => setEditingRequest(req)} size="small" sx={{ color: req.status === 'Closed' ? "#64748B" : ACCENT_GOLD, bgcolor: '#F1F5F9' }}>
                             <EditOutlined fontSize="small" />
                           </IconButton>
                         </Tooltip>
                       </Stack>
                     </TableCell>
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} align="center" sx={{ py: 12 }}>
-                    <Stack alignItems="center" spacing={2} sx={{ opacity: 0.5 }}>
-                      <SearchOffOutlined sx={{ fontSize: 60, color: "#94A3B8" }} />
-                      <Typography sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#475569" }}>No inquiries found</Typography>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              )}
+                ))}
+              </AnimatePresence>
             </TableBody>
           </Table>
+          
+          {paginatedData.length === 0 && (
+             <Box sx={{ p: 8, textAlign: 'center', opacity: 0.5 }}>
+                <SearchOffOutlined sx={{ fontSize: 48, mb: 1, color: "#94A3B8" }} />
+                <Typography sx={{ fontWeight: 700, color: "#475569" }}>No consultation inquiries found</Typography>
+             </Box>
+          )}
 
-          {/* PAGINATION */}
-          <Box sx={{ p: 3, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #E2E8F0" }}>
-            <Typography sx={{ fontFamily: primaryFont, color: "#64748B", fontWeight: 700, fontSize: "0.8rem" }}>
-              Showing {paginatedData.length} of {filteredData.length} records
+          <Box sx={{ p: 2, display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #E2E8F0", bgcolor: "#F8FAFC" }}>
+            <Typography sx={{ color: "#64748B", fontWeight: 700, fontSize: "0.75rem" }}>
+              TOTAL INQUIRIES: {filteredData.length}
             </Typography>
             <Pagination 
               count={Math.ceil(filteredData.length / rowsPerPage)} 
               page={page} 
               onChange={(_, v) => setPage(v)} 
-              sx={{ 
-                '& .Mui-selected': { bgcolor: `${primaryTeal} !important`, color: "#FFF" }, 
-                '& .MuiPaginationItem-root': { fontFamily: primaryFont, fontWeight: 600 } 
-              }} 
+              size="small"
+              sx={{ '& .Mui-selected': { bgcolor: `${PRIMARY_TEAL} !important`, color: "#FFF" } }} 
             />
           </Box>
         </TableContainer>
 
-        {/* VIEW DETAILS DIALOG */}
-        <Dialog open={Boolean(viewingRequest)} onClose={() => setViewingRequest(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: "24px", p: 1 } }}>
+        <Box sx={{ mt: 3 }}>
+          <Paper elevation={0} sx={{ p: 2.5, borderRadius: '12px', border: '1px solid #E2E8F0', bgcolor: '#FFF' }}>
+            <Stack direction="row" spacing={1} alignItems="center" mb={2}>
+              <HistoryToggleOffOutlined sx={{ color: PRIMARY_TEAL, fontSize: 20 }} />
+              <Typography sx={{ fontWeight: 800, fontSize: '0.85rem', color: PRIMARY_TEAL, letterSpacing: 0.5 }}>RECENT ACTIVITY</Typography>
+            </Stack>
+            {history.length === 0 ? (
+              <Typography sx={{ fontSize: '0.75rem', color: '#94A3B8', fontWeight: 500, fontStyle: 'italic' }}>No processing actions recorded in this session.</Typography>
+            ) : (
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2 }}>
+                {history.map((log, idx) => (
+                  <Paper key={idx} variant="outlined" sx={{ p: 1.5, borderRadius: '8px', bgcolor: '#F8FAFC', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <CheckCircleOutline sx={{ fontSize: 16, color: '#10B981' }} />
+                    <Typography sx={{ fontSize: '0.7rem', color: '#475569', fontWeight: 600 }}>{log}</Typography>
+                  </Paper>
+                ))}
+              </Box>
+            )}
+          </Paper>
+        </Box>
+
+        <Dialog 
+          open={Boolean(viewingRequest)} 
+          onClose={() => setViewingRequest(null)} 
+          maxWidth="sm" fullWidth 
+          PaperProps={{ sx: { borderRadius: "20px", overflow: 'hidden' } }}
+        >
           {viewingRequest && (
-            <>
-              <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, fontSize: "1.2rem" }}>Student Profile</Typography>
-                <IconButton onClick={() => setViewingRequest(null)} size="small"><CloseOutlined /></IconButton>
-              </DialogTitle>
-              <DialogContent>
-                <Stack spacing={2.5} sx={{ mt: 1 }}>
+            <Box>
+              <Box sx={{ p: 3, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                    <Typography sx={{ fontWeight: 800, color: PRIMARY_TEAL, fontSize: "1.1rem" }}>Inquiry Profile</Typography>
+                    <Typography sx={{ fontSize: '0.7rem', color: '#64748B', fontWeight: 600 }}>REF: {viewingRequest._id}</Typography>
+                </Box>
+                <IconButton onClick={() => setViewingRequest(null)} size="small" sx={{ bgcolor: '#FFF', border: '1px solid #E2E8F0' }}><CloseOutlined fontSize="small" /></IconButton>
+              </Box>
+
+              <DialogContent sx={{ p: 4 }}>
+                <Stack spacing={3}>
                   <Box>
-                    <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1.2 }}>Personal Details</Typography>
-                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1 }}>
-                      <BadgeOutlined sx={{ color: primaryTeal }} />
-                      <Typography sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#1E293B", fontSize: "1.1rem" }}>{viewingRequest.firstName} {viewingRequest.lastName}</Typography>
-                    </Stack>
-                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 0.5, ml: 0.5 }}>
-                      <InfoOutlined sx={{ color: "#64748B", fontSize: 18 }} />
-                      <Typography sx={{ fontFamily: primaryFont, color: "#64748B", fontSize: "0.85rem" }}>Qualification: {viewingRequest.qualification}</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>Candidate Details</Typography>
+                    <Stack direction="row" spacing={2} alignItems="center" mt={1}>
+                      <Avatar sx={{ bgcolor: PRIMARY_TEAL, width: 45, height: 45, fontWeight: 800 }}>{viewingRequest.firstName[0]}</Avatar>
+                      <Box>
+                        <Typography sx={{ fontWeight: 800, color: "#1E293B", fontSize: "1.1rem" }}>{viewingRequest.firstName} {viewingRequest.lastName}</Typography>
+                        <Typography sx={{ color: "#64748B", fontSize: "0.8rem", fontWeight: 600 }}>Current Qualification: {viewingRequest.qualification}</Typography>
+                      </Box>
                     </Stack>
                   </Box>
                   <Divider />
                   <Box>
-                    <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>Contact Information</Typography>
-                    <Stack spacing={1} sx={{ mt: 1 }}>
-                        <Stack direction="row" spacing={1.5} alignItems="center">
-                            <EmailOutlined sx={{ color: primaryTeal, fontSize: 20 }} />
-                            <Typography sx={{ fontFamily: primaryFont, fontWeight: 500 }}>{viewingRequest.email}</Typography>
-                        </Stack>
-                        <Stack direction="row" spacing={1.5} alignItems="center">
-                            <ContactPhoneOutlined sx={{ color: primaryTeal, fontSize: 20 }} />
-                            <Typography sx={{ fontFamily: primaryFont, fontWeight: 500 }}>{viewingRequest.contact}</Typography>
-                        </Stack>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: "#94A3B8", textTransform: "uppercase", letterSpacing: 1 }}>Selected Pathway</Typography>
+                    <Stack direction="row" spacing={1.5} alignItems="center" mt={1.5}>
+                        <WorkspacePremiumOutlined sx={{ color: ACCENT_GOLD }} />
+                        <Typography sx={{ fontWeight: 700, color: PRIMARY_TEAL }}>{viewingRequest.programme}</Typography>
                     </Stack>
                   </Box>
-                  <Divider />
-                  <Box>
-                    <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8", textTransform: "uppercase" }}>Selected Programme & Date</Typography>
-                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1 }}>
-                      <WorkspacePremiumOutlined sx={{ color: accentGold }} />
-                      <Typography sx={{ fontFamily: primaryFont, fontWeight: 600, color: primaryTeal }}>{viewingRequest.programme}</Typography>
-                    </Stack>
-                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1 }}>
-                      <CalendarMonthOutlined sx={{ color: "#64748B", fontSize: 20 }} />
-                      <Typography sx={{ fontFamily: primaryFont, fontSize: "0.85rem", color: "#64748B" }}>Requested on: {new Date(viewingRequest.createdAt).toLocaleString()}</Typography>
-                    </Stack>
+                  <Box sx={{ bgcolor: "#F8FAFC", p: 2.5, borderRadius: "12px", border: "1px solid #E2E8F0" }}>
+                     <Stack spacing={1.5}>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            <EmailOutlined sx={{ color: PRIMARY_TEAL, fontSize: 20 }} />
+                            <Typography sx={{ fontWeight: 600, fontSize: '0.9rem' }}>{viewingRequest.email}</Typography>
+                        </Stack>
+                        <Stack direction="row" spacing={2} alignItems="center">
+                            <ContactPhoneOutlined sx={{ color: PRIMARY_TEAL, fontSize: 20 }} />
+                            <Typography sx={{ fontWeight: 600, fontSize: '0.9rem' }}>{viewingRequest.contact}</Typography>
+                        </Stack>
+                     </Stack>
                   </Box>
                   {viewingRequest.adminReply && (
-                    <>
-                      <Divider />
-                      <Box sx={{ bgcolor: "#F0FDF4", p: 2, borderRadius: "12px", border: "1px solid #DCFCE7" }}>
-                         <Typography variant="caption" sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#16A34A", textTransform: "uppercase" }}>Admin Reply</Typography>
-                         <Typography sx={{ fontFamily: primaryFont, mt: 0.5, fontSize: "0.9rem", color: "#14532D" }}>{viewingRequest.adminReply}</Typography>
-                      </Box>
-                    </>
+                    <Box sx={{ bgcolor: "#F0FDF4", p: 2.5, borderRadius: "12px", border: "1px solid #DCFCE7" }}>
+                       <Typography variant="caption" sx={{ fontWeight: 800, color: "#16A34A", textTransform: "uppercase" }}>Administrative Note</Typography>
+                       <Typography sx={{ mt: 1, fontSize: "0.9rem", color: "#14532D", lineHeight: 1.6, fontWeight: 500 }}>{viewingRequest.adminReply}</Typography>
+                    </Box>
                   )}
                 </Stack>
               </DialogContent>
-              <DialogActions sx={{ p: 3 }}>
-                <Button onClick={() => setViewingRequest(null)} fullWidth variant="contained" sx={{ bgcolor: primaryTeal, borderRadius: "12px", fontFamily: primaryFont, fontWeight: 700 }}>Close View</Button>
+              <DialogActions sx={{ p: 3, bgcolor: '#F8FAFC' }}>
+                <Button onClick={() => setViewingRequest(null)} fullWidth variant="contained" sx={{ bgcolor: PRIMARY_TEAL, py: 1.2, borderRadius: "10px" }}>Dismiss View</Button>
               </DialogActions>
-            </>
+            </Box>
           )}
         </Dialog>
+
+        <Snackbar 
+          open={snackbar.open} autoHideDuration={4000} 
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert severity={snackbar.severity} variant="filled" sx={{ borderRadius: "8px", fontWeight: 700 }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+
       </Box>
-    </Fade>
+    </ThemeProvider>
   );
 };
 

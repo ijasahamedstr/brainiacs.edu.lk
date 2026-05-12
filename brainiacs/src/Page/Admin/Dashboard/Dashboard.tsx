@@ -41,6 +41,7 @@ import AcademicStaffManager from "../Academic Staffs/Academic Staffs";
 import FacultiesManager from "../Faculties/Faculties";
 import CourseCategoryManager from "../Academic courses/Course Category/CourseCategory";
 import CourseManager from "../Academic courses/All Courses/All Courses";
+import AskOurStudent from "../Ask Our Student/AskOurStudent";
 
 // CONSTANTS
 const DRAWER_WIDTH = 290;
@@ -176,6 +177,7 @@ const Dashboard: React.FC = () => {
       case "Academic Staffs": return <AcademicStaffManager />;
       case "Faculties": return <FacultiesManager />;
       case "Course Category": return <CourseCategoryManager />;
+      case "Ask Our Student": return <AskOurStudent />;
       
       // ACADEMIC STAFFS MODULE
         return (

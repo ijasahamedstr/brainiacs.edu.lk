@@ -9,11 +9,16 @@ const About: React.FC = () => {
   ];
 
   return (
-    <Container maxWidth={false} disableGutters sx={{ p: 0, m: 0, width: "100%" }}>
+    <Container 
+      maxWidth={false} 
+      disableGutters 
+      sx={{ p: 0, m: 0, width: "100%", overflowX: "hidden" }}
+    >
       <Box
         sx={{
           width: "100%",
-          py: { xs: "80px", md: "120px" }, // More vertical breathing room
+          // Fluid vertical padding
+          py: { xs: 6, sm: 8, md: 12, lg: 15 },
           backgroundColor: { xs: "#FAFAFA", md: "transparent" },
           backgroundImage: {
             xs: "none",
@@ -24,26 +29,33 @@ const About: React.FC = () => {
           backgroundRepeat: "no-repeat",
           display: "flex",
           alignItems: "center",
-          minHeight: "90vh",
+          minHeight: { xs: "auto", md: "90vh" },
         }}
       >
         <Box
           sx={{
             width: "100%",
-            // EXTREME PADDING: Increased for more left/right space
-            px: { xs: 4, md: 12, lg: 20, xl: 30 }, 
+            // Fluid horizontal padding using clamp for perfect scaling
+            // clamp(minimum, preferred, maximum)
+            px: { 
+              xs: 2, 
+              sm: 4, 
+              md: "clamp(40px, 8vw, 120px)", 
+              lg: "clamp(100px, 12vw, 300px)" 
+            },
             display: "flex",
             flexDirection: { xs: "column", lg: "row" },
             alignItems: "center",
             justifyContent: "space-between",
-            gap: { lg: 15 }, // Large gap between the two columns
+            gap: { xs: 6, lg: 10 },
           }}
         >
           {/* LEFT COLUMN: Content Section */}
           <Box
             sx={{
-              flex: { xs: "1 1 100%", lg: "0 1 50%" },
+              flex: { xs: "1 1 100%", lg: "0 1 55%" },
               textAlign: "left",
+              zIndex: 2,
             }}
           >
             <Typography
@@ -52,15 +64,17 @@ const About: React.FC = () => {
                 fontWeight: 800,
                 color: "#1a2b3c",
                 mb: 1,
-                fontSize: { xs: "1.8rem", md: "2.4rem", lg: "2.4rem" },
-                // Change this value to make the space smaller
-                letterSpacing: "1.5px", 
+                // Fluid font size for header
+                fontSize: { 
+                  xs: "clamp(1.8rem, 5vw, 2.2rem)", 
+                  md: "clamp(2.2rem, 4vw, 3.2rem)" 
+                },
+                letterSpacing: "-0.5px", 
                 lineHeight: 1.1,
-                textTransform: "none", // Ensures it stays "Brainiacs Campus" and not uppercase
               }}
             >
               Brainiacs Campus
-          </Typography>
+            </Typography>
 
             <Typography
               sx={{
@@ -68,15 +82,16 @@ const About: React.FC = () => {
                 fontWeight: 700,
                 color: "#0a5397",
                 mb: 4,
-                fontSize: { xs: "0.9rem", md: "0.9rem" },
+                fontSize: { xs: "0.75rem", sm: "0.85rem", md: "0.9rem" },
                 textTransform: "uppercase",
-                letterSpacing: "4px",
+                letterSpacing: { xs: "2px", md: "4px" },
+                lineHeight: 1.4,
               }}
             >
               is not just about Higher Education, it's more than that
             </Typography>
 
-            <Box sx={{ maxWidth: "600px", mb: 6 }}>
+            <Box sx={{ maxWidth: "700px", mb: 6 }}>
               <Typography
                 sx={{
                   fontFamily: '"Montserrat", sans-serif',
@@ -86,7 +101,7 @@ const About: React.FC = () => {
                   color: "#2d3436",
                   fontWeight: 500,
                   borderLeft: "5px solid #35b74b",
-                  pl: 4,
+                  pl: { xs: 2, md: 4 },
                 }}
               >
                 Witness Lyceum Campus symbolizing great significance among all with a vision of facilitating and guiding young souls on their journey of learning.
@@ -104,13 +119,12 @@ const About: React.FC = () => {
               </Typography>
             </Box>
 
-            {/* Stats Cards - ORIGINAL EFFECTS APPLIED */}
+            {/* Stats Cards - Optimized for Stacking */}
             <Box sx={{ 
               display: "flex", 
-              gap: { xs: 1.5, sm: 2, md: 2.5 }, 
-              flexWrap: "nowrap",
+              gap: { xs: 2, md: 2.5 }, 
+              flexDirection: { xs: "column", sm: "row" }, // Stack on small mobile
               width: "100%",
-              justifyContent: "space-between",
             }}>
               {steps.map((step, index) => (
                 <Box
@@ -118,21 +132,19 @@ const About: React.FC = () => {
                   sx={{
                     display: "flex",
                     flexDirection: "column",
-                    p: { xs: 1.5, md: 2 },
-                    pl: { xs: 2, md: 3 },
-                    flex: 1, // Allow boxes to grow and shrink evenly
-                    minWidth: 0, // Remove fixed minWidth to fit screen
-                    borderRadius: { xs: "12px", md: "16px" },
+                    p: { xs: 2, md: 2.5 },
+                    pl: { xs: 3, md: 3 },
+                    flex: 1,
+                    borderRadius: "16px",
                     background: "rgba(255, 255, 255, 0.98)",
                     border: "1px solid #e0e0e0",
                     position: "relative",
                     transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
                     animation: `fadeInUp 0.6s ease forwards ${index * 0.15}s`,
                     opacity: 0,
-                    cursor: "pointer",
                     "&:hover": {
                       borderColor: "#35b74b",
-                      transform: "translateX(12px)", // Original slide effect
+                      transform: { xs: "translateY(-5px)", md: "translateX(12px)" },
                       boxShadow: "0 15px 35px rgba(0,0,0,0.08)",
                       "& .left-accent": { height: "100%", background: "#35b74b" }
                     },
@@ -154,7 +166,7 @@ const About: React.FC = () => {
                   <Typography
                     sx={{
                       fontFamily: '"Montserrat", sans-serif',
-                      fontSize: { xs: "1.2rem", md: "1.4rem" },
+                      fontSize: { xs: "1.3rem", md: "1.5rem" },
                       fontWeight: 900,
                       color: "#0a5397",
                       mb: 0.2,
@@ -178,15 +190,15 @@ const About: React.FC = () => {
             </Box>
           </Box>
 
-          {/* RIGHT COLUMN: Visual Section */}
+          {/* RIGHT COLUMN: Hidden on mobile, visible on LG+ */}
           <Box
             sx={{
-              flex: { xs: "1 1 100%", lg: "0 1 40%" },
+              flex: { lg: "0 1 40%" },
               display: { xs: "none", lg: "flex" },
-              justifyContent: "flex-end", // Push image to the far right
+              justifyContent: "center",
             }}
           >
-           
+            {/* You can place an image or illustration here */}
           </Box>
         </Box>
       </Box>

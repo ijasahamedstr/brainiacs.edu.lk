@@ -1,0 +1,337 @@
+import { useState } from "react";
+import { 
+  Box, Typography, Stack, Paper, Button, TextField, 
+  InputLabel, InputAdornment, CircularProgress,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  Divider, Tooltip, Zoom, Avatar
+} from "@mui/material";
+import { 
+  ArrowBackIosNewOutlined, 
+  PersonOutlineOutlined,
+  SchoolOutlined,
+  ClassOutlined,
+  LinkOutlined, 
+  EditOutlined,
+  InfoOutlined,
+  DescriptionOutlined,
+  FormatQuoteOutlined
+} from "@mui/icons-material";
+
+// --- CONFIGURATION ---
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const primaryTeal = "#004652";
+const primaryFont = "'Montserrat', sans-serif";
+const borderColor = "#E2E8F0";
+
+// Interface mapping your Mongoose Schema
+interface StudentInfo {
+  _id: string;
+  name: string;
+  course: string;
+  batch: string;
+  description: string;
+  image: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface UpdateProps {
+  studentData: StudentInfo;
+  onBack: () => void;
+}
+
+const UpdateAskOurStudent = ({ studentData, onBack }: UpdateProps) => {
+  // 1. STATE MANAGEMENT
+  const [formData, setFormData] = useState<StudentInfo>({ ...studentData });
+  const [loading, setLoading] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  // 2. OPTIMIZED HANDLERS
+  const handleChange = (field: keyof StudentInfo) => (e: React.ChangeEvent<HTMLInputElement | { value: unknown }>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleUpdateClick = () => {
+    if (!formData.name || !formData.course || !formData.batch || !formData.image || !formData.description) {
+      alert("Please ensure all student record fields are provided.");
+      return;
+    }
+    setConfirmDialogOpen(true);
+  };
+
+  // 3. FAST DATABASE SYNC (PUT REQUEST)
+  const confirmUpdate = async () => {
+    setConfirmDialogOpen(false);
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/AskOurStudent/${studentData._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        onBack(); 
+      } else {
+        const errorData = await response.json();
+        alert(`Server Error: ${errorData.message}`);
+      }
+    } catch (err) {
+      console.error("Update failed:", err);
+      alert("Database connection failed. Please check your API status.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 4. SHARED UI STYLES
+  const inputStyle = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "12px",
+      fontFamily: primaryFont,
+      fontSize: "0.85rem",
+      fontWeight: 600,
+      bgcolor: "#F8FAFC",
+      transition: "all 0.2s ease-in-out",
+      "& fieldset": { borderColor: "transparent" },
+      "&:hover fieldset": { borderColor: borderColor },
+      "&.Mui-focused fieldset": { borderColor: primaryTeal, borderWidth: "2px", bgcolor: "#FFF" },
+    },
+    "& .MuiInputLabel-root": {
+        fontFamily: primaryFont,
+        fontSize: "0.75rem",
+        fontWeight: 700,
+        color: "#64748B"
+    }
+  };
+
+  const sectionHeaderStyle = {
+    fontFamily: primaryFont, 
+    fontSize: "0.7rem", 
+    fontWeight: 900, 
+    color: primaryTeal, 
+    letterSpacing: 1.2, 
+    mb: 2.5,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 1
+  };
+
+  return (
+    <Box sx={{ maxWidth: "1400px", mx: "auto", pb: 5 }}>
+      {/* HEADERBAR */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 4 }}>
+        <Button 
+          onClick={onBack} 
+          startIcon={<ArrowBackIosNewOutlined sx={{ fontSize: "14px" }} />}
+          sx={{ 
+            fontFamily: primaryFont, fontSize: "0.8rem", fontWeight: 700, 
+            textTransform: 'none', color: "#64748B",
+            "&:hover": { bgcolor: "rgba(0,70,82,0.05)", color: primaryTeal }
+          }}
+        >
+          Back to Architecture
+        </Button>
+      </Stack>
+
+      <Stack direction={{ xs: "column", lg: "row" }} spacing={4}>
+        
+        {/* LEFT COLUMN: CONFIGURATION FORM */}
+        <Box sx={{ flex: 1.2 }}>
+            <Paper elevation={0} sx={{ 
+                p: { xs: 3, md: 5 }, borderRadius: "24px", 
+                border: `1px solid ${borderColor}`, bgcolor: "#FFF",
+                boxShadow: "0 10px 40px -10px rgba(0,0,0,0.05)"
+            }}>
+                
+                {/* TITLE SECTION */}
+                <Box sx={{ mb: 5, display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ bgcolor: "rgba(0,70,82,0.08)", p: 1.5, borderRadius: "12px", border: '1px solid rgba(0,70,82,0.1)' }}>
+                        <EditOutlined sx={{ color: primaryTeal, fontSize: 28 }} />
+                    </Box>
+                    <Box>
+                        <Typography variant="h6" sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, letterSpacing: -0.5 }}>
+                            Modify Student Record
+                        </Typography>
+                        <Typography sx={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 600 }}>
+                            Updating parameters for ID: <span style={{ color: primaryTeal }}>{studentData._id.substring(0,8)}...</span>
+                        </Typography>
+                    </Box>
+                </Box>
+
+                <Stack spacing={4}>
+                    {/* SECTION: GENERAL INFO */}
+                    <Box>
+                        <Typography sx={sectionHeaderStyle}>
+                            <PersonOutlineOutlined sx={{ fontSize: 16 }} /> STUDENT IDENTITY
+                        </Typography>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                            <Box>
+                                <InputLabel sx={{ mb: 1, ml: 1, fontWeight: 700, fontSize: "0.7rem", fontFamily: primaryFont }}>FULL NAME</InputLabel>
+                                <TextField 
+                                    fullWidth value={formData.name} onChange={handleChange("name")}
+                                    placeholder="e.g. John Doe"
+                                    sx={inputStyle}
+                                />
+                            </Box>
+                            <Box>
+                                <InputLabel sx={{ mb: 1, ml: 1, fontWeight: 700, fontSize: "0.7rem", fontFamily: primaryFont }}>COURSE ENROLLED</InputLabel>
+                                <TextField 
+                                    fullWidth value={formData.course} onChange={handleChange("course")}
+                                    placeholder="e.g. Full Stack Web Development"
+                                    InputProps={{ startAdornment: <InputAdornment position="start"><SchoolOutlined sx={{ fontSize: 18 }} /></InputAdornment> }}
+                                    sx={inputStyle}
+                                />
+                            </Box>
+                            <Box>
+                                <InputLabel sx={{ mb: 1, ml: 1, fontWeight: 700, fontSize: "0.7rem", fontFamily: primaryFont }}>BATCH NUMBER</InputLabel>
+                                <TextField 
+                                    fullWidth value={formData.batch} onChange={handleChange("batch")}
+                                    placeholder="e.g. Batch 05"
+                                    InputProps={{ startAdornment: <InputAdornment position="start"><ClassOutlined sx={{ fontSize: 18 }} /></InputAdornment> }}
+                                    sx={inputStyle}
+                                />
+                            </Box>
+                            <Box>
+                                <Stack direction="row" alignItems="center" gap={0.5} sx={{ mb: 1, ml: 1 }}>
+                                    <InputLabel sx={{ fontWeight: 700, fontSize: "0.7rem", fontFamily: primaryFont, mb: 0 }}>PROFILE IMAGE URL</InputLabel>
+                                    <Tooltip title="Provide a direct URL to a square aspect ratio portrait.">
+                                        <InfoOutlined sx={{ fontSize: 12, color: "#94A3B8", cursor: "help" }} />
+                                    </Tooltip>
+                                </Stack>
+                                <TextField 
+                                    fullWidth value={formData.image} onChange={handleChange("image")}
+                                    placeholder="https://example.com/student-portrait.jpg"
+                                    InputProps={{ startAdornment: <InputAdornment position="start"><LinkOutlined sx={{ fontSize: 18 }} /></InputAdornment> }}
+                                    sx={inputStyle}
+                                />
+                            </Box>
+                        </Box>
+                    </Box>
+
+                    <Divider sx={{ borderStyle: 'dashed' }} />
+
+                    {/* SECTION: TESTIMONIAL CONTENT */}
+                    <Box>
+                        <Typography sx={sectionHeaderStyle}>
+                            <DescriptionOutlined sx={{ fontSize: 16 }} /> TESTIMONIAL CONTENT
+                        </Typography>
+                        <Box>
+                            <InputLabel sx={{ mb: 1, ml: 1, fontWeight: 700, fontSize: "0.7rem", fontFamily: primaryFont }}>STUDENT DESCRIPTION / QUOTE</InputLabel>
+                            <TextField 
+                                fullWidth value={formData.description} onChange={handleChange("description")}
+                                placeholder="Enter the student's testimonial or success story here..."
+                                multiline rows={4}
+                                sx={inputStyle}
+                            />
+                        </Box>
+                    </Box>
+                </Stack>
+            </Paper>
+        </Box>
+
+        {/* RIGHT COLUMN: LIVE PREVIEW & DEPLOYMENT */}
+        <Box sx={{ flex: 1 }}>
+            <Stack spacing={3} sx={{ position: 'sticky', top: '24px' }}>
+                
+                {/* INTELLIGENT PREVIEW */}
+                <Paper elevation={0} sx={{ p: 3, borderRadius: "24px", border: `1px solid ${borderColor}`, bgcolor: "#FFF" }}>
+                    <Typography sx={{ fontFamily: primaryFont, fontWeight: 900, fontSize: "0.7rem", color: primaryTeal, letterSpacing: 1, mb: 3 }}>
+                        TESTIMONIAL PREVIEW
+                    </Typography>
+
+                    <Box sx={{ 
+                        p: 3, borderRadius: "16px", border: "1px solid #E2E8F0", 
+                        boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)", position: "relative",
+                        bgcolor: "#F8FAFC"
+                    }}>
+                        <FormatQuoteOutlined sx={{ position: 'absolute', top: 16, right: 16, color: '#E2E8F0', fontSize: '3rem', transform: 'rotate(180deg)' }} />
+                        
+                        <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+                            <Avatar 
+                                src={formData.image} 
+                                sx={{ width: 64, height: 64, borderRadius: "12px", border: `2px solid ${primaryTeal}`, boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }} 
+                            />
+                            <Box>
+                                <Typography sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, fontSize: "1rem", lineHeight: 1.2 }}>
+                                    {formData.name || "Student Name"}
+                                </Typography>
+                                <Typography sx={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 600, mt: 0.5 }}>
+                                    {formData.course || "Course Name"} • {formData.batch || "Batch"}
+                                </Typography>
+                            </Box>
+                        </Stack>
+
+                        <Typography sx={{ fontFamily: primaryFont, fontSize: "0.85rem", color: "#475569", fontStyle: "italic", lineHeight: 1.6 }}>
+                            "{formData.description || "The student's testimonial description will appear here as a quote block."}"
+                        </Typography>
+                    </Box>
+                </Paper>
+
+                {/* DEPLOYMENT ACTIONS */}
+                <Paper elevation={0} sx={{ p: 3, borderRadius: "24px", border: `1px solid ${borderColor}`, bgcolor: "#F8FAFC" }}>
+                    <Typography sx={{ fontSize: "0.7rem", color: "#64748B", fontWeight: 600, mb: 3, lineHeight: 1.5 }}>
+                        Review the student information and testimonial before publishing changes to the main directory.
+                    </Typography>
+                    
+                    <Button 
+                        fullWidth
+                        variant="contained" 
+                        onClick={handleUpdateClick}
+                        disabled={loading}
+                        sx={{ 
+                            bgcolor: primaryTeal, py: 1.8, borderRadius: "14px",
+                            fontFamily: primaryFont, fontWeight: 800, fontSize: '0.85rem',
+                            boxShadow: "0 10px 25px rgba(0,70,82,0.15)",
+                            "&:hover": { bgcolor: "#002d35", transform: "translateY(-2px)" },
+                            transition: "all 0.2s"
+                        }}
+                    >
+                        {loading ? <CircularProgress size={24} sx={{ color: "#FFF" }} /> : "Compile & Update Record"}
+                    </Button>
+                    <Button 
+                        fullWidth
+                        onClick={onBack} 
+                        sx={{ mt: 1.5, py: 1.5, borderRadius: "14px", fontFamily: primaryFont, fontWeight: 700, color: "#64748B", "&:hover": { bgcolor: "#F1F5F9" } }}
+                    >
+                        Discard Changes
+                    </Button>
+                </Paper>
+            </Stack>
+        </Box>
+      </Stack>
+
+      {/* CONFIRMATION OVERLAY */}
+      <Dialog 
+        open={confirmDialogOpen} 
+        onClose={() => setConfirmDialogOpen(false)}
+        TransitionComponent={Zoom}
+        PaperProps={{ sx: { borderRadius: "24px", p: 1, maxWidth: "400px" } }}
+      >
+        <DialogTitle sx={{ fontFamily: primaryFont, fontWeight: 900, fontSize: "1.1rem", textAlign: "center", pt: 3, color: primaryTeal }}>
+            Confirm Record Update
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: "center" }}>
+          <Typography sx={{ fontFamily: primaryFont, fontSize: "0.85rem", color: "#64748B", lineHeight: 1.6 }}>
+            The student record for <b>{formData.name || 'this student'}</b> will be updated and changes will be pushed immediately to the live system.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: "center", pb: 4, px: 4, gap: 2 }}>
+          <Button onClick={() => setConfirmDialogOpen(false)} variant="outlined" sx={{ flex: 1, borderRadius: "12px", fontFamily: primaryFont, fontWeight: 700, color: "#64748B", borderColor: borderColor }}>
+            Abort
+          </Button>
+          <Button 
+            onClick={confirmUpdate} 
+            variant="contained" 
+            sx={{ flex: 1, borderRadius: "12px", bgcolor: primaryTeal, fontFamily: primaryFont, fontWeight: 800, py: 1.2, boxShadow: '0 8px 20px rgba(0,70,82,0.2)' }}
+          >
+            Confirm & Save
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
+export default UpdateAskOurStudent;

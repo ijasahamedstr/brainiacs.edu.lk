@@ -6,48 +6,25 @@ import "swiper/css";
 import "swiper/css/effect-coverflow";
 import "swiper/css/pagination";
 
+// --- CONFIGURATION ---
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 interface Testimonial {
+  _id: string;
   name: string;
   course: string;
   batch: string;
-  message: string;
+  description: string; // From database schema
   image: string;
+  createdAt: string;
 }
-
-const testimonials: Testimonial[] = [
-  {
-    name: "Michelle Selvaratnam",
-    course: "Diploma in Early Childhood Development",
-    batch: "Education MAY 2023 BATCH",
-    message:
-      "Lyceum Campus stands out for its excellent teaching quality and a highly qualified lecture panel. The practical experience allows students to apply their knowledge in real-world settings, enhancing our understanding of teaching methodologies.",
-    image:
-      "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/home/testimonials/sanuldi-de-silva-deakin-pathway-programme-2022-september-batch-lyceum-campus.webp",
-  },
-  {
-    name: "Yasas Weliwita",
-    course: "Deakin Pathway Programme",
-    batch: "Lyceum Campus",
-    message:
-      "My time at Lyceum Campus has prepared me well for my career in English Language Teaching. Their exceptional lecturers were passionate about imparting knowledge, which helped me build the confidence and skills I have today.",
-    image:
-      "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/home/testimonials/yasas-weliwita-deakin-pathway-programme-lyceum-campus.webp",
-  },
-  {
-    name: "Student Three",
-    course: "Business Management",
-    batch: "JAN 2023 BATCH",
-    message:
-      "The curriculum was practical and relevant. The lecturers inspired me to think critically and creatively about management challenges.",
-    image:
-      "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/home/testimonials/lihini-marian-chamishka-ratnayake-diploma-in-english-language-teaching-2022-november-batch-lyceum-campus.webp",
-  },
-];
 
 const Testimonials: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
 
+  // Responsive breakpoints
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
@@ -59,16 +36,44 @@ const Testimonials: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Fetch Testimonials from Backend
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/AskOurStudent`);
+        if (!response.ok) throw new Error("Network response was not ok");
+        
+        const data: Testimonial[] = await response.json();
+        
+        // LAST IN FIRST OUT (LIFO) sorting based on createdAt date
+        const sortedData = data.sort((a, b) => 
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        
+        setTestimonials(sortedData);
+      } catch (error) {
+        console.error("Failed to fetch testimonials:", error);
+      }
+    };
+
+    fetchTestimonials();
+  }, []);
+
+  // Optional: Prevent rendering if there is no data to show yet
+  if (testimonials.length === 0) {
+      return null; 
+  }
+
   return (
     <div
       style={{
         width: "100%",
         textAlign: "center",
         padding: isMobile
-          ? "30px 10px 60px"    // ✅ Extra bottom padding added
+          ? "30px 10px 60px"    // Extra bottom padding added
           : isTablet
-          ? "40px 20px 70px"    // ✅ Extra bottom padding for tablet
-          : "60px 0 80px",      // ✅ Extra bottom padding for desktop
+          ? "40px 20px 70px"    // Extra bottom padding for tablet
+          : "60px 0 80px",      // Extra bottom padding for desktop
         backgroundColor: "#F3F4F6",
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
       }}
@@ -117,13 +122,13 @@ const Testimonials: React.FC = () => {
         style={{
           width: "100%",
           maxWidth: "900px",
-          paddingBottom: isMobile ? "40px" : "50px", // ✅ Bottom space for Swiper
+          paddingBottom: isMobile ? "40px" : "50px", // Bottom space for Swiper
           perspective: "100px",
         }}
       >
         {testimonials.map((item, index) => (
           <SwiperSlide
-            key={index}
+            key={item._id || index}
             style={{
               background: "#fff",
               borderRadius: "16px",
@@ -139,7 +144,7 @@ const Testimonials: React.FC = () => {
               style={{
                 display: "flex",
                 flexDirection: isMobile ? "column" : "row",
-                alignItems: "center",
+                alignItems: "stretch", // Stretches image container to full card height on desktop
                 textAlign: isMobile ? "center" : "left",
                 height: "100%",
               }}
@@ -147,8 +152,9 @@ const Testimonials: React.FC = () => {
               {/* Image */}
               <div
                 style={{
-                  flex: isMobile ? "0 0 auto" : "0 0 45%",
-                  height: isMobile ? "200px" : "100%",
+                  flex: isMobile ? "none" : "0 0 45%",
+                  width: isMobile ? "100%" : "auto",
+                  height: isMobile ? "250px" : "auto", // Auto height lets it stretch to fit text container on desktop
                   overflow: "hidden",
                 }}
               >
@@ -158,7 +164,8 @@ const Testimonials: React.FC = () => {
                   style={{
                     width: "100%",
                     height: "100%",
-                    objectFit: "cover",
+                    objectFit: "cover", // Change to "contain" if you don't want any image cropping
+                    display: "block",   // Prevents default inline bottom margin
                   }}
                 />
               </div>
@@ -167,7 +174,10 @@ const Testimonials: React.FC = () => {
               <div
                 style={{
                   flex: 1,
-                  padding: isMobile ? "15px 20px" : "25px 30px",
+                  padding: isMobile ? "20px" : "30px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center", // Vertically centers text beside the image
                 }}
               >
                 <h3
@@ -193,7 +203,7 @@ const Testimonials: React.FC = () => {
                   style={{
                     fontSize: isMobile ? "12px" : "13px",
                     color: "#999",
-                    marginBottom: "10px",
+                    marginBottom: "15px",
                   }}
                 >
                   {item.batch}
@@ -202,11 +212,11 @@ const Testimonials: React.FC = () => {
                   style={{
                     fontSize: isMobile ? "13px" : "14px",
                     color: "#444",
-                    lineHeight: 1.5,
+                    lineHeight: 1.6,
                     fontWeight: 500,
                   }}
                 >
-                  {item.message}
+                  {item.description}
                 </p>
               </div>
             </div>
