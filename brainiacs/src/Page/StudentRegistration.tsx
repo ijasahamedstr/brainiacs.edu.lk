@@ -5,7 +5,7 @@ import {
   RadioGroup, FormControlLabel, Radio, Checkbox, FormGroup, 
   Paper, Stack, Divider, Stepper, Step, StepLabel,
   InputAdornment, Fade, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Chip, MenuItem
+  Chip, MenuItem, useTheme, useMediaQuery
 } from "@mui/material";
 import {
   CloudUpload as CloudUploadIcon,
@@ -28,16 +28,16 @@ const GLOBAL_FONT = {
   fontFamily: "'Montserrat', sans-serif",
 };
 
-// Comprehensive Input Styling for all TextFields
+// Comprehensive Input Styling
 const inputSx = {
   "& .MuiInputBase-root": GLOBAL_FONT,
-  "& .MuiInputLabel-root": { ...GLOBAL_FONT, fontWeight: 500 },
+  "& .MuiInputLabel-root": { ...GLOBAL_FONT, fontWeight: 500, fontSize: { xs: '0.85rem', sm: '1rem' } },
   "& .MuiFormHelperText-root": GLOBAL_FONT,
   "& .MuiOutlinedInput-root": {
-    "& fieldset": { borderRadius: "10px" },
+    "& fieldset": { borderRadius: "12px" },
     "&.Mui-focused fieldset": { borderColor: THEME_COLOR },
   },
-  mb: { xs: 1.5, sm: 2 }
+  mb: { xs: 2, sm: 2.5 }
 };
 
 const StudentRegistration = () => {
@@ -45,10 +45,13 @@ const StudentRegistration = () => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isLargeDesktop = useMediaQuery(theme.breakpoints.up('xl'));
 
   const steps = ["Inquiry Info", "Personal Identity", "Guardian/Emergency", "Academic Grid", "Uploads & Policy"];
 
-  // --- EXTENDED FORM STATE ---
   const [formData, setFormData] = useState({
     programme: "",
     intake: "2026 February",
@@ -76,41 +79,23 @@ const StudentRegistration = () => {
     privacyConsent: false
   });
 
-  // Table Data Structures
   const [olRows, setOlRows] = useState(Array(10).fill(null).map(() => ({ y1: "", s1: "", g1: "", y2: "", s2: "", g2: "" })));
   const [alRows, setAlRows] = useState(Array(4).fill(null).map(() => ({ subject: "", grade: "", year: "", attempt: "" })));
   const [otherQuals] = useState(Array(4).fill(null).map(() => ({ name: "", year: "", body: "", grade: "" })));
 
-  // --- VALIDATION LOGIC ---
-  const validateStep = () => {
-    let newErrors: Record<string, string> = {};
-    if (activeStep === 0) {
-      if (!formData.programme) newErrors.programme = "Programme selection is required";
-    }
-    if (activeStep === 1) {
-      if (!formData.fullName) newErrors.fullName = "Full name is mandatory";
-      if (!formData.email.includes("@")) newErrors.email = "Invalid email format";
-      if (formData.mobile.length < 9) newErrors.mobile = "Valid mobile number required";
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
   };
 
   const handleNext = () => {
-    if (validateStep()) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setActiveStep((prev) => prev + 1);
-    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setActiveStep((prev) => prev + 1);
   };
 
   const handleBack = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     setActiveStep((prev) => prev - 1);
-  };
-
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: "" }));
   };
 
   const handleTableChange = (setter: any, state: any, index: number, field: string, value: string) => {
@@ -131,98 +116,80 @@ const StudentRegistration = () => {
     }
   };
 
-const handleSubmit = async () => {
-  setIsSubmitting(true);
-  const sendableFormData = new FormData();
-  
-  // Create the object to send
-  const payload = { ...formData, olRows, alRows, otherQuals };
-  
-  // KEY MUST BE 'data' to match the controller above
-  sendableFormData.append("data", JSON.stringify(payload));
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    const sendableFormData = new FormData();
+    const payload = { ...formData, olRows, alRows, otherQuals };
+    sendableFormData.append("data", JSON.stringify(payload));
+    selectedFiles.forEach(file => sendableFormData.append("documents", file));
 
-  // Append files to 'documents'
-  selectedFiles.forEach(file => {
-    sendableFormData.append("documents", file);
-  });
-
-  try {
-    const res = await fetch(API_URL, { 
-      method: "POST", 
-      body: sendableFormData 
-      // Do NOT set headers manually
-    });
-    
-    if (res.ok) {
-       setActiveStep(5);
-    } else {
-       const errData = await res.json();
-       alert(`Error: ${errData.message}`);
+    try {
+      const res = await fetch(API_URL, { method: "POST", body: sendableFormData });
+      if (res.ok) setActiveStep(5);
+      else alert("Submission failed. Check network.");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSubmitting(false);
     }
-  } catch (e) {
-    console.error("Fetch Error:", e);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
-  // --- REUSABLE COMPONENTS ---
   const SectionHeader = ({ title, icon: Icon }: { title: string, icon: any }) => (
-    <Box sx={{ bgcolor: THEME_COLOR, color: "white", p: { xs: 1.5, sm: 2 }, mb: { xs: 3, sm: 4 }, borderRadius: "12px", display: "flex", alignItems: "center", boxShadow: "0 6px 15px rgba(0,77,64,0.15)" }}>
-      <Icon sx={{ mr: 2, fontSize: { xs: "1.2rem", sm: "1.5rem" } }} />
-      <Typography variant="subtitle1" sx={{ fontWeight: 800, ...GLOBAL_FONT, textTransform: 'uppercase', fontSize: { xs: "0.9rem", sm: "1rem" } }}>{title}</Typography>
+    <Box sx={{ 
+      bgcolor: THEME_COLOR, color: "white", 
+      p: { xs: 2, sm: 2.5 }, 
+      mb: { xs: 3, sm: 4 }, 
+      borderRadius: "12px", 
+      display: "flex", 
+      alignItems: "center", 
+      boxShadow: "0 8px 20px rgba(0,77,64,0.2)" 
+    }}>
+      <Icon sx={{ mr: 2, fontSize: { xs: "1.2rem", sm: "1.6rem" } }} />
+      <Typography variant="subtitle1" sx={{ 
+        fontWeight: 800, ...GLOBAL_FONT, 
+        textTransform: 'uppercase', 
+        fontSize: { xs: "0.85rem", sm: "1rem" },
+        letterSpacing: '1px'
+      }}>{title}</Typography>
     </Box>
   );
 
   const CustomTableCell = ({ children, isHeader = false }: { children: any, isHeader?: boolean }) => (
     <TableCell sx={{ 
       border: `1px solid ${isHeader ? THEME_COLOR : "#eee"}`, 
-      p: isHeader ? 1.5 : 0, 
+      p: isHeader ? { xs: 1, sm: 1.5 } : 0, 
       bgcolor: isHeader ? "#f8faf9" : "transparent",
       textAlign: "center",
       ...GLOBAL_FONT,
       fontWeight: isHeader ? 900 : 400,
-      fontSize: isHeader ? "0.75rem" : "0.85rem",
-      minWidth: isHeader ? 100 : 'auto',
+      fontSize: isHeader ? "0.7rem" : "0.85rem",
+      minWidth: isHeader ? { xs: 80, sm: 100 } : 'auto',
     }}>
       {children}
     </TableCell>
   );
 
-  // --- STEP RENDERERS ---
-
   const renderInquiry = () => (
-    <Stack spacing={{ xs: 2, sm: 3 }}>
-      <SectionHeader icon={BusinessIcon} title="Step 01: Application Intent" />
-      <TextField 
-        fullWidth 
-        label="Academic Programme" 
-        placeholder="e.g. BEng (Hons) Software Engineering" 
-        value={formData.programme} 
-        onChange={(e) => handleInputChange("programme", e.target.value)} 
-        error={!!errors.programme}
-        helperText={errors.programme}
-        sx={inputSx} 
-      />
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-        <TextField select fullWidth label="Intake Period" value={formData.intake} onChange={(e) => handleInputChange("intake", e.target.value)} sx={inputSx}>
-          {["2026 February", "2026 June", "2026 October"].map(i => <MenuItem key={i} value={i} sx={GLOBAL_FONT}>{i}</MenuItem>)}
-        </TextField>
-      </Stack>
+    <Stack spacing={{ xs: 3, sm: 4 }}>
+      <SectionHeader icon={BusinessIcon} title="Application Intent" />
+      <TextField fullWidth label="Academic Programme" placeholder="e.g. BEng (Hons) Software Engineering" value={formData.programme} onChange={(e) => handleInputChange("programme", e.target.value)} sx={inputSx} />
+      <TextField select fullWidth label="Intake Period" value={formData.intake} onChange={(e) => handleInputChange("intake", e.target.value)} sx={inputSx}>
+        {["2026 February", "2026 June", "2026 October"].map(i => <MenuItem key={i} value={i} sx={GLOBAL_FONT}>{i}</MenuItem>)}
+      </TextField>
     </Stack>
   );
 
   const renderPersonal = () => (
-    <Stack spacing={{ xs: 2, sm: 3 }}>
-      <SectionHeader icon={PersonIcon} title="Step 02: Student Identity" />
-      <TextField fullWidth label="Full Name (Capital Letters)" value={formData.fullName} onChange={(e) => handleInputChange("fullName", e.target.value)} error={!!errors.fullName} sx={inputSx} />
+    <Stack spacing={{ xs: 2.5, sm: 3.5 }}>
+      <SectionHeader icon={PersonIcon} title="Student Identity" />
+      <TextField fullWidth label="Full Name (Capital Letters)" value={formData.fullName} onChange={(e) => handleInputChange("fullName", e.target.value)} sx={inputSx} />
       <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
         <TextField fullWidth label="Initials" value={formData.initials} onChange={(e) => handleInputChange("initials", e.target.value)} sx={inputSx} />
-        <FormControl fullWidth sx={{ border: "1px solid #ddd", borderRadius: "10px", p: 1 }}>
-          <FormLabel sx={{ ...GLOBAL_FONT, fontSize: "0.7rem", fontWeight: 700, color: THEME_COLOR }}>GENDER</FormLabel>
+        <FormControl fullWidth sx={{ border: "1px solid #ddd", borderRadius: "10px", p: 1.5, mb: 2 }}>
+          <FormLabel sx={{ ...GLOBAL_FONT, fontSize: "0.7rem", fontWeight: 700, color: THEME_COLOR, mb: 1 }}>GENDER</FormLabel>
           <RadioGroup row value={formData.gender} onChange={(e) => handleInputChange("gender", e.target.value)}>
-            <FormControlLabel value="male" control={<Radio size="small" />} label={<Typography sx={GLOBAL_FONT}>Male</Typography>} />
-            <FormControlLabel value="female" control={<Radio size="small" />} label={<Typography sx={GLOBAL_FONT}>Female</Typography>} />
+            <FormControlLabel value="male" control={<Radio size="small" />} label={<Typography sx={{...GLOBAL_FONT, fontSize: '0.9rem'}}>Male</Typography>} />
+            <FormControlLabel value="female" control={<Radio size="small" />} label={<Typography sx={{...GLOBAL_FONT, fontSize: '0.9rem'}}>Female</Typography>} />
           </RadioGroup>
         </FormControl>
       </Stack>
@@ -234,16 +201,16 @@ const handleSubmit = async () => {
         <TextField fullWidth label="Mobile Phone" value={formData.mobile} onChange={(e) => handleInputChange("mobile", e.target.value)} InputProps={{ startAdornment: <InputAdornment position="start">+94</InputAdornment> }} sx={inputSx} />
         <TextField fullWidth label="WhatsApp (Optional)" value={formData.whatsapp} onChange={(e) => handleInputChange("whatsapp", e.target.value)} sx={inputSx} />
       </Stack>
-      <TextField fullWidth label="Email Address" value={formData.email} onChange={(e) => handleInputChange("email", e.target.value)} error={!!errors.email} sx={inputSx} />
+      <TextField fullWidth label="Email Address" value={formData.email} onChange={(e) => handleInputChange("email", e.target.value)} sx={inputSx} />
     </Stack>
   );
 
   const renderGuardian = () => (
-    <Stack spacing={{ xs: 2, sm: 3 }}>
-      <SectionHeader icon={VerifiedUserIcon} title="Step 03: Emergency Contact" />
+    <Stack spacing={{ xs: 2.5, sm: 3.5 }}>
+      <SectionHeader icon={VerifiedUserIcon} title="Emergency Contact" />
       <TextField fullWidth label="Guardian Full Name" value={formData.guardianName} onChange={(e) => handleInputChange("guardianName", e.target.value)} sx={inputSx} />
       <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-        <TextField fullWidth label="Relationship" value={formData.guardianRelationship} onChange={(e) => handleInputChange("guardianRelationship", e.target.value)} placeholder="e.g. Father, Mother" sx={inputSx} />
+        <TextField fullWidth label="Relationship" value={formData.guardianRelationship} onChange={(e) => handleInputChange("guardianRelationship", e.target.value)} sx={inputSx} />
         <TextField fullWidth label="Guardian Contact" value={formData.guardianMobile} onChange={(e) => handleInputChange("guardianMobile", e.target.value)} sx={inputSx} />
       </Stack>
       <TextField fullWidth multiline rows={3} label="Residential Address" value={formData.guardianAddress} onChange={(e) => handleInputChange("guardianAddress", e.target.value)} sx={inputSx} />
@@ -252,11 +219,10 @@ const handleSubmit = async () => {
 
   const renderAcademic = () => (
     <Box>
-      <SectionHeader icon={SchoolIcon} title="Step 04: Academic History" />
-      
+      <SectionHeader icon={SchoolIcon} title="Academic History" />
       <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 800, ...GLOBAL_FONT, color: THEME_COLOR }}>GCE ORDINARY LEVEL (O/L)</Typography>
-      <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #ddd", borderRadius: "10px", mb: 4, overflowX: "auto" }}>
-        <Table size="small" sx={{ minWidth: { xs: 800, md: '100%' } }}>
+      <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #ddd", borderRadius: "10px", mb: 5, overflowX: "auto" }}>
+        <Table size="small" sx={{ minWidth: 800 }}>
           <TableHead>
             <TableRow>
               <CustomTableCell isHeader>EXAM</CustomTableCell>
@@ -270,14 +236,14 @@ const handleSubmit = async () => {
                   <TableCell rowSpan={10} sx={{ borderRight: "1px solid #ddd", width: 120 }}>
                     <FormGroup>
                       {["Local", "Foreigner"].map(l => (
-                        <FormControlLabel key={l} control={<Checkbox size="small" checked={formData.olExamTypes.includes(l)} onChange={() => handleCheckboxGroup("olExamTypes", l)} />} label={<Typography sx={{ fontSize: '0.7rem', ...GLOBAL_FONT }}>{l}</Typography>} />
+                        <FormControlLabel key={l} control={<Checkbox size="small" checked={formData.olExamTypes.includes(l)} onChange={() => handleCheckboxGroup("olExamTypes", l)} />} label={<Typography sx={{ fontSize: '0.65rem', ...GLOBAL_FONT, fontWeight: 600 }}>{l}</Typography>} />
                       ))}
                     </FormGroup>
                   </TableCell>
                 )}
                 {["y1", "s1", "g1", "y2", "s2", "g2"].map(f => (
                   <CustomTableCell key={f}>
-                    <input style={{ border: 'none', textAlign: 'center', width: '100%', padding: '10px 0', ...GLOBAL_FONT }} value={(row as any)[f]} onChange={(e) => handleTableChange(setOlRows, olRows, i, f, e.target.value)} />
+                    <input style={{ border: 'none', textAlign: 'center', width: '100%', padding: '12px 0', ...GLOBAL_FONT, outline: 'none' }} value={(row as any)[f]} onChange={(e) => handleTableChange(setOlRows, olRows, i, f, e.target.value)} />
                   </CustomTableCell>
                 ))}
               </TableRow>
@@ -287,11 +253,9 @@ const handleSubmit = async () => {
       </TableContainer>
 
       <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 800, ...GLOBAL_FONT, color: THEME_COLOR }}>GCE ADVANCED LEVEL (A/L)</Typography>
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2 }}>
-        <TextField label="A/L Stream" fullWidth value={formData.alStream} onChange={(e) => handleInputChange("alStream", e.target.value)} sx={inputSx} />
-      </Stack>
-      <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #ddd", borderRadius: "10px", overflowX: "auto" }}>
-        <Table size="small" sx={{ minWidth: { xs: 500, md: '100%' } }}>
+      <TextField label="A/L Stream" fullWidth value={formData.alStream} onChange={(e) => handleInputChange("alStream", e.target.value)} sx={inputSx} />
+      <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #ddd", borderRadius: "10px", overflowX: "auto", mb: 2 }}>
+        <Table size="small" sx={{ minWidth: 600 }}>
           <TableHead>
             <TableRow>
               {["Subject Name", "Grade", "Year", "Attempt"].map(h => <CustomTableCell key={h} isHeader>{h}</CustomTableCell>)}
@@ -302,7 +266,7 @@ const handleSubmit = async () => {
               <TableRow key={i}>
                 {["subject", "grade", "year", "attempt"].map(f => (
                   <CustomTableCell key={f}>
-                    <input style={{ border: 'none', textAlign: 'center', width: '100%', padding: '10px 0', ...GLOBAL_FONT }} value={(row as any)[f]} onChange={(e) => handleTableChange(setAlRows, alRows, i, f, e.target.value)} />
+                    <input style={{ border: 'none', textAlign: 'center', width: '100%', padding: '12px 0', ...GLOBAL_FONT, outline: 'none' }} value={(row as any)[f]} onChange={(e) => handleTableChange(setAlRows, alRows, i, f, e.target.value)} />
                   </CustomTableCell>
                 ))}
               </TableRow>
@@ -314,64 +278,90 @@ const handleSubmit = async () => {
   );
 
   const renderFinal = () => (
-    <Stack spacing={{ xs: 3, sm: 4 }}>
-      <SectionHeader icon={CloudUploadIcon} title="Step 05: Verification" />
-      
-      <Box sx={{ p: { xs: 2, sm: 4 }, border: "2px dashed #ccc", borderRadius: "15px", textAlign: "center", bgcolor: "#fdfdfd" }}>
-        <CloudUploadIcon sx={{ fontSize: { xs: 40, sm: 50 }, color: THEME_COLOR, mb: 2 }} />
-        <Typography sx={{ ...GLOBAL_FONT, mb: 2, fontWeight: 600, fontSize: { xs: "0.9rem", sm: "1rem" } }}>Drag and drop certificates or click to upload</Typography>
-        <Button variant="contained" component="label" sx={{ ...GLOBAL_FONT, bgcolor: THEME_COLOR, borderRadius: "50px" }}>
+    <Stack spacing={{ xs: 4, sm: 5 }}>
+      <SectionHeader icon={CloudUploadIcon} title="Upload Documents" />
+      <Box sx={{ 
+        p: { xs: 3, sm: 6 }, 
+        border: "2px dashed #004d4040", 
+        borderRadius: "20px", 
+        textAlign: "center", 
+        bgcolor: "#004d4005",
+        transition: '0.3s',
+        '&:hover': { bgcolor: '#004d4008', borderColor: THEME_COLOR }
+      }}>
+        <CloudUploadIcon sx={{ fontSize: { xs: 45, sm: 60 }, color: THEME_COLOR, mb: 2 }} />
+        <Typography sx={{ ...GLOBAL_FONT, mb: 3, fontWeight: 700, fontSize: { xs: "0.9rem", sm: "1.1rem" } }}>Drag & drop or browse certificates</Typography>
+        <Button variant="contained" component="label" sx={{ ...GLOBAL_FONT, bgcolor: THEME_COLOR, borderRadius: "50px", px: 4, py: 1.2 }}>
           Choose Files
           <input type="file" hidden multiple onChange={handleFileChange} />
         </Button>
-        <Stack direction="row" flexWrap="wrap" gap={1} justifyContent="center" sx={{ mt: 3 }}>
-          {selectedFiles.map((f, i) => <Chip key={i} label={f.name} onDelete={() => setSelectedFiles(prev => prev.filter((_, idx) => idx !== i))} icon={<AttachmentIcon />} sx={{ ...GLOBAL_FONT, maxWidth: "100%" }} />)}
+        <Stack direction="row" flexWrap="wrap" gap={1.5} justifyContent="center" sx={{ mt: 4 }}>
+          {selectedFiles.map((f, i) => (
+            <Chip key={i} label={f.name} onDelete={() => setSelectedFiles(prev => prev.filter((_, idx) => idx !== i))} icon={<AttachmentIcon />} sx={{ ...GLOBAL_FONT, bgcolor: 'white', border: '1px solid #ddd' }} />
+          ))}
         </Stack>
       </Box>
 
-      <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, bgcolor: "#f1f8e9", border: "1px solid #c5e1a5", borderRadius: "15px" }}>
-        <Typography variant="h6" sx={{ ...GLOBAL_FONT, fontWeight: 800, color: "#2e7d32", mb: 1, fontSize: { xs: "1rem", sm: "1.25rem" } }}>Student Declaration</Typography>
-        <Typography variant="body2" sx={{ ...GLOBAL_FONT, lineHeight: 1.8, mb: 3, fontSize: { xs: "0.8rem", sm: "0.875rem" } }}>
-          I, the undersigned, hereby declare that the information provided is true and accurate. I understand that the campus 
-          reserves the right to terminate my registration if any information is found to be false. I also accept the fee structure.
+      <Paper elevation={0} sx={{ p: { xs: 2.5, sm: 4 }, bgcolor: "#f1f8e9", border: "1px solid #c5e1a5", borderRadius: "20px" }}>
+        <Typography variant="h6" sx={{ ...GLOBAL_FONT, fontWeight: 900, color: "#2e7d32", mb: 2 }}>Student Declaration</Typography>
+        <Typography variant="body2" sx={{ ...GLOBAL_FONT, lineHeight: 1.8, mb: 4, color: '#333', fontSize: '0.85rem' }}>
+          I hereby declare that all information submitted is correct. {CAMPUS_NAME} International reserves the right to cancel enrollment if discrepancies are found.
         </Typography>
-        <Stack spacing={1}>
-          <FormControlLabel control={<Checkbox checked={formData.termsAccepted} onChange={(e) => handleInputChange("termsAccepted", e.target.checked)} />} label={<Typography sx={{ ...GLOBAL_FONT, fontSize: { xs: '0.75rem', sm: '0.8rem' }, fontWeight: 700 }}>I agree to the General Terms and Conditions</Typography>} />
-          <FormControlLabel control={<Checkbox checked={formData.privacyConsent} onChange={(e) => handleInputChange("privacyConsent", e.target.checked)} />} label={<Typography sx={{ ...GLOBAL_FONT, fontSize: { xs: '0.75rem', sm: '0.8rem' }, fontWeight: 700 }}>I consent to the Privacy Policy and Data Handling</Typography>} />
+        <Stack spacing={1.5}>
+          <FormControlLabel control={<Checkbox checked={formData.termsAccepted} onChange={(e) => handleInputChange("termsAccepted", e.target.checked)} />} label={<Typography sx={{ ...GLOBAL_FONT, fontSize: '0.8rem', fontWeight: 700 }}>Accept General Terms</Typography>} />
+          <FormControlLabel control={<Checkbox checked={formData.privacyConsent} onChange={(e) => handleInputChange("privacyConsent", e.target.checked)} />} label={<Typography sx={{ ...GLOBAL_FONT, fontSize: '0.8rem', fontWeight: 700 }}>Consent to Data Privacy Policy</Typography>} />
         </Stack>
       </Paper>
     </Stack>
   );
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#f0f2f5", pt: { xs: 12, md: 15 }, py: { xs: 6, md: 8 }, px: { xs: 1, sm: 2 } }}>
-      <Paper elevation={15} sx={{ maxWidth: 1100, mx: "auto", p: { xs: 2, sm: 4, md: 8 }, borderRadius: { xs: "15px", md: "30px" } }}>
+    <Box sx={{ 
+      minHeight: "100vh", 
+      bgcolor: "#f4f7f6", 
+      // ADDED MORE TOP PADDING SPACE HERE
+      pt: { xs: 15, sm: 18, md: 22, lg: 25 }, 
+      pb: { xs: 6, md: 10 }, 
+      px: { xs: 1.5, sm: 3 } 
+    }}>
+      <Paper elevation={20} sx={{ 
+        maxWidth: 1100, 
+        mx: "auto", 
+        p: { xs: 2.5, sm: 5, md: 8, lg: 10 }, 
+        borderRadius: { xs: "24px", md: "40px" },
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0, left: 0, right: 0, height: '8px',
+          bgcolor: THEME_COLOR
+        }
+      }}>
         
         {/* BRANDING */}
-        <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems="center" sx={{ mb: { xs: 4, md: 6 } }} spacing={3}>
+        <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ xs: "center", md: "flex-end" }} sx={{ mb: { xs: 6, md: 10 } }} spacing={4}>
           <Box sx={{ textAlign: { xs: "center", md: "left" } }}>
-            <Box
-              component="img"
-              src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
-              sx={{
-                height: { xs: 40, md: 60 },
-                width: 'auto',
-                objectFit: 'contain',
-                mb: 2,
-              }}
-            />
-            <Typography variant="h6" sx={{ fontWeight: 700, color: "#4caf50", ...GLOBAL_FONT, mt: -1, fontSize: { xs: "1rem", sm: "1.25rem" } }}>ACADEMIC ENROLLMENT PORTAL</Typography>
+            <Box component="img" src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" sx={{ height: { xs: 50, md: 70 }, width: 'auto', mb: 2 }} />
+            <Typography variant="h5" sx={{ fontWeight: 900, color: THEME_COLOR, ...GLOBAL_FONT, letterSpacing: '-0.5px' }}>ENROLLMENT PORTAL</Typography>
           </Box>
-          <Box sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: "#e0f2f1", borderRadius: "15px", width: { xs: "100%", md: "auto" }, textAlign: "center" }}>
-            <Typography variant="caption" sx={{ ...GLOBAL_FONT, fontWeight: 800, display: "block", color: THEME_COLOR }}>REGISTRATION STATUS</Typography>
-            <Typography variant="h6" sx={{ ...GLOBAL_FONT, fontWeight: 900, color: THEME_COLOR, fontSize: { xs: "1rem", sm: "1.25rem" } }}>OPEN: INTAKE 2026</Typography>
+          <Box sx={{ 
+            p: { xs: 2, sm: 3 }, 
+            bgcolor: "#e0f2f1", 
+            borderRadius: "18px", 
+            minWidth: { xs: '100%', md: 250 }, 
+            textAlign: "center",
+            boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)'
+          }}>
+            <Typography variant="caption" sx={{ ...GLOBAL_FONT, fontWeight: 800, color: THEME_COLOR, letterSpacing: 1 }}>CURRENT INTAKE</Typography>
+            <Typography variant="h6" sx={{ ...GLOBAL_FONT, fontWeight: 900, color: THEME_COLOR }}>OPEN: 2026 FEB</Typography>
           </Box>
         </Stack>
 
         {activeStep < 5 ? (
           <>
-            <Box sx={{ width: '100%', overflowX: 'auto', pb: 2, mb: { xs: 4, md: 8 } }}>
-              <Stepper activeStep={activeStep} alternativeLabel sx={{ minWidth: { xs: 500, sm: 'auto' } }}>
+            <Box sx={{ width: '100%', overflowX: 'auto', mb: { xs: 6, md: 10 }, scrollbarWidth: 'none' }}>
+              <Stepper activeStep={activeStep} alternativeLabel={!isMobile} orientation={isMobile ? 'vertical' : 'horizontal'}>
                 {steps.map(label => (
                   <Step key={label}>
                     <StepLabel sx={{ "& .MuiStepLabel-label": { ...GLOBAL_FONT, fontWeight: 700, fontSize: "0.75rem" } }}>{label}</StepLabel>
@@ -380,9 +370,7 @@ const handleSubmit = async () => {
               </Stepper>
             </Box>
 
-            <Divider sx={{ mb: { xs: 4, md: 6 } }} />
-
-            <Box sx={{ minHeight: { xs: 300, md: 400 } }}>
+            <Box sx={{ minHeight: { xs: 400, md: 500 } }}>
               {activeStep === 0 && renderInquiry()}
               {activeStep === 1 && renderPersonal()}
               {activeStep === 2 && renderGuardian()}
@@ -390,38 +378,56 @@ const handleSubmit = async () => {
               {activeStep === 4 && renderFinal()}
             </Box>
 
-            <Box sx={{ display: "flex", flexDirection: { xs: "column-reverse", sm: "row" }, gap: 2, justifyContent: "space-between", mt: { xs: 4, md: 8 }, pt: 4, borderTop: "2px solid #f5f5f5" }}>
-              <Button disabled={activeStep === 0} onClick={handleBack} startIcon={<BackIcon />} sx={{ ...GLOBAL_FONT, fontWeight: 800, px: 4, width: { xs: "100%", sm: "auto" }, py: { xs: 1.5, sm: 1 } }}>Back</Button>
+            <Box sx={{ 
+              display: "flex", 
+              flexDirection: { xs: "column-reverse", sm: "row" }, 
+              gap: 2, 
+              justifyContent: "space-between", 
+              mt: { xs: 6, md: 10 }, 
+              pt: 5, 
+              borderTop: "2px solid #f0f0f0" 
+            }}>
+              <Button disabled={activeStep === 0} onClick={handleBack} startIcon={<BackIcon />} sx={{ ...GLOBAL_FONT, fontWeight: 800, px: 5, py: 1.5 }}>Back</Button>
               <Button 
                 variant="contained" 
                 onClick={activeStep === steps.length - 1 ? handleSubmit : handleNext} 
                 disabled={isSubmitting || (activeStep === 4 && !formData.termsAccepted)}
                 endIcon={activeStep === steps.length - 1 ? <CheckCircleIcon /> : <NextIcon />}
-                sx={{ bgcolor: THEME_COLOR, ...GLOBAL_FONT, fontWeight: 900, px: 6, py: 1.5, borderRadius: "50px", boxShadow: "0 10px 20px rgba(0,77,64,0.2)", width: { xs: "100%", sm: "auto" } }}
+                sx={{ 
+                  bgcolor: THEME_COLOR, 
+                  ...GLOBAL_FONT, 
+                  fontWeight: 900, 
+                  px: { xs: 4, sm: 8 }, 
+                  py: 2, 
+                  borderRadius: "50px", 
+                  boxShadow: "0 12px 24px rgba(0,77,64,0.3)",
+                  '&:hover': { bgcolor: '#00332a' }
+                }}
               >
-                {activeStep === 4 ? "Submit Application" : "Save & Continue"}
+                {activeStep === 4 ? "Submit Now" : "Continue"}
               </Button>
             </Box>
           </>
         ) : (
           <Fade in timeout={1000}>
-            <Box sx={{ textAlign: "center", py: { xs: 5, md: 10 } }}>
-              <CheckCircleIcon sx={{ fontSize: { xs: 80, md: 120 }, color: "#4caf50", mb: 4 }} />
-              <Typography variant="h3" sx={{ ...GLOBAL_FONT, fontWeight: 900, color: THEME_COLOR, mb: 2, fontSize: { xs: "2rem", md: "3rem" } }}>Submission Success!</Typography>
-              <Typography sx={{ ...GLOBAL_FONT, color: "#666", mb: 6, fontSize: { xs: "0.9rem", md: "1.1rem" } }}>
-                Thank you, <strong>{formData.fullName}</strong>. Your registration for <strong>{formData.programme}</strong> has been logged. 
-                Reference ID: #BRN-2026-{Math.floor(Math.random() * 9000) + 1000}.
+            <Box sx={{ textAlign: "center", py: { xs: 8, md: 15 } }}>
+              <CheckCircleIcon sx={{ fontSize: { xs: 100, md: 150 }, color: "#4caf50", mb: 4 }} />
+              <Typography variant="h3" sx={{ ...GLOBAL_FONT, fontWeight: 900, color: THEME_COLOR, mb: 3 }}>Submitted!</Typography>
+              <Typography sx={{ ...GLOBAL_FONT, color: "#555", mb: 6, maxWidth: 600, mx: 'auto', lineHeight: 2 }}>
+                Thank you, <strong>{formData.fullName}</strong>. Your academic application for <strong>{formData.programme}</strong> is now being processed by the admissions committee.
               </Typography>
-              <Button variant="outlined" onClick={() => window.location.reload()} sx={{ ...GLOBAL_FONT, borderRadius: "50px", px: 4, py: 1.5, width: { xs: "100%", sm: "auto" } }}>Start New Entry</Button>
+              <Button variant="outlined" size="large" onClick={() => window.location.reload()} sx={{ ...GLOBAL_FONT, borderRadius: "50px", px: 6, py: 2, borderWidth: 2, fontWeight: 800 }}>Close Portal</Button>
             </Box>
           </Fade>
         )}
       </Paper>
       
-      <Typography variant="caption" sx={{ display: "block", textAlign: "center", mt: 6, color: "#999", ...GLOBAL_FONT, px: 2 }}>
-        © 2026 {CAMPUS_NAME} INTERNATIONAL. ENCRYPTED DATA TRANSMISSION PROTOCOL V4.2 <br/>
-        SENSITIVE INFORMATION IS HANDLED ACCORDING TO GDPR AND LOCAL PRIVACY LAWS.
-      </Typography>
+      <Box sx={{ textAlign: "center", mt: 8, px: 4 }}>
+        <Typography variant="caption" sx={{ color: "#777", ...GLOBAL_FONT, fontSize: '0.7rem', display: 'block', lineHeight: 2 }}>
+          © 2026 {CAMPUS_NAME} INTERNATIONAL EDUCATION GROUP • SECURE SSL ENCRYPTION <br/>
+          GOVERNED BY INTERNATIONAL PRIVACY STANDARDS & LOCAL DATA PROTECTION ACTS.
+        </Typography>
+      </Box>
     </Box>
   );
 };
