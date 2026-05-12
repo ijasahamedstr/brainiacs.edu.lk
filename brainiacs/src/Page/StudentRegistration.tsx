@@ -3,9 +3,9 @@ import type { ChangeEvent } from "react";
 import {
   Box, Typography, TextField, Button, FormControl, FormLabel,
   RadioGroup, FormControlLabel, Radio, Checkbox, FormGroup, 
-  Paper, Stack, Divider, Stepper, Step, StepLabel,
+  Paper, Stack, Stepper, Step, StepLabel, LinearProgress,
   InputAdornment, Fade, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Chip, MenuItem, useTheme, useMediaQuery
+  Chip, MenuItem, useTheme, useMediaQuery, IconButton
 } from "@mui/material";
 import {
   CloudUpload as CloudUploadIcon,
@@ -16,7 +16,9 @@ import {
   Person as PersonIcon,
   School as SchoolIcon,
   VerifiedUser as VerifiedUserIcon,
-  Attachment as AttachmentIcon
+  Attachment as AttachmentIcon,
+  Add as AddIcon,
+  DeleteOutline as DeleteIcon
 } from "@mui/icons-material";
 
 // Configuration & Global Styles
@@ -48,7 +50,6 @@ const StudentRegistration = () => {
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const isLargeDesktop = useMediaQuery(theme.breakpoints.up('xl'));
 
   const steps = ["Inquiry Info", "Personal Identity", "Guardian/Emergency", "Academic Grid", "Uploads & Policy"];
 
@@ -79,6 +80,7 @@ const StudentRegistration = () => {
     privacyConsent: false
   });
 
+  // Start with 10 O/L rows and 4 A/L rows by default
   const [olRows, setOlRows] = useState(Array(10).fill(null).map(() => ({ y1: "", s1: "", g1: "", y2: "", s2: "", g2: "" })));
   const [alRows, setAlRows] = useState(Array(4).fill(null).map(() => ({ subject: "", grade: "", year: "", attempt: "" })));
   const [otherQuals] = useState(Array(4).fill(null).map(() => ({ name: "", year: "", body: "", grade: "" })));
@@ -103,6 +105,18 @@ const StudentRegistration = () => {
     updated[index] = { ...updated[index], [field]: value };
     setter(updated);
   };
+
+  // --- Dynamic Table Handlers ---
+  const handleAddOlRow = () => setOlRows([...olRows, { y1: "", s1: "", g1: "", y2: "", s2: "", g2: "" }]);
+  const handleAddAlRow = () => setAlRows([...alRows, { subject: "", grade: "", year: "", attempt: "" }]);
+
+  const handleRemoveOlRow = (index: number) => {
+    if (olRows.length > 1) setOlRows(olRows.filter((_, i) => i !== index));
+  };
+  const handleRemoveAlRow = (index: number) => {
+    if (alRows.length > 1) setAlRows(alRows.filter((_, i) => i !== index));
+  };
+  // ------------------------------
 
   const handleCheckboxGroup = (field: "surveySource" | "olExamTypes" | "alExamTypes", value: string) => {
     const current = formData[field] as string[];
@@ -220,20 +234,30 @@ const StudentRegistration = () => {
   const renderAcademic = () => (
     <Box>
       <SectionHeader icon={SchoolIcon} title="Academic History" />
-      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 800, ...GLOBAL_FONT, color: THEME_COLOR }}>GCE ORDINARY LEVEL (O/L)</Typography>
+      
+      {/* O/L SECTION */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 800, ...GLOBAL_FONT, color: THEME_COLOR }}>
+          GCE ORDINARY LEVEL (O/L)
+        </Typography>
+        <Button size="small" startIcon={<AddIcon />} onClick={handleAddOlRow} sx={{ ...GLOBAL_FONT, fontWeight: 700, color: THEME_COLOR }}>
+          Add Row
+        </Button>
+      </Stack>
+      
       <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #ddd", borderRadius: "10px", mb: 5, overflowX: "auto" }}>
-        <Table size="small" sx={{ minWidth: 800 }}>
+        <Table size="small" sx={{ minWidth: 850 }}>
           <TableHead>
             <TableRow>
               <CustomTableCell isHeader>EXAM</CustomTableCell>
-              {["Year", "Subject", "Grade", "Year", "Subject", "Grade"].map((h, i) => <CustomTableCell key={i} isHeader>{h}</CustomTableCell>)}
+              {["Year", "Subject", "Grade", "Year", "Subject", "Grade", "Action"].map((h, i) => <CustomTableCell key={i} isHeader>{h}</CustomTableCell>)}
             </TableRow>
           </TableHead>
           <TableBody>
             {olRows.map((row, i) => (
               <TableRow key={i}>
                 {i === 0 && (
-                  <TableCell rowSpan={10} sx={{ borderRight: "1px solid #ddd", width: 120 }}>
+                  <TableCell rowSpan={Math.max(1, olRows.length)} sx={{ borderRight: "1px solid #ddd", width: 120 }}>
                     <FormGroup>
                       {["Local", "Foreigner"].map(l => (
                         <FormControlLabel key={l} control={<Checkbox size="small" checked={formData.olExamTypes.includes(l)} onChange={() => handleCheckboxGroup("olExamTypes", l)} />} label={<Typography sx={{ fontSize: '0.65rem', ...GLOBAL_FONT, fontWeight: 600 }}>{l}</Typography>} />
@@ -246,19 +270,34 @@ const StudentRegistration = () => {
                     <input style={{ border: 'none', textAlign: 'center', width: '100%', padding: '12px 0', ...GLOBAL_FONT, outline: 'none' }} value={(row as any)[f]} onChange={(e) => handleTableChange(setOlRows, olRows, i, f, e.target.value)} />
                   </CustomTableCell>
                 ))}
+                <CustomTableCell>
+                  <IconButton size="small" color="error" onClick={() => handleRemoveOlRow(i)} disabled={olRows.length === 1}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </CustomTableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 800, ...GLOBAL_FONT, color: THEME_COLOR }}>GCE ADVANCED LEVEL (A/L)</Typography>
-      <TextField label="A/L Stream" fullWidth value={formData.alStream} onChange={(e) => handleInputChange("alStream", e.target.value)} sx={inputSx} />
+      {/* A/L SECTION */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 800, ...GLOBAL_FONT, color: THEME_COLOR }}>
+          GCE ADVANCED LEVEL (A/L)
+        </Typography>
+        <Button size="small" startIcon={<AddIcon />} onClick={handleAddAlRow} sx={{ ...GLOBAL_FONT, fontWeight: 700, color: THEME_COLOR }}>
+          Add Row
+        </Button>
+      </Stack>
+
+      <TextField label="A/L Stream" fullWidth value={formData.alStream} onChange={(e) => handleInputChange("alStream", e.target.value)} sx={{ ...inputSx, mb: 3 }} />
+      
       <TableContainer component={Paper} elevation={0} sx={{ border: "1px solid #ddd", borderRadius: "10px", overflowX: "auto", mb: 2 }}>
-        <Table size="small" sx={{ minWidth: 600 }}>
+        <Table size="small" sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
-              {["Subject Name", "Grade", "Year", "Attempt"].map(h => <CustomTableCell key={h} isHeader>{h}</CustomTableCell>)}
+              {["Subject Name", "Grade", "Year", "Attempt", "Action"].map(h => <CustomTableCell key={h} isHeader>{h}</CustomTableCell>)}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -269,6 +308,11 @@ const StudentRegistration = () => {
                     <input style={{ border: 'none', textAlign: 'center', width: '100%', padding: '12px 0', ...GLOBAL_FONT, outline: 'none' }} value={(row as any)[f]} onChange={(e) => handleTableChange(setAlRows, alRows, i, f, e.target.value)} />
                   </CustomTableCell>
                 ))}
+                <CustomTableCell>
+                  <IconButton size="small" color="error" onClick={() => handleRemoveAlRow(i)} disabled={alRows.length === 1}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </CustomTableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -319,7 +363,6 @@ const StudentRegistration = () => {
     <Box sx={{ 
       minHeight: "100vh", 
       bgcolor: "#f4f7f6", 
-      // ADDED MORE TOP PADDING SPACE HERE
       pt: { xs: 15, sm: 18, md: 22, lg: 25 }, 
       pb: { xs: 6, md: 10 }, 
       px: { xs: 1.5, sm: 3 } 
@@ -360,15 +403,37 @@ const StudentRegistration = () => {
 
         {activeStep < 5 ? (
           <>
-            <Box sx={{ width: '100%', overflowX: 'auto', mb: { xs: 6, md: 10 }, scrollbarWidth: 'none' }}>
-              <Stepper activeStep={activeStep} alternativeLabel={!isMobile} orientation={isMobile ? 'vertical' : 'horizontal'}>
-                {steps.map(label => (
-                  <Step key={label}>
-                    <StepLabel sx={{ "& .MuiStepLabel-label": { ...GLOBAL_FONT, fontWeight: 700, fontSize: "0.75rem" } }}>{label}</StepLabel>
-                  </Step>
-                ))}
-              </Stepper>
-            </Box>
+            {/* PROGRESS BAR LOGIC */}
+            {isMobile ? (
+              <Box sx={{ mb: 5, textAlign: "center", px: 2 }}>
+                <Typography variant="caption" sx={{ ...GLOBAL_FONT, fontWeight: 800, color: "#888", letterSpacing: 1, display: 'block', mb: 0.5 }}>
+                  STEP {activeStep + 1} OF {steps.length}
+                </Typography>
+                <Typography variant="h6" sx={{ ...GLOBAL_FONT, fontWeight: 900, color: THEME_COLOR, mb: 2 }}>
+                  {steps[activeStep]}
+                </Typography>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={((activeStep + 1) / steps.length) * 100} 
+                  sx={{ 
+                    height: 8, 
+                    borderRadius: 4, 
+                    bgcolor: '#e0f2f1',
+                    '& .MuiLinearProgress-bar': { bgcolor: THEME_COLOR, borderRadius: 4 }
+                  }} 
+                />
+              </Box>
+            ) : (
+              <Box sx={{ width: '100%', overflowX: 'auto', mb: { xs: 6, md: 10 }, scrollbarWidth: 'none' }}>
+                <Stepper activeStep={activeStep} alternativeLabel>
+                  {steps.map(label => (
+                    <Step key={label}>
+                      <StepLabel sx={{ "& .MuiStepLabel-label": { ...GLOBAL_FONT, fontWeight: 700, fontSize: "0.75rem" } }}>{label}</StepLabel>
+                    </Step>
+                  ))}
+                </Stepper>
+              </Box>
+            )}
 
             <Box sx={{ minHeight: { xs: 400, md: 500 } }}>
               {activeStep === 0 && renderInquiry()}
