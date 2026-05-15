@@ -1,50 +1,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import Rellax from "rellax";
+import { Box, Typography } from "@mui/material";
+
+interface StudentLifeEvent {
+  _id: string;
+  name: string;
+  descriptions: string[];
+  imageUrls: string[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 const Studentlife: React.FC = () => {
-  const events = [
-    {
-      title: "Uni Sittham",
-      date: "August 30, 2025",
-      image:
-        "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/events/uni-siththam-lyceum-campus-11.webp",
-    },
-    {
-      title: "Paduru Party 2024",
-      date: "April 8, 2024",
-      image:
-        "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/5Usk2HCIqbE5x77lg8q3uDu1191m54NY0TTuwL15.webp",
-    },
-    {
-      title: "Ravi Ru 2024",
-      date: "April 22, 2024",
-      image:
-        "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/juVB2SDRZ1n7ZtSDquOr3dcVlewhkNFgSfpa4vFD.jpg",
-    },
-    {
-      title: "Iftar Celebration",
-      date: "March 23, 2024",
-      image:
-        "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/events/iftar-celebration-2024-lyceum-campus-8.webp",
-    },
-    {
-      title: "New Student Council Installation",
-      date: "March 15, 2024",
-      image:
-        "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/events/new-student-council-installation-lyceum-campus-1.webp",
-    },
-    {
-      title: "Felize Night 22",
-      date: "December 9, 2022",
-      image:
-        "https://lyc-website-bucket.s3.ap-southeast-1.amazonaws.com/events/felize-night-22-lyceum-campus-3.webp",
-    },
-  ];
+  const [events, setEvents] = useState<StudentLifeEvent[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Pagination setup
   const [currentPage, setCurrentPage] = useState(1);
   const eventsPerPage = 6;
+  
   const indexOfLast = currentPage * eventsPerPage;
   const indexOfFirst = indexOfLast - eventsPerPage;
   const currentEvents = events.slice(indexOfFirst, indexOfLast);
@@ -57,10 +33,33 @@ const Studentlife: React.FC = () => {
     }
   };
 
+  // Fetch data from the API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${API_BASE_URL}/api/student-life`);
+        
+        if (!response.ok) {
+          throw new Error("Failed to fetch student life events");
+        }
+        
+        const data = await response.json();
+        setEvents(data.data || data); 
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
   // Rellax setup
   const circleRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (circleRef.current) {
+    if (circleRef.current && !isLoading && window.innerWidth > 768) {
       new Rellax(circleRef.current, {
         speed: -3,
         center: false,
@@ -70,225 +69,320 @@ const Studentlife: React.FC = () => {
         horizontal: false,
       });
     }
-  }, []);
+  }, [isLoading]);
 
-  // Styles
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('en-US', options);
+  };
+
+  // Fluid & Fully Responsive Styles
   const styles = {
     sectionWrapper: {
       position: "relative" as const,
       overflow: "hidden",
       zIndex: 1,
+      width: "100%",
     },
     backgroundCircle: {
       position: "absolute" as const,
       top: "-120px",
       left: "-120px",
-      width: "420px",
-      height: "420px",
+      width: "clamp(300px, 30vw, 600px)",
+      height: "clamp(300px, 30vw, 600px)",
       borderRadius: "50%",
       backgroundColor: "#cce4ff",
       zIndex: 0,
     },
     container: {
       position: "relative" as const,
-      backgroundColor: "#fff",
-      padding: "50px 5%",
+      backgroundColor: "transparent",
+      padding: "25px clamp(5%, 8vw, 10%) clamp(60px, 8vw, 100px)",
       textAlign: "center" as const,
       fontFamily: "'Poppins', sans-serif",
       zIndex: 1,
+      minHeight: "60vh",
     },
     title: {
-      fontSize: "2.5rem",
-      fontWeight: 700,
-      color: "#111827",
-      marginBottom: "0.5rem",
+      fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
+      fontWeight: 800,
+      color: "#1E56A0", 
+      marginBottom: "0.25rem",
+      marginTop: "0",
       fontFamily: "'Montserrat', sans-serif",
+      letterSpacing: "0.5px",
     },
     subtitle: {
-      fontSize: "1.75rem",
+      fontSize: "clamp(1rem, 1.5vw, 1.25rem)",
       fontWeight: 600,
-      color: "#4b5563",
-      marginBottom: "2.5rem",
+      color: "#7f8c8d",
+      marginBottom: "clamp(2rem, 5vw, 3.5rem)",
       fontFamily: "'Montserrat', sans-serif",
-    },
-    grid: {
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-      gap: "30px",
-      maxWidth: "1200px",
-      margin: "0 auto",
-    },
-    card: {
-      backgroundColor: "#2d2d2d",
-      borderRadius: "8px",
-      overflow: "hidden",
-      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-      transition: "transform 0.3s ease, box-shadow 0.3s ease",
-    },
-    image: {
-      width: "100%",
-      height: "220px",
-      objectFit: "cover" as const,
-      display: "block",
-    },
-    info: {
-      backgroundColor: "#1f2937",
-      padding: "15px",
-      color: "#fff",
-      textAlign: "left" as const,
-      fontFamily: "'Montserrat', sans-serif",
-    },
-    eventName: {
-      fontSize: "1rem",
-      fontWeight: 600,
-      margin: "0 0 5px 0",
-      fontFamily: "'Montserrat', sans-serif",
-    },
-    date: {
-      fontSize: "0.9rem",
-      color: "#d1d5db",
-      display: "flex",
-      alignItems: "center",
-      gap: "6px",
-      fontFamily: "'Montserrat', sans-serif",
+      textTransform: "uppercase" as const,
+      letterSpacing: "2px",
     },
     pagination: {
-      marginTop: "40px",
+      marginTop: "clamp(50px, 8vw, 80px)",
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      gap: "10px",
+      gap: "clamp(8px, 1.5vw, 15px)",
+      flexWrap: "wrap" as const,
     },
     pageButton: {
-      backgroundColor: "#f3f4f6",
-      color: "#111827",
-      border: "1px solid #d1d5db",
-      width: "40px",
-      height: "40px",
-      borderRadius: "50%",
+      backgroundColor: "#fff",
+      color: "#1E56A0",
+      border: "1px solid #1E56A0",
+      width: "clamp(35px, 4vw, 45px)",
+      height: "clamp(35px, 4vw, 45px)",
+      borderRadius: "8px", 
       cursor: "pointer",
-      fontWeight: 600,
-      fontSize: "0.9rem",
-      transition: "all 0.25s ease",
+      fontWeight: 700,
+      fontSize: "clamp(0.9rem, 1.2vw, 1rem)",
+      transition: "all 0.3s ease",
+      boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
     },
     activePage: {
-      backgroundColor: "#0a5397",
+      backgroundColor: "#1E56A0",
       color: "#fff",
-      border: "1px solid #0a5397",
     },
-    navButton: {
-      backgroundColor: "#f3f4f6",
-      color: "#111827",
-      border: "none",
-      borderRadius: "50%",
-      width: "40px",
-      height: "40px",
-      cursor: "pointer",
-      fontWeight: 600,
-      transition: "all 0.25s ease",
-    },
-    disabled: {
-      opacity: 0.4,
-      cursor: "not-allowed",
-    },
+    statusMessage: {
+      fontSize: "clamp(1.1rem, 2vw, 1.5rem)",
+      color: "#7f8c8d",
+      padding: "40px 0",
+    }
   };
 
   return (
-    <section style={styles.sectionWrapper}>
-      {/* Parallax Background Circle */}
-      <div ref={circleRef} style={styles.backgroundCircle}></div>
+    <Box sx={{ backgroundColor: "#fafafa", minHeight: "100vh" }}>
+      {/* Blue Header */}
+      <Box
+        sx={{
+          backgroundColor: "#1E56A0",
+          py: { xs: 4, md: 8 },
+          textAlign: "center",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+          position: "relative",
+          zIndex: 2
+        }}
+      >
+        <Typography
+          variant="h3"
+          sx={{
+            color: "#fff",
+            fontWeight: "bold",
+            fontFamily: '"Montserrat", sans-serif',
+            letterSpacing: "1px",
+            fontSize: { xs: "2rem", md: "3rem" }
+          }}
+        >
+        </Typography>
+      </Box>
 
-      <div style={styles.container}>
-        <h1 style={styles.title}>Student Life of Lyceum Campus</h1>
-        <h2 style={styles.subtitle}>Past Events</h2>
+      <section style={styles.sectionWrapper}>
+        <style>
+          {`
+            @keyframes popIn {
+              0% { opacity: 0; transform: translateY(50px) scale(0.9); }
+              70% { transform: translateY(-10px) scale(1.02); }
+              100% { opacity: 1; transform: translateY(0) scale(1); }
+            }
 
-        <div style={styles.grid}>
-          {currentEvents.map((event, index) => (
-            <Link
-              to={`/events/${event.title.replace(/\s+/g, "-").toLowerCase()}`}
-              key={index}
-              style={{ textDecoration: "none" }}
-            >
-              <div
-                style={{ ...styles.card, cursor: "pointer" }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.transform = "scale(1.03)";
-                  (e.currentTarget as HTMLElement).style.boxShadow =
-                    "0 8px 16px rgba(0,0,0,0.2)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.transform = "scale(1)";
-                  (e.currentTarget as HTMLElement).style.boxShadow =
-                    "0 4px 12px rgba(0,0,0,0.1)";
-                }}
-              >
-                <img src={event.image} alt={event.title} style={styles.image} />
-                <div style={styles.info}>
-                  <h3 style={styles.eventName}>{event.title}</h3>
-                  <p style={styles.date}>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
+            .event-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+              gap: 35px;
+              max-width: 1400px;
+              margin: 0 auto;
+            }
+
+            .animated-card {
+              background: #ffffff;
+              border-radius: 16px;
+              overflow: hidden;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+              border: 1px solid rgba(0,0,0,0.03);
+              display: flex;
+              flex-direction: column;
+              height: 100%; 
+              animation: popIn 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+              cursor: pointer;
+              transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            }
+
+            .animated-card:hover {
+              transform: translateY(-12px) scale(1.02);
+              box-shadow: 0 20px 40px rgba(30, 86, 160, 0.15); 
+            }
+
+            .card-image-wrapper {
+              overflow: hidden;
+              width: 100%;
+              height: 250px; 
+            }
+
+            .event-image {
+              width: 100%;
+              height: 100%; 
+              object-fit: cover;
+              transition: transform 0.6s ease;
+            }
+
+            .animated-card:hover .event-image {
+              transform: scale(1.08);
+            }
+
+            .event-info {
+              padding: 20px 24px;
+              text-align: left;
+              display: flex;
+              flex-direction: column;
+              flex-grow: 1; 
+              justify-content: flex-start;
+              background: #fff;
+              position: relative;
+              z-index: 2;
+            }
+
+            .event-title {
+              /* Reduced Title Font Size */
+              font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+              font-weight: 700;
+              color: #1a1a1a;
+              margin: 0 0 10px 0;
+              font-family: 'Montserrat', sans-serif;
+              line-height: 1.4;
+              transition: color 0.3s ease;
+            }
+
+            .animated-card:hover .event-title {
+              color: #1E56A0; 
+            }
+
+            .event-date {
+              /* Reduced Date Font Size */
+              font-size: 0.8rem;
+              color: #757575;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              font-family: 'Montserrat', sans-serif;
+              font-weight: 600;
+              margin-top: auto; 
+            }
+            
+            .date-icon {
+              color: #1E56A0;
+            }
+          `}
+        </style>
+
+        {/* Parallax Background Circle */}
+        <div ref={circleRef} style={styles.backgroundCircle}></div>
+
+        <div style={styles.container}>
+          <h1 style={styles.title}>Lyceum Campus</h1>
+          <h2 style={styles.subtitle}>Past Events</h2>
+
+          {isLoading ? (
+            <div style={styles.statusMessage}>Loading events...</div>
+          ) : error ? (
+            <div style={styles.statusMessage}>Error: {error}</div>
+          ) : events.length === 0 ? (
+            <div style={styles.statusMessage}>No events found.</div>
+          ) : (
+            <>
+              <div className="event-grid">
+                {currentEvents.map((event, index) => (
+                  <Link
+                    to={`/events/${event.name.replace(/\s+/g, "-").toLowerCase()}`}
+                    key={event._id}
+                    style={{ textDecoration: "none", display: "block" }}
+                  >
+                    <div 
+                      className="animated-card"
+                      style={{ animationDelay: `${index * 0.12}s` }} 
                     >
-                      <path
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        fill="none"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
-                      />
-                    </svg>
-                    {event.date}
-                  </p>
-                </div>
+                      <div className="card-image-wrapper">
+                        <img 
+                          src={event.imageUrls[0] || "https://via.placeholder.com/600x400?text=No+Image"} 
+                          alt={event.name} 
+                          className="event-image"
+                        />
+                      </div>
+                      <div className="event-info">
+                        <h3 className="event-title">{event.name}</h3>
+                        <p className="event-date">
+                          {/* Reduced SVG icon size to match smaller text */}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="14"
+                            height="14"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            className="date-icon"
+                          >
+                            <path
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              fill="none"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
+                          </svg>
+                          {formatDate(event.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            </Link>
-          ))}
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div style={styles.pagination}>
+                  <button
+                    style={{
+                      ...styles.pageButton,
+                      ...(currentPage === 1 ? { opacity: 0.4, cursor: 'not-allowed' } : {}),
+                    }}
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                  >
+                    ‹
+                  </button>
+
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i}
+                      style={{
+                        ...styles.pageButton,
+                        ...(currentPage === i + 1 ? styles.activePage : {}),
+                      }}
+                      onClick={() => goToPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    style={{
+                      ...styles.pageButton,
+                      ...(currentPage === totalPages ? { opacity: 0.4, cursor: 'not-allowed' } : {}),
+                    }}
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                  >
+                    ›
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
-
-        {/* Pagination */}
-        <div style={styles.pagination}>
-          <button
-            style={{
-              ...styles.navButton,
-              ...(currentPage === 1 ? styles.disabled : {}),
-            }}
-            onClick={() => goToPage(currentPage - 1)}
-            disabled={currentPage === 1}
-          >
-            ‹
-          </button>
-
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              style={{
-                ...styles.pageButton,
-                ...(currentPage === i + 1 ? styles.activePage : {}),
-              }}
-              onClick={() => goToPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
-
-          <button
-            style={{
-              ...styles.navButton,
-              ...(currentPage === totalPages ? styles.disabled : {}),
-            }}
-            onClick={() => goToPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-          >
-            ›
-          </button>
-        </div>
-      </div>
-    </section>
+      </section>
+    </Box>
   );
 };
 

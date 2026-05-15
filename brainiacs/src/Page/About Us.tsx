@@ -1,5 +1,6 @@
 import React from "react";
 import { Box, Breadcrumbs, Link, Typography } from "@mui/material";
+import { motion, type Variants } from "framer-motion"; // ✅ Added the "type" keyword here
 
 const Aboutus: React.FC = () => {
   const primaryFont = "'Montserrat', sans-serif";
@@ -15,10 +16,29 @@ const Aboutus: React.FC = () => {
     { title: "Sustainability", image: "https://lyceumcampus.lk/assets/img/icons/lineal/sustainability-our-values-lyceum-campus.svg" },
   ];
 
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15 },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  };
+
   return (
     <Box sx={{ overflowX: "hidden" }}>
-      {/* ✅ Header Banner with Zoom Effect */}
-      <Box sx={{ overflow: "hidden", height: { xs: "220px", md: "400px" } }}>
+      {/* Header Banner */}
+      <Box
+        component={motion.div}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+        sx={{ overflow: "hidden", height: { xs: "220px", md: "400px" } }}
+      >
         <Box
           component="img"
           src="https://lyceumcampus.lk/assets/website/about/about-us-lyceum-campus.webp"
@@ -28,12 +48,12 @@ const Aboutus: React.FC = () => {
             height: "100%",
             objectFit: "cover",
             transition: "transform 8s ease",
-            "&:hover": { transform: "scale(1.1)" }, // Subtle zoom on hover
+            "&:hover": { transform: "scale(1.1)" },
           }}
         />
       </Box>
 
-      {/* ✅ Breadcrumb Section with Shadow */}
+      {/* Breadcrumb Section */}
       <Box sx={{ bgcolor: "#F1F5F9", py: 2, boxShadow: "inset 0 -2px 5px rgba(0,0,0,0.05)" }}>
         <Box sx={{ width: "90%", maxWidth: "1300px", mx: "auto" }}>
           <Breadcrumbs separator="›" sx={{ fontSize: { xs: "14px", md: "16px" }, fontWeight: 500 }}>
@@ -43,7 +63,7 @@ const Aboutus: React.FC = () => {
         </Box>
       </Box>
 
-      {/* ✅ About Section with Content Reveal */}
+      {/* About Section */}
       <Box
         sx={{
           width: "90%",
@@ -57,7 +77,14 @@ const Aboutus: React.FC = () => {
           gap: 6,
         }}
       >
-        <Box sx={{ flex: 1 }}>
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, x: -50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8 }}
+          sx={{ flex: 1 }}
+        >
           <Typography sx={{ color: "#1E40AF", fontWeight: 800, mb: 1, fontFamily: primaryFont, letterSpacing: 1 }}>OUR STORY</Typography>
           <Typography sx={{ color: "#475569", fontSize: "16px", lineHeight: 1.9, fontFamily: primaryFont, mb: 2 }}>
             Established in 2020, <b>Brainiacs Campus</b>, the higher education arm of the Lyceum Education Group, has been instrumental in moulding the lives and educational journey...
@@ -70,84 +97,111 @@ const Aboutus: React.FC = () => {
           </Typography>
         </Box>
 
-        {/* ✅ Right Side Image Collage with Floating Effect */}
-             <Box
-                  sx={{
-                    flex: 1,
-                    position: "relative",
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    mt: { xs: 4, md: 0 },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: { xs: "none", xl: "block" },
-                      position: "absolute",
-                      top: "-50px",
-                      left: "90px",
-                      width: "260px",
-                      height: "260px",
-                      backgroundImage: "radial-gradient(#1E40AF 2px, transparent 2px)",
-                      backgroundSize: "18px 18px",
-                      borderRadius: "12px",
-                      opacity: 0.6,
-                      zIndex: 1,
-                      filter: "contrast(1.2) brightness(0.9)",
-                    }}
-                  />
-        
-                  <Box
-                    component="img"
-                    src="https://lyceumcampus.lk/assets/website/about/about-us-lyceum-campus-3.webp"
-                    alt="Lyceum Campus Background"
-                    sx={{
-                      display: { xs: "none", xl: "block" },
-                      position: "absolute",
-                      top: "-60px",
-                      right: "-90px",
-                      width: "350px",
-                      borderRadius: "16px",
-                      zIndex: 2,
-                      boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
-                    }}
-                  />
-        
-                  <Box
-                    component="img"
-                    src="https://lyceumcampus.lk/assets/website/about/about-us-lyceum-campus-2.webp"
-                    alt="Lyceum Campus Students"
-                    sx={{
-                      position: "relative",
-                      width: { xs: "90%", md: "85%" },
-                      maxWidth: "350px",
-                      borderRadius: "16px",
-                      zIndex: 3,
-                      boxShadow: "0 10px 26px rgba(0,0,0,0.25)",
-                    }}
-                  />
-                </Box>
-   
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, x: 50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8 }}
+          sx={{
+            flex: 1,
+            position: "relative",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            mt: { xs: 4, md: 0 },
+          }}
+        >
+          <Box
+            sx={{
+              display: { xs: "none", xl: "block" },
+              position: "absolute",
+              top: "-50px",
+              left: "90px",
+              width: "260px",
+              height: "260px",
+              backgroundImage: "radial-gradient(#1E40AF 2px, transparent 2px)",
+              backgroundSize: "18px 18px",
+              borderRadius: "12px",
+              opacity: 0.6,
+              zIndex: 1,
+              filter: "contrast(1.2) brightness(0.9)",
+            }}
+          />
+
+          <Box
+            component="img"
+            src="https://lyceumcampus.lk/assets/website/about/about-us-lyceum-campus-3.webp"
+            alt="Lyceum Campus Background"
+            sx={{
+              display: { xs: "none", xl: "block" },
+              position: "absolute",
+              top: "-60px",
+              right: "-90px",
+              width: "350px",
+              borderRadius: "16px",
+              zIndex: 2,
+              boxShadow: "0 6px 18px rgba(0,0,0,0.15)",
+            }}
+          />
+
+          <Box
+            component="img"
+            src="https://lyceumcampus.lk/assets/website/about/about-us-lyceum-campus-2.webp"
+            alt="Lyceum Campus Students"
+            sx={{
+              position: "relative",
+              width: { xs: "90%", md: "85%" },
+              maxWidth: "350px",
+              borderRadius: "16px",
+              zIndex: 3,
+              boxShadow: "0 10px 26px rgba(0,0,0,0.25)",
+            }}
+          />
+        </Box>
       </Box>
 
-      {/* ✅ Our Values Section with 3D Cards */}
+      {/* Our Values Section */}
       <Box sx={{ textAlign: "center", width: "90%", maxWidth: "1300px", mx: "auto", mb: 12 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 2, color: "#0F172A", fontFamily: primaryFont }}>
+        <Typography
+          component={motion.h4}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          variant="h4"
+          sx={{ fontWeight: 800, mb: 2, color: "#0F172A", fontFamily: primaryFont }}
+        >
           Our Values
         </Typography>
-        <Typography sx={{ color: "#64748B", maxWidth: "700px", mx: "auto", mb: 8, fontSize: "16px", fontFamily: primaryFont }}>
+        <Typography
+          component={motion.p}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          sx={{ color: "#64748B", maxWidth: "700px", mx: "auto", mb: 8, fontSize: "16px", fontFamily: primaryFont }}
+        >
           Creating sustainable quality globally recognized education while embracing our core values.
         </Typography>
 
-        <Box sx={{ 
-          display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 4,
-          overflowX: { xs: "auto", md: "visible" }, pb: 2,
-          "&::-webkit-scrollbar": { display: "none" }
-        }}>
+        <Box
+          component={motion.div}
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          sx={{
+            display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 4,
+            overflowX: { xs: "auto", md: "visible" }, pb: 2,
+            "&::-webkit-scrollbar": { display: "none" }
+          }}
+        >
           {values.map((item, i) => (
             <Box
               key={i}
+              component={motion.div}
+              variants={itemVariants}
               sx={{
                 width: { xs: "200px", sm: "240px", md: "22%" },
                 textAlign: "center",
@@ -156,7 +210,7 @@ const Aboutus: React.FC = () => {
                 bgcolor: "#FFFFFF",
                 border: "1px solid #E2E8F0",
                 transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                "&:hover": { 
+                "&:hover": {
                   transform: "translateY(-12px)",
                   boxShadow: "0 15px 30px rgba(30, 64, 175, 0.1)",
                   borderColor: "#1E40AF"

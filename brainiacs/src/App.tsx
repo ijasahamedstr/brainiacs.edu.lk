@@ -1,5 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+// Import your pages
 import Products from './Page/Products';
 import Navbar from './Page/Navbar';
 import Footer from './Page/Footer';
@@ -19,8 +21,22 @@ import Course from './Page/coures';
 import Login from './Page/Admin/Login/Login';
 import Dashboard from "./Page/Admin/Dashboard/Dashboard";
 import StudentRegistration from "./Page/StudentRegistration";
+import Contactus from "./Page/contact";
+
+// --- Scroll To Top Component ---
+// This listens for route changes and scrolls the window to the top
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
 
 // --- Protected Route Component ---
+// Fixed the implicit 'any' type by defining children as React.ReactNode
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -30,7 +46,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 // --- Layout Wrapper Component ---
-// This component handles the conditional visibility of Navbar and Footer
+// Handles conditional visibility of Navbar and Footer, and triggers ScrollToTop
 const AppContent = () => {
   const location = useLocation();
   
@@ -40,6 +56,9 @@ const AppContent = () => {
 
   return (
     <>
+      {/* Fires on every route change to scroll to the top */}
+      <ScrollToTop /> 
+      
       {!shouldHideLayout && <Navbar />}
       
       <Routes>
@@ -51,7 +70,6 @@ const AppContent = () => {
         <Route path="/Presidentmessage" element={<Presidentmessage />} />
         <Route path="/leadership-governance" element={<Leadersipgovernance />} />
         <Route path="/events" element={<Events />} />
-        <Route path="/events/uni-sittham" element={<Event_view />} />
         <Route path="/partners" element={<Partners />} />
         <Route path="/student-life" element={<Studentlife />} />
         <Route path="/student-life/view" element={<Studentlifeview />} />
@@ -61,11 +79,15 @@ const AppContent = () => {
         <Route path="/register-online" element={<StudentRegistration/>} />
         <Route path="/pricing" element={<div>Pricing Page</div>} />
         <Route path="/blog" element={<div>Blog Page</div>} />
+        <Route path="/events/:eventName" element={<Studentlifeview />} />
+        <Route path="/news/:slug" element={<NewsView />} />
+        <Route path="/contact" element={<Contactus />} />
+        <Route path="/events/:name" element={<Event_view />} />
         
         {/* Login Route */}
         <Route path="/login" element={<Login />} />
 
-        {/* Example of a Protected Route (Dashboard) */}
+        {/* Protected Route (Dashboard) */}
          <Route 
           path="/dashboard" 
           element={

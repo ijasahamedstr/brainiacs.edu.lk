@@ -363,7 +363,7 @@ const StudentRegistration = () => {
     <Box sx={{ 
       minHeight: "100vh", 
       bgcolor: "#f4f7f6", 
-      pt: { xs: 15, sm: 18, md: 22, lg: 25 }, 
+      paddingTop: "144px", 
       pb: { xs: 6, md: 10 }, 
       px: { xs: 1.5, sm: 3 } 
     }}>

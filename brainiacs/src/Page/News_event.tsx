@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Container,
@@ -17,18 +18,14 @@ import {
 } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CloseIcon from "@mui/icons-material/Close";
-import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import PlaceIcon from "@mui/icons-material/Place";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 
-/**
- * ENVIRONMENT CONFIGURATION
- */
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-// --- Interfaces for Type Safety ---
 interface NewsArticle {
   _id: string;
+  slug?: string;
   heading: string;
   descriptionImage: string;
   descriptions: string[];
@@ -47,20 +44,24 @@ interface CampusEvent {
   createdAt: string;
 }
 
+// Helper to convert event name to a clean URL slug (e.g. "My Event" -> "my-event")
+const generateEventSlug = (name: string) => {
+  return encodeURIComponent(
+    name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+  );
+};
+
 const NewsEvent: React.FC = () => {
-  // --- State Hooks ---
+  const navigate = useNavigate();
+
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [events, setEvents] = useState<CampusEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- Modal States ---
-  const [viewingItem, setViewingItem] = useState<NewsArticle | null>(null);
-  const [viewingEventItem, setViewingEventItem] = useState<CampusEvent | null>(null);
   const [showAllNews, setShowAllNews] = useState<boolean>(false);
   const [showAllEvents, setShowAllEvents] = useState<boolean>(false);
 
-  // --- Branding & Styling Constants ---
   const primaryFont = '"Montserrat", sans-serif';
   const brandBlue = "#0054f8";
   const brandBlueLight = "#e6f0ff";
@@ -128,9 +129,16 @@ const NewsEvent: React.FC = () => {
     const displayDate = item.startDate || item.createdAt;
     const dateData = formatDateBlock(displayDate);
 
+    // Navigate using the formatted Event Name instead of the ID
+    const handleEventClick = () => {
+      setShowAllEvents(false);
+      const eventRouteName = generateEventSlug(item.eventName);
+      navigate(`/events/${eventRouteName}`);
+    };
+
     return (
       <Box
-        onClick={() => setViewingEventItem(item)}
+        onClick={handleEventClick}
         sx={{
           display: "flex",
           alignItems: "center",
@@ -317,7 +325,7 @@ const NewsEvent: React.FC = () => {
                     gap: 0.5,
                     fontFamily: primaryFont,
                     fontSize: "clamp(0.7rem, 1.2vw, 0.85rem)",
-                    "&:hover": { textDecoration: "underline" },
+                    "& hover": { textDecoration: "underline" },
                   }}
                 >
                   View All <ArrowForwardIcon sx={{ fontSize: "1em" }} />
@@ -346,7 +354,7 @@ const NewsEvent: React.FC = () => {
                       boxShadow: "0 20px 40px -10px rgba(0, 84, 248, 0.1)",
                     },
                   }}
-                  onClick={() => setViewingItem(featuredArticle)}
+                  onClick={() => navigate(`/news/${featuredArticle.slug || featuredArticle._id}`)}
                 >
                   <Box
                     component="img"
@@ -488,248 +496,7 @@ const NewsEvent: React.FC = () => {
 
         {/* --- MODALS SECTION --- */}
 
-        {/* 1. SINGLE NEWS ARTICLE MODAL */}
-        <Dialog
-          open={Boolean(viewingItem)}
-          onClose={() => setViewingItem(null)}
-          maxWidth="md"
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: { xs: "16px", md: "24px" },
-              overflow: "hidden",
-              m: { xs: 2, md: 4 },
-              width: { xs: 'calc(100% - 32px)', sm: 'auto' },
-              maxHeight: "85vh", 
-              bgcolor: "white"
-            },
-          }}
-        >
-          {viewingItem && (
-            <>
-              {/* Added extra pt (padding-top) here to give more space above the image */}
-              <Box sx={{ flexShrink: 0, px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 3, sm: 4, md: 5 }, pb: { xs: 1, md: 1 } }}>
-                <Box sx={{ position: "relative" }}>
-                  <Box
-                    component="img"
-                    src={viewingItem.descriptionImage}
-                    sx={{
-                      width: "100%",
-                      height: { xs: 180, sm: 240, md: 280 },
-                      objectFit: "cover",
-                      display: "block",
-                      borderRadius: "20px",
-                      boxShadow: "0 16px 40px -12px rgba(11, 16, 51, 0.15)", 
-                    }}
-                  />
-                  <IconButton
-                    onClick={() => setViewingItem(null)}
-                    sx={{
-                      position: "absolute",
-                      top: { xs: 12, md: 16 }, // Adjusted to stay properly inside the image wrapper
-                      right: { xs: 12, md: 16 },
-                      bgcolor: "rgba(255,255,255,0.7)",
-                      backdropFilter: "blur(10px)",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      "&:hover": { bgcolor: "white", transform: "scale(1.05)" },
-                      transition: "all 0.2s",
-                    }}
-                  >
-                    <CloseIcon sx={{ color: darkNavy, fontSize: { xs: "1rem", md: "1.1rem" } }} />
-                  </IconButton>
-                </Box>
-              </Box>
-
-              <DialogContent sx={{ p: 0, bgcolor: "transparent" }}>
-                <Box sx={{ px: { xs: 2.5, sm: 3, md: 4 }, pt: 1, pb: { md: 1 } }}>
-                  <Typography
-                    variant="h2"
-                    sx={{
-                      fontWeight: 800,
-                      fontFamily: primaryFont,
-                      color: darkNavy,
-                      mb: 1.5,
-                      fontSize: "clamp(1.15rem, 2.5vw, 1.5rem)",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {viewingItem.heading}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: textMuted,
-                      fontWeight: 600,
-                      fontSize: "clamp(0.7rem, 1.2vw, 0.8rem)",
-                      fontFamily: primaryFont,
-                    }}
-                  >
-                    Published • {formatDateBlock(viewingItem.createdAt).fullDate}
-                  </Typography>
-                </Box>
-
-                <Box sx={{ p: { xs: 2.5, sm: 3, md: 4 }, pt: { xs: 1, md: 1 } }}>
-                  {viewingItem.descriptions.map((para, i) => (
-                    <Box
-                      key={i}
-                      sx={{
-                        fontSize: "clamp(0.85rem, 1.5vw, 0.95rem)",
-                        color: "#334155",
-                        lineHeight: 1.7,
-                        mb: { xs: 2, md: 3 },
-                        fontFamily: primaryFont,
-                        "& p": { margin: 0, mb: 2 },
-                        "& strong": { color: darkNavy, fontWeight: 800 },
-                        "& a": {
-                          color: brandBlue,
-                          textDecoration: "none",
-                          borderBottom: `1px solid ${brandBlueLight}`,
-                          transition: "0.2s",
-                          "&:hover": { borderBottomColor: brandBlue },
-                        },
-                        "& ul, & ol": { pl: { xs: 2, md: 3 }, mb: 2 },
-                        "& li": { mb: 1 },
-                      }}
-                      dangerouslySetInnerHTML={{ __html: para }}
-                    />
-                  ))}
-                </Box>
-              </DialogContent>
-            </>
-          )}
-        </Dialog>
-
-        {/* 2. SINGLE EVENT MODAL */}
-        <Dialog
-          open={Boolean(viewingEventItem)}
-          onClose={() => setViewingEventItem(null)}
-          maxWidth="md"
-          fullWidth
-          PaperProps={{
-            sx: {
-              borderRadius: { xs: "16px", md: "24px" },
-              overflow: "hidden",
-              m: { xs: 2, md: 4 },
-              width: { xs: 'calc(100% - 32px)', sm: 'auto' },
-              maxHeight: "85vh", 
-              bgcolor: "white"
-            },
-          }}
-        >
-          {viewingEventItem && (
-            <>
-              {viewingEventItem.imageUrls && viewingEventItem.imageUrls.length > 0 ? (
-                /* Added extra pt (padding-top) here to give more space above the image */
-                <Box sx={{ flexShrink: 0, px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 3, sm: 4, md: 5 }, pb: { xs: 1, md: 1 } }}>
-                  <Box sx={{ position: "relative" }}>
-                    <Box
-                      component="img"
-                      src={viewingEventItem.imageUrls[0]}
-                      sx={{
-                        width: "100%",
-                        height: { xs: 180, sm: 240, md: 280 },
-                        objectFit: "cover",
-                        display: "block",
-                        borderRadius: "20px",
-                        boxShadow: "0 16px 40px -12px rgba(11, 16, 51, 0.15)",
-                      }}
-                    />
-                    <IconButton
-                      onClick={() => setViewingEventItem(null)}
-                      sx={{
-                        position: "absolute",
-                        top: { xs: 12, md: 16 },
-                        right: { xs: 12, md: 16 },
-                        bgcolor: "rgba(255,255,255,0.7)",
-                        backdropFilter: "blur(10px)",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                        "&:hover": { bgcolor: "white", transform: "scale(1.05)" },
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      <CloseIcon sx={{ color: darkNavy, fontSize: { xs: "1rem", md: "1.1rem" } }} />
-                    </IconButton>
-                  </Box>
-                </Box>
-              ) : (
-                <Box sx={{ display: "flex", justifyContent: "flex-end", px: { xs: 2, sm: 3, md: 4 }, pt: { xs: 3, sm: 4, md: 5 }, pb: 0 }}>
-                  <IconButton onClick={() => setViewingEventItem(null)} sx={{ bgcolor: bgLight }}>
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              )}
-
-              <DialogContent sx={{ p: 0, bgcolor: "transparent" }}>
-                <Box sx={{ px: { xs: 2.5, sm: 3, md: 4 }, pt: 1, pb: { md: 1 } }}>
-                  <Typography
-                    variant="h2"
-                    sx={{
-                      fontWeight: 800,
-                      fontFamily: primaryFont,
-                      color: darkNavy,
-                      mb: { xs: 2, md: 3 },
-                      fontSize: "clamp(1.15rem, 2.5vw, 1.5rem)",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {viewingEventItem.eventName}
-                  </Typography>
-
-                  <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" }, gap: { xs: 1.5, md: 2 } }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, p: { xs: 1.5, md: 2 }, bgcolor: brandBlueLight, borderRadius: "10px" }}>
-                      <CalendarTodayIcon sx={{ color: brandBlue, fontSize: { xs: "1rem", md: "1.2rem" } }} />
-                      <Box>
-                        <Typography sx={{ fontSize: "clamp(0.6rem, 1vw, 0.7rem)", color: brandBlue, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: primaryFont }}>
-                          Date & Time
-                        </Typography>
-                        <Typography sx={{ fontWeight: 600, color: darkNavy, fontFamily: primaryFont, fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)" }}>
-                          {formatDateBlock(viewingEventItem.startDate || viewingEventItem.createdAt).fullDate}
-                          {viewingEventItem.eventTime && ` • ${viewingEventItem.eventTime}`}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, p: { xs: 1.5, md: 2 }, bgcolor: "#f1f5f9", borderRadius: "10px" }}>
-                      <PlaceIcon sx={{ color: textMuted, fontSize: { xs: "1rem", md: "1.2rem" } }} />
-                      <Box>
-                        <Typography sx={{ fontSize: "clamp(0.6rem, 1vw, 0.7rem)", color: textMuted, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, fontFamily: primaryFont }}>
-                          Location
-                        </Typography>
-                        <Typography sx={{ fontWeight: 600, color: darkNavy, fontFamily: primaryFont, fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)" }}>
-                          {viewingEventItem.eventPlace}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Box>
-
-                <Box sx={{ p: { xs: 2.5, sm: 3, md: 4 }, pt: { md: 1 } }}>
-                  {viewingEventItem.eventDescription && viewingEventItem.eventDescription.length > 0 ? (
-                    viewingEventItem.eventDescription.map((para, i) => (
-                      <Typography
-                        key={i}
-                        sx={{
-                          fontSize: "clamp(0.85rem, 1.5vw, 0.95rem)",
-                          color: "#334155",
-                          lineHeight: 1.7,
-                          mb: { xs: 2, md: 2.5 },
-                          fontFamily: primaryFont,
-                        }}
-                      >
-                        {para}
-                      </Typography>
-                    ))
-                  ) : (
-                    <Typography sx={{ color: textMuted, fontStyle: "italic", fontFamily: primaryFont, fontSize: "clamp(0.85rem, 1.5vw, 0.95rem)" }}>
-                      No additional description provided for this event.
-                    </Typography>
-                  )}
-                </Box>
-              </DialogContent>
-            </>
-          )}
-        </Dialog>
-
-        {/* 3. VIEW ALL NEWS MODAL */}
+        {/* 1. VIEW ALL NEWS MODAL */}
         <Dialog
           open={showAllNews}
           onClose={() => setShowAllNews(false)}
@@ -763,7 +530,10 @@ const NewsEvent: React.FC = () => {
               {news.map((item) => (
                 <Box
                   key={item._id}
-                  onClick={() => setViewingItem(item)}
+                  onClick={() => {
+                    setShowAllNews(false);
+                    navigate(`/news/${item.slug || item._id}`);
+                  }}
                   sx={{
                     bgcolor: "white",
                     borderRadius: "12px",
@@ -792,7 +562,7 @@ const NewsEvent: React.FC = () => {
           </DialogContent>
         </Dialog>
 
-        {/* 4. EXPLORE ALL EVENTS MODAL */}
+        {/* 2. EXPLORE ALL EVENTS MODAL */}
         <Dialog
           open={showAllEvents}
           onClose={() => setShowAllEvents(false)}
