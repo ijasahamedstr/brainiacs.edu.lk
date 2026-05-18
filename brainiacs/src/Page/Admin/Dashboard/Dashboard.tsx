@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { 
   DashboardOutlined, ExpandLess, ExpandMore, SchoolOutlined,
-  CampaignOutlined, QuestionAnswerOutlined, NewspaperOutlined,
+  QuestionAnswerOutlined, NewspaperOutlined,
   EventOutlined, SupportAgentOutlined, AccountBalanceOutlined,
   Diversity1Outlined, HandshakeOutlined, SettingsOutlined, 
   LogoutOutlined, MenuOpen, ArrowForwardIos,
