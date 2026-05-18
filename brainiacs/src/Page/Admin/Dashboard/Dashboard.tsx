@@ -134,7 +134,7 @@ const Dashboard: React.FC = () => {
     { text: "Home Slider", icon: <ViewCarouselOutlined /> },
     { text: "Student Registration", icon: <HowToRegOutlined /> },
     { text: "Certificates", icon: <WorkspacePremiumOutlined /> },
-    { text: "Campus Offer", icon: <CampaignOutlined /> },
+    // { text: "Campus Offer", icon: <CampaignOutlined /> },
     { text: "Ask Our Student", icon: <QuestionAnswerOutlined /> },
     { text: "News", icon: <NewspaperOutlined /> },
     { text: "Event", icon: <EventOutlined /> },

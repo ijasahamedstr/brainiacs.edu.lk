@@ -18,9 +18,14 @@ const SemesterSchema = new mongoose.Schema({
   moduleRows: [ModuleRowSchema]
 }, { _id: false });
 
+// NEW: 3. Sub-schema for nested Entry Requirements (Category + Bullet Points)
+const EntryRequirementSchema = new mongoose.Schema({
+  category: { type: String, trim: true },
+  descriptions: { type: [String], default: [] }
+}, { _id: false });
 
 
-// 3. Main Course Schema
+// 4. Main Course Schema
 const CourseSchema = new mongoose.Schema({
   courseName: { 
     type: String, 
@@ -32,7 +37,12 @@ const CourseSchema = new mongoose.Schema({
     required: [true, "Course category is mandatory"], 
     trim: true 
   },
-  // Array of paragraphs for the description
+  
+  isCampusOffering: {
+    type: Boolean,
+    default: false
+  },
+
   courseDescription: {
     type: [String],
     default: []
@@ -41,18 +51,20 @@ const CourseSchema = new mongoose.Schema({
   intake: { type: String, trim: true },
   awardingBody: { type: String, trim: true },
   
-  // Rich Text Content (HTML)
-  entryRequirement: { type: String },
+  // UPDATED: Now uses the updated Category + descriptions Array format
+  entryRequirements: { 
+    type: [EntryRequirementSchema], 
+    default: [] 
+  },
+  
   progression: { type: String },
   scholarships: { type: String },
   
-  // Nested structure for Semesters
   semesters: {
     type: [SemesterSchema],
     default: []
   },
   
-  // Tags and Media
   careerPathways: { type: [String], default: [] },
   coverImage: { 
     type: String, 
@@ -63,7 +75,7 @@ const CourseSchema = new mongoose.Schema({
     default: [] 
   }
 }, { 
-  timestamps: true // Automatically manages createdAt and updatedAt
+  timestamps: true 
 });
 
 // Use existing model or create a new one (prevents overwrite errors)

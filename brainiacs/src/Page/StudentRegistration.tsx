@@ -24,6 +24,7 @@ import {
 // Configuration & Global Styles
 const THEME_COLOR = "#004d40"; 
 const API_URL = `${import.meta.env.VITE_API_URL}/api/students`;
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
 const CAMPUS_NAME = "BRAINIACS";
 
 const GLOBAL_FONT = {
@@ -131,18 +132,60 @@ const StudentRegistration = () => {
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
-    const sendableFormData = new FormData();
-    const payload = { ...formData, olRows, alRows, otherQuals };
-    sendableFormData.append("data", JSON.stringify(payload));
-    selectedFiles.forEach(file => sendableFormData.append("documents", file));
+    if (!IMGBB_API_KEY) {
+      alert("Configuration Error: ImgBB API Key is missing.");
+      return;
+    }
 
+    setIsSubmitting(true);
+    
     try {
-      const res = await fetch(API_URL, { method: "POST", body: sendableFormData });
-      if (res.ok) setActiveStep(5);
-      else alert("Submission failed. Check network.");
+      // 1. Upload files to ImgBB and collect the generated URLs
+      const uploadedImageUrls: string[] = [];
+      
+      for (const file of selectedFiles) {
+        const imgFormData = new FormData();
+        imgFormData.append("image", file);
+
+        const imgbbRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+          method: "POST",
+          body: imgFormData,
+        });
+        
+        const imgbbData = await imgbbRes.json();
+        
+        if (imgbbData.success) {
+          uploadedImageUrls.push(imgbbData.data.url);
+        } else {
+          console.error("Failed to upload file to ImgBB:", file.name);
+        }
+      }
+
+      // 2. Prepare the final payload for your local backend
+      const sendableFormData = new FormData();
+      const payload = { 
+        ...formData, 
+        olRows, 
+        alRows, 
+        otherQuals,
+        certificateUrls: uploadedImageUrls 
+      };
+      
+      sendableFormData.append("data", JSON.stringify(payload));
+      
+      // 3. Send the structured data to your backend
+      const res = await fetch(API_URL, { 
+        method: "POST", 
+        body: sendableFormData 
+      });
+      
+      if (res.ok) {
+        setActiveStep(5);
+      } else {
+        alert("Submission failed. Check network.");
+      }
     } catch (e) {
-      console.error(e);
+      console.error("An error occurred during submission:", e);
     } finally {
       setIsSubmitting(false);
     }
@@ -219,7 +262,7 @@ const StudentRegistration = () => {
     </Stack>
   );
 
-  const renderGuardian = () => (
+  const renderPageGuardian = () => (
     <Stack spacing={{ xs: 2.5, sm: 3.5 }}>
       <SectionHeader icon={VerifiedUserIcon} title="Emergency Contact" />
       <TextField fullWidth label="Guardian Full Name" value={formData.guardianName} onChange={(e) => handleInputChange("guardianName", e.target.value)} sx={inputSx} />
@@ -337,7 +380,7 @@ const StudentRegistration = () => {
         <Typography sx={{ ...GLOBAL_FONT, mb: 3, fontWeight: 700, fontSize: { xs: "0.9rem", sm: "1.1rem" } }}>Drag & drop or browse certificates</Typography>
         <Button variant="contained" component="label" sx={{ ...GLOBAL_FONT, bgcolor: THEME_COLOR, borderRadius: "50px", px: 4, py: 1.2 }}>
           Choose Files
-          <input type="file" hidden multiple onChange={handleFileChange} />
+          <input type="file" hidden multiple accept="image/*" onChange={handleFileChange} />
         </Button>
         <Stack direction="row" flexWrap="wrap" gap={1.5} justifyContent="center" sx={{ mt: 4 }}>
           {selectedFiles.map((f, i) => (
@@ -438,7 +481,7 @@ const StudentRegistration = () => {
             <Box sx={{ minHeight: { xs: 400, md: 500 } }}>
               {activeStep === 0 && renderInquiry()}
               {activeStep === 1 && renderPersonal()}
-              {activeStep === 2 && renderGuardian()}
+              {activeStep === 2 && renderPageGuardian()}
               {activeStep === 3 && renderAcademic()}
               {activeStep === 4 && renderFinal()}
             </Box>

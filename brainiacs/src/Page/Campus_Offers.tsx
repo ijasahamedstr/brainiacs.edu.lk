@@ -1,38 +1,66 @@
 import React, { useRef, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-interface Card {
-  image: string;
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+interface CourseCard {
+  _id: string;
+  courseName: string;
+  coverImage: string;
 }
 
-const originalCards: Card[] = [
-  { image: "https://i.ibb.co/5WYBwDTB/lyceum-global-foundation-lyceum-campus.webp" },
-  { image: "https://i.ibb.co/JWjhJFDQ/bachelor-of-education-honours-in-primary-education-lyceum-campus.webp" },
-  { image: "https://i.ibb.co/rK3DCX3s/deakin-pathway-programme-lyceum-campus.webp" },
-  { image: "https://i.ibb.co/LXcwRYJK/btec-hnd-in-computing-lyceum-campus.webp" },
-  { image: "https://i.ibb.co/Xrh30TJf/btec-hnd-in-business-lyceum-campus.webp" },
-  { image: "https://i.ibb.co/fVBRFMxt/teacher-training-diplomas-lyceum-campus-3.webp" },
-];
-
-const cards = [...originalCards, ...originalCards, ...originalCards];
-
 const CampusOffers: React.FC = () => {
+  const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const [rawCards, setRawCards] = useState<CourseCard[]>([]);
+  const [cards, setCards] = useState<CourseCard[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
+  // 1. Fetch ALL courses from the API
+  useEffect(() => {
+    const fetchOfferings = async () => {
+      try {
+        setLoading(true);
+        // Changed endpoint to fetch all courses instead of filtering by isCampusOffering
+        const response = await fetch(`${API_BASE_URL}/api/course`);
+        if (!response.ok) {
+          throw new Error("Failed to load courses");
+        }
+        const data = await response.json();
+        setRawCards(data);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOfferings();
+  }, []);
+
+  // 2. Duplicate the cards array for the infinite seamless slider carousel loop effect
+  useEffect(() => {
+    if (rawCards.length > 0) {
+      setCards([...rawCards, ...rawCards, ...rawCards]);
+    }
+  }, [rawCards]);
+
+  // 3. Reset scroll track into center section to allow both left/right infinite scroll loops
   useEffect(() => {
     const container = containerRef.current;
-
-    if (container) {
+    if (container && cards.length > 0) {
       container.scrollLeft = container.scrollWidth / 3;
     }
-  }, []);
+  }, [cards]);
 
   const handleScroll = () => {
     const container = containerRef.current;
-
     if (!container) return;
 
     const sectionWidth = container.scrollWidth / 3;
@@ -46,62 +74,58 @@ const CampusOffers: React.FC = () => {
 
   const scroll = (direction: "left" | "right") => {
     const container = containerRef.current;
-
     if (!container) return;
 
-    const cardWidth =
-      container.querySelector(".original-card")?.clientWidth || 300;
-
+    const cardWidth = container.querySelector(".original-card")?.clientWidth || 300;
     const gap = 20;
-
     const scrollAmount = cardWidth + gap;
 
     container.scrollTo({
-      left:
-        container.scrollLeft +
-        (direction === "right" ? scrollAmount : -scrollAmount),
+      left: container.scrollLeft + (direction === "right" ? scrollAmount : -scrollAmount),
       behavior: "smooth",
     });
   };
 
   const startDragging = (e: any) => {
     if (!containerRef.current) return;
-
     setIsDragging(true);
-
     const pageX = e.pageX || (e.touches && e.touches[0].pageX);
-
     setStartX(pageX - containerRef.current.offsetLeft);
-
     setScrollLeft(containerRef.current.scrollLeft);
   };
 
   const moveDragging = (e: any) => {
     if (!isDragging || !containerRef.current) return;
-
     const pageX = e.pageX || (e.touches && e.touches[0].pageX);
-
     const x = pageX - containerRef.current.offsetLeft;
-
     const walk = (x - startX) * 1.5;
-
     containerRef.current.scrollLeft = scrollLeft - walk;
   };
 
   const stopDragging = () => setIsDragging(false);
 
+  if (loading) {
+    return (
+      <div className="campus-offers-status">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+
+  if (error || rawCards.length === 0) {
+    return (
+      <div className="campus-offers-status">
+        <p>{error ? `Error: ${error}` : "No courses available at the moment."}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="campus-offers-container">
-
-      {/* Navigation */}
+      {/* Navigation Controls */}
       <div className="navigation-wrapper">
         <div className="arrow-controls">
-
-          <button
-            className="nav-arrow"
-            onClick={() => scroll("left")}
-            aria-label="Previous"
-          >
+          <button className="nav-arrow" onClick={() => scroll("left")} aria-label="Previous">
             <svg
               width="16"
               height="16"
@@ -116,11 +140,7 @@ const CampusOffers: React.FC = () => {
             </svg>
           </button>
 
-          <button
-            className="nav-arrow"
-            onClick={() => scroll("right")}
-            aria-label="Next"
-          >
+          <button className="nav-arrow" onClick={() => scroll("right")} aria-label="Next">
             <svg
               width="16"
               height="16"
@@ -134,11 +154,10 @@ const CampusOffers: React.FC = () => {
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
-
         </div>
       </div>
 
-      {/* Slider */}
+      {/* Slider Core Viewport */}
       <div
         ref={containerRef}
         className="slider-viewport hide-scrollbar"
@@ -154,16 +173,18 @@ const CampusOffers: React.FC = () => {
       >
         {cards.map((card, index) => (
           <div
-            key={index}
+            key={`${card._id}-${index}`}
             className="original-card"
-            style={{ backgroundImage: `url(${card.image})` }}
+            style={{ backgroundImage: `url(${card.coverImage})` }}
           >
             <div className="card-color-overlay"></div>
 
             <div className="card-btn-container">
-              <button className="official-card-btn">
+              <button 
+                className="official-card-btn" 
+                onClick={() => navigate(`/courses/${card._id}`)}
+              >
                 LEARN MORE
-
                 <svg
                   width="14"
                   height="14"
@@ -176,7 +197,6 @@ const CampusOffers: React.FC = () => {
                 >
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
-
               </button>
             </div>
           </div>
@@ -184,14 +204,37 @@ const CampusOffers: React.FC = () => {
       </div>
 
       <style>{`
-
         .campus-offers-container {
           width: 100%;
-          padding: 30px clamp(12px, 4vw, 80px) 0;
+          /* Added 40px padding to the bottom */
+          padding: 30px clamp(12px, 4vw, 80px) 40px;
           background: #ffffff;
           overflow: hidden;
           position: relative;
           box-sizing: border-box;
+        }
+
+        .campus-offers-status {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 250px;
+          font-family: 'Montserrat', sans-serif;
+          color: #666;
+        }
+
+        .spinner {
+          width: 40px;
+          height: 40px;
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid #0054f8;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
 
         .navigation-wrapper {
@@ -243,7 +286,7 @@ const CampusOffers: React.FC = () => {
           scrollbar-width: none;
         }
 
-        /* CARD */
+        /* DYNAMIC CARD SETUP */
         .original-card {
           flex: 0 0 clamp(260px, 30vw, 430px);
           aspect-ratio: 497 / 225;
@@ -259,10 +302,36 @@ const CampusOffers: React.FC = () => {
           position: absolute;
           inset: 0;
           background: linear-gradient(
-            135deg,
-            rgba(0,0,0,0.05),
-            rgba(0,0,0,0.12)
+            to top,
+            rgba(0,0,0,0.65) 0%,
+            rgba(0,0,0,0.2) 60%,
+            rgba(0,0,0,0.1) 100%
           );
+          z-index: 1;
+        }
+
+        .card-content-overlay {
+          position: absolute;
+          top: 16px;
+          left: 16px;
+          right: 16px;
+          z-index: 2;
+        }
+
+        .card-title-badge {
+          background: rgba(10, 83, 151, 0.9);
+          color: #ffffff;
+          padding: 4px 10px;
+          border-radius: 4px;
+          font-family: 'Montserrat', sans-serif;
+          font-size: 11px;
+          font-weight: 600;
+          letter-spacing: 0.3px;
+          display: inline-block;
+          max-width: 90%;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .card-btn-container {
@@ -274,7 +343,7 @@ const CampusOffers: React.FC = () => {
           z-index: 2;
         }
 
-        /* BUTTON */
+        /* PREMIUM BUTTON SETUP */
         .official-card-btn {
           border: none;
           background: rgba(255,255,255,0.92);
@@ -282,6 +351,7 @@ const CampusOffers: React.FC = () => {
           color: #111;
           padding: 8px 14px;
           border-radius: 7px;
+          font-family: 'Montserrat', sans-serif;
           font-size: 11px;
           font-weight: 700;
           letter-spacing: 0.4px;
@@ -298,84 +368,69 @@ const CampusOffers: React.FC = () => {
           transform: translateY(-2px);
         }
 
-        /* ---------------- MOBILE ---------------- */
-
+        /* Responsive Breakpoints */
         @media (max-width: 576px) {
-
           .campus-offers-container {
-            padding: 16px 12px 0;
+            /* Added 30px padding to the bottom for mobile screens */
+            padding: 16px 12px 30px;
           }
-
           .navigation-wrapper {
             display: none;
           }
-
           .slider-viewport {
             gap: 14px;
             padding-bottom: 18px;
           }
-
           .original-card {
             flex: 0 0 82% !important;
             aspect-ratio: 16 / 10;
             border-radius: 14px;
           }
-
+          .card-content-overlay {
+            top: 12px;
+            left: 12px;
+          }
           .card-btn-container {
             padding: 12px;
           }
-
           .official-card-btn {
             padding: 7px 12px;
             font-size: 10px;
             gap: 6px;
             border-radius: 6px;
           }
-
           .official-card-btn svg {
             width: 11px;
             height: 11px;
           }
         }
 
-        /* EXTRA SMALL DEVICES */
-
         @media (max-width: 380px) {
-
           .original-card {
             flex: 0 0 88% !important;
           }
-
           .official-card-btn {
             padding: 6px 10px;
             font-size: 9px;
             gap: 5px;
           }
-
           .official-card-btn svg {
             width: 10px;
             height: 10px;
           }
         }
 
-        /* TABLETS */
-
         @media (min-width: 577px) and (max-width: 1024px) {
-
           .original-card {
             flex: 0 0 45%;
           }
         }
 
-        /* LARGE DESKTOP */
-
         @media (min-width: 1920px) {
-
           .original-card {
             flex: 0 0 520px;
           }
         }
-
       `}</style>
     </div>
   );

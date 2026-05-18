@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Added useLocation
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar,
   Box,
@@ -32,6 +32,16 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 
+/* --- Environment Variables --- */
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+/* --- Helper Function --- */
+const generateSlug = (name: string) => {
+  return encodeURIComponent(
+    name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+  );
+};
+
 /* --- Data Structures --- */
 const ourStoryLinks = [
   { label: 'About Us', path: '/aboutus' },
@@ -40,42 +50,16 @@ const ourStoryLinks = [
   { label: 'Our Partners', path: '/partners' },
 ];
 
-const facultyLinks = [
-  { label: 'About Faculties', path: '/faculties/about' },
-  { label: 'Faculty of IT', path: '/faculties/it' },
-  { label: 'Faculty of Business', path: '/faculties/business' },
-];
+/* --- Types --- */
+interface NavLink {
+  label: string;
+  path: string;
+}
 
-const programmeGroups = [
-  {
-    title: 'Foundation & Tech',
-    items: [
-      { label: 'Foundation in Business', path: '/programmes/foundation-business' },
-      { label: 'Foundation in Science', path: '/programmes/foundation-science' },
-      { label: 'Foundation in IT', path: '/programmes/foundation-it' },
-      { label: 'Foundation in Engineering', path: '/programmes/foundation-engineering' },
-      { label: 'BTEC HND Computing', path: '/programmes/btec-computing' }
-    ],
-  },
-  {
-    title: 'Business & Pathways',
-    items: [
-      { label: 'Deakin 1+2 Pathway', path: '/programmes/deakin' },
-      { label: 'BTEC HND Business', path: '/programmes/btec-business' },
-      { label: 'Diploma in Business Analytics', path: '/programmes/business-analytics' },
-      { label: 'Accounting & Finance', path: '/programmes/accounting' }
-    ],
-  },
-  {
-    title: 'Teacher Training',
-    items: [
-      { label: 'Diploma in Primary Teaching', path: '/programmes/primary-teaching' },
-      { label: 'Diploma in English (ELT)', path: '/programmes/elt' },
-      { label: 'Teaching Mathematics', path: '/programmes/math-teaching' },
-      { label: 'UWE Early Childhood', path: '/programmes/uwe-early-childhood' }
-    ],
-  },
-];
+interface ProgrammeGroup {
+  title: string;
+  items: NavLink[];
+}
 
 /* --- Styled Components --- */
 const StyledToolbar = styled(Toolbar)<{ isScrolled?: boolean }>(({ theme, isScrolled }) => ({
@@ -91,7 +75,7 @@ const StyledToolbar = styled(Toolbar)<{ isScrolled?: boolean }>(({ theme, isScro
 }));
 
 const NavButton = styled(Button)<{ active?: boolean }>(({ active }) => ({
-  color: active ? '#4caf50' : '#ffffff', // Active Color logic
+  color: active ? '#4caf50' : '#ffffff',
   textTransform: 'none',
   fontSize: '0.85rem',
   fontWeight: 700,
@@ -116,10 +100,69 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = React.useState<Record<string, boolean>>({});
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [activeMenu, setActiveMenu] = React.useState<string | null>(null);
+  
+  const [dynamicFacultyLinks, setDynamicFacultyLinks] = React.useState<NavLink[]>([]);
+  const [dynamicProgrammeGroups, setDynamicProgrammeGroups] = React.useState<ProgrammeGroup[]>([]);
 
   const navigate = useNavigate();
-  const location = useLocation(); // Hook to get current path
+  const location = useLocation();
   const isDesktop = useMediaQuery('(min-width:1200px)');
+
+  // --- Fetch Data ---
+  React.useEffect(() => {
+    // 1. Fetch Faculties
+    const fetchFaculties = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/faculties`);
+        if (!response.ok) throw new Error('Failed to fetch faculties');
+        
+        const data = await response.json();
+        
+        const fetchedLinks = data.map((faculty: { _id: string; name: string }) => ({
+          label: faculty.name,
+          path: `/faculties/${generateSlug(faculty.name)}` 
+        }));
+
+        setDynamicFacultyLinks(fetchedLinks);
+      } catch (error) {
+        console.error("Error fetching faculties for navbar:", error);
+      }
+    };
+
+    // 2. Fetch Courses and Group by Category
+    const fetchProgrammes = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/course`);
+        if (!response.ok) throw new Error('Failed to fetch courses');
+        
+        const data = await response.json();
+        
+        // Group the raw course data by `courseCategory`
+        const groupedData = data.reduce((acc: Record<string, ProgrammeGroup>, course: any) => {
+          const categoryName = course.courseCategory || 'Other Programmes';
+          
+          if (!acc[categoryName]) {
+            acc[categoryName] = { title: categoryName, items: [] };
+          }
+          
+          acc[categoryName].items.push({
+            label: course.courseName,
+            // Assuming individual courses are rendered using their _id
+            path: `/courses/${course._id}`
+          });
+          
+          return acc;
+        }, {});
+
+        setDynamicProgrammeGroups(Object.values(groupedData));
+      } catch (error) {
+        console.error("Error fetching courses for navbar:", error);
+      }
+    };
+
+    fetchFaculties();
+    fetchProgrammes();
+  }, []);
 
   React.useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -147,13 +190,12 @@ export default function Navbar() {
     handleCloseMenu();
   };
 
-  // Helper to check if a group/dropdown contains the active path
-  const isDropdownActive = (links: { path: string }[]) => {
+  const isDropdownActive = (links: NavLink[]) => {
     return links.some(link => link.path === location.pathname);
   };
 
   const isMegaMenuActive = () => {
-    return programmeGroups.some(group => 
+    return dynamicProgrammeGroups.some(group => 
       group.items.some(item => item.path === location.pathname)
     );
   };
@@ -163,66 +205,40 @@ export default function Navbar() {
       <AppBar position="fixed" sx={{ bgcolor: 'transparent', boxShadow: 'none', zIndex: 1500 }}>
         <Container maxWidth="xl">
           <StyledToolbar isScrolled={isScrolled}>
-            {/* LOGO */}
             <Box onClick={() => handleNavigate('/')} sx={{ cursor: 'pointer', display: 'flex' }}>
               <Box component="img" src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" sx={{ height: { xs: '35px', md: '50px' }, filter: 'brightness(0) invert(1)' }} />
             </Box>
 
             {isDesktop ? (
               <Box sx={{ display: 'flex', flexGrow: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
-                <NavButton 
-                  active={location.pathname === '/'} 
-                  onClick={() => handleNavigate('/')}
-                >
+                <NavButton active={location.pathname === '/'} onClick={() => handleNavigate('/')}>
                   Home
                 </NavButton>
 
-                <NavButton 
-                  active={isDropdownActive(ourStoryLinks)}
-                  onClick={(e) => handleOpenMenu(e, 'story')} 
-                  endIcon={<ArrowDropDownIcon />}
-                >
+                <NavButton active={isDropdownActive(ourStoryLinks)} onClick={(e) => handleOpenMenu(e, 'story')} endIcon={<ArrowDropDownIcon />}>
                   Our Story
                 </NavButton>
 
-                <NavButton 
-                  active={isDropdownActive(facultyLinks)}
-                  onClick={(e) => handleOpenMenu(e, 'facs')} 
-                  endIcon={<ArrowDropDownIcon />}
-                >
+                <NavButton active={isDropdownActive(dynamicFacultyLinks)} onClick={(e) => handleOpenMenu(e, 'facs')} endIcon={<ArrowDropDownIcon />}>
                   Faculties
                 </NavButton>
 
-                <NavButton 
-                  active={isMegaMenuActive()}
-                  onClick={(e) => handleOpenMenu(e, 'prog')} 
-                  endIcon={<ArrowDropDownIcon />}
-                >
+                <NavButton active={isMegaMenuActive()} onClick={(e) => handleOpenMenu(e, 'prog')} endIcon={<ArrowDropDownIcon />}>
                   Programmes
                 </NavButton>
 
-                <NavButton 
-                  active={location.pathname === '/student-life'}
-                  onClick={() => handleNavigate('/student-life')}
-                >
+                <NavButton active={location.pathname === '/student-life'} onClick={() => handleNavigate('/student-life')}>
                   Student Life
                 </NavButton>
 
-                <NavButton 
-                  active={location.pathname === '/News'}
-                  onClick={() => handleNavigate('/News')}
-                >
+                <NavButton active={location.pathname === '/News'} onClick={() => handleNavigate('/News')}>
                   News
                 </NavButton>
 
-                <NavButton 
-                  active={location.pathname === '/contact'}
-                  onClick={() => handleNavigate('/contact')}
-                >
+                <NavButton active={location.pathname === '/contact'} onClick={() => handleNavigate('/contact')}>
                   Contact Us
                 </NavButton>
 
-                {/* Dropdowns Menu Logic */}
                 <Menu 
                   anchorEl={anchorEl} 
                   open={activeMenu === 'story' || activeMenu === 'facs'} 
@@ -230,9 +246,9 @@ export default function Navbar() {
                   sx={{ zIndex: 1600 }}
                   PaperProps={{ sx: { bgcolor: '#111', color: '#fff', mt: 1.5, borderRadius: '15px', border: '1px solid #333', minWidth: 200 } }}
                 >
-                  {(activeMenu === 'story' ? ourStoryLinks : facultyLinks).map((link) => (
+                  {(activeMenu === 'story' ? ourStoryLinks : dynamicFacultyLinks).map((link) => (
                     <MenuItem 
-                      key={link.label} 
+                      key={link.path} 
                       onClick={() => handleNavigate(link.path)} 
                       sx={{ 
                         fontSize: '0.85rem', 
@@ -244,38 +260,47 @@ export default function Navbar() {
                       {link.label}
                     </MenuItem>
                   ))}
+                  {activeMenu === 'facs' && dynamicFacultyLinks.length === 0 && (
+                    <MenuItem disabled sx={{ fontSize: '0.85rem', color: '#888' }}>
+                      Loading faculties...
+                    </MenuItem>
+                  )}
                 </Menu>
 
                 <Popper open={activeMenu === 'prog'} anchorEl={anchorEl} transition placement="bottom-end" sx={{ zIndex: 1600 }}>
                   {({ TransitionProps }) => (
                     <Grow {...TransitionProps}>
-                      <Paper sx={{ mt: 2.5, p: 4, bgcolor: '#111', color: '#fff', borderRadius: '30px', border: '1px solid #333', display: 'flex', gap: 4, boxShadow: '0 20px 50px rgba(0,0,0,0.6)' }}>
+                      <Paper sx={{ mt: 2.5, p: 4, bgcolor: '#111', color: '#fff', borderRadius: '30px', border: '1px solid #333', display: 'flex', gap: 4, boxShadow: '0 20px 50px rgba(0,0,0,0.6)', maxHeight: '70vh', overflowY: 'auto' }}>
                         <ClickAwayListener onClickAway={(e) => {
                           if (anchorEl && anchorEl.contains(e.target as Node)) return;
                           handleCloseMenu();
                         }}>
-                          <Box sx={{ display: 'flex', gap: 4 }}>
-                            {programmeGroups.map((group) => (
-                              <Box key={group.title} sx={{ minWidth: 210 }}>
-                                <Typography sx={{ color: '#4caf50', fontWeight: 900, fontSize: '0.7rem', mb: 2, textTransform: 'uppercase' }}>{group.title}</Typography>
-                                {group.items.map((item) => (
-                                  <ListItemButton 
-                                    key={item.label} 
-                                    onClick={() => handleNavigate(item.path)} 
-                                    sx={{ p: 0.8, borderRadius: '8px' }}
-                                  >
-                                    <ListItemText 
-                                      primary={item.label} 
-                                      primaryTypographyProps={{ 
-                                        fontSize: '0.82rem', 
-                                        fontFamily: 'Montserrat',
-                                        color: location.pathname === item.path ? '#4caf50' : '#fff'
-                                      }} 
-                                    />
-                                  </ListItemButton>
-                                ))}
-                              </Box>
-                            ))}
+                          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', maxWidth: '800px' }}>
+                            {dynamicProgrammeGroups.length > 0 ? (
+                              dynamicProgrammeGroups.map((group) => (
+                                <Box key={group.title} sx={{ minWidth: 210, mb: 2 }}>
+                                  <Typography sx={{ color: '#4caf50', fontWeight: 900, fontSize: '0.7rem', mb: 2, textTransform: 'uppercase' }}>{group.title}</Typography>
+                                  {group.items.map((item) => (
+                                    <ListItemButton 
+                                      key={item.label} 
+                                      onClick={() => handleNavigate(item.path)} 
+                                      sx={{ p: 0.8, borderRadius: '8px' }}
+                                    >
+                                      <ListItemText 
+                                        primary={item.label} 
+                                        primaryTypographyProps={{ 
+                                          fontSize: '0.82rem', 
+                                          fontFamily: 'Montserrat',
+                                          color: location.pathname === item.path ? '#4caf50' : '#fff'
+                                        }} 
+                                      />
+                                    </ListItemButton>
+                                  ))}
+                                </Box>
+                              ))
+                            ) : (
+                               <Typography sx={{ color: '#888', fontSize: '0.85rem', p: 2 }}>Loading programmes...</Typography>
+                            )}
                           </Box>
                         </ClickAwayListener>
                       </Paper>
@@ -289,7 +314,6 @@ export default function Navbar() {
                 </Box>
               </Box>
             ) : (
-              /* --- MOBILE VIEW --- */
               <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
                 <IconButton onClick={() => handleNavigate('/register-online')} sx={{ color: '#4caf50' }}><AppRegistrationIcon /></IconButton>
                 <IconButton onClick={() => setDrawerOpen(true)} sx={{ color: 'white', bgcolor: alpha('#fff', 0.1), borderRadius: '12px' }}><MenuIcon /></IconButton>
@@ -299,7 +323,6 @@ export default function Navbar() {
         </Container>
       </AppBar>
 
-      {/* --- MOBILE DRAWER --- */}
       <Drawer anchor="right" open={drawerOpen} onClose={() => setDrawerOpen(false)} PaperProps={{ sx: { width: '85%', bgcolor: '#0a0a0a', color: '#fff', p: 2 } }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
           <Box component="img" src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" sx={{ height: '35px', filter: 'brightness(0) invert(1)' }} />
@@ -311,7 +334,6 @@ export default function Navbar() {
             <ListItemText primary="Home" sx={{ color: location.pathname === '/' ? '#4caf50' : '#fff' }} />
           </ListItemButton>
 
-          {/* Mobile Our Story */}
           <ListItemButton onClick={() => toggleMobileMenu('story')} sx={{ py: 1.5 }}>
             <ListItemText primary="Our Story" sx={{ color: isDropdownActive(ourStoryLinks) ? '#4caf50' : '#fff' }} />
             {mobileOpen['story'] ? <ExpandLess /> : <ExpandMore />}
@@ -326,38 +348,45 @@ export default function Navbar() {
             </List>
           </Collapse>
 
-          {/* Mobile Faculties */}
           <ListItemButton onClick={() => toggleMobileMenu('facs')} sx={{ py: 1.5 }}>
-            <ListItemText primary="Faculties" sx={{ color: isDropdownActive(facultyLinks) ? '#4caf50' : '#fff' }} />
+            <ListItemText primary="Faculties" sx={{ color: isDropdownActive(dynamicFacultyLinks) ? '#4caf50' : '#fff' }} />
             {mobileOpen['facs'] ? <ExpandLess /> : <ExpandMore />}
           </ListItemButton>
           <Collapse in={mobileOpen['facs']} timeout="auto">
             <List sx={{ pl: 3, bgcolor: alpha('#fff', 0.05), borderRadius: '12px' }}>
-              {facultyLinks.map(link => (
-                <ListItemButton key={link.label} onClick={() => handleNavigate(link.path)}>
+              {dynamicFacultyLinks.map(link => (
+                <ListItemButton key={link.path} onClick={() => handleNavigate(link.path)}>
                   <ListItemText primary={link.label} sx={{ color: location.pathname === link.path ? '#4caf50' : '#fff' }} />
                 </ListItemButton>
               ))}
+              {dynamicFacultyLinks.length === 0 && (
+                 <ListItemButton disabled>
+                    <ListItemText primary="Loading..." sx={{ color: '#888' }} />
+                 </ListItemButton>
+              )}
             </List>
           </Collapse>
 
-          {/* Mobile Programmes */}
           <ListItemButton onClick={() => toggleMobileMenu('prog')} sx={{ py: 1.5 }}>
             <ListItemText primary="Programmes" sx={{ color: isMegaMenuActive() ? '#4caf50' : '#fff' }} />
             {mobileOpen['prog'] ? <ExpandLess /> : <ExpandMore />}
           </ListItemButton>
           <Collapse in={mobileOpen['prog']} timeout="auto">
             <Box sx={{ pl: 3, bgcolor: alpha('#fff', 0.05), borderRadius: '15px', py: 1.5 }}>
-              {programmeGroups.map(group => (
-                <Box key={group.title} sx={{ mt: 1 }}>
-                  <Typography sx={{ color: '#4caf50', fontSize: '0.7rem', fontWeight: 900, px: 2, textTransform: 'uppercase' }}>{group.title}</Typography>
-                  {group.items.map(item => (
-                    <ListItemButton key={item.label} onClick={() => handleNavigate(item.path)}>
-                      <ListItemText primary={item.label} sx={{ color: location.pathname === item.path ? '#4caf50' : '#fff' }} />
-                    </ListItemButton>
-                  ))}
-                </Box>
-              ))}
+              {dynamicProgrammeGroups.length > 0 ? (
+                dynamicProgrammeGroups.map(group => (
+                  <Box key={group.title} sx={{ mt: 1 }}>
+                    <Typography sx={{ color: '#4caf50', fontSize: '0.7rem', fontWeight: 900, px: 2, textTransform: 'uppercase' }}>{group.title}</Typography>
+                    {group.items.map(item => (
+                      <ListItemButton key={item.label} onClick={() => handleNavigate(item.path)}>
+                        <ListItemText primary={item.label} sx={{ color: location.pathname === item.path ? '#4caf50' : '#fff' }} />
+                      </ListItemButton>
+                    ))}
+                  </Box>
+                ))
+              ) : (
+                <Typography sx={{ color: '#888', fontSize: '0.85rem', p: 2 }}>Loading programmes...</Typography>
+              )}
             </Box>
           </Collapse>
 

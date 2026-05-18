@@ -12,12 +12,13 @@ import {
   DeleteOutline, SearchOutlined, WarningAmberRounded,
   VisibilityOutlined, CloseOutlined, CheckCircleOutline, NavigateNext, 
   HistoryToggleOffOutlined, GridViewOutlined, ViewListOutlined,
-  SchoolOutlined, CalendarMonthOutlined, LocalOfferOutlined, LayersOutlined
+  SchoolOutlined, CalendarMonthOutlined, LocalOfferOutlined, LayersOutlined,
+  EditOutlined
 } from "@mui/icons-material";
 
 // Components 
 import CreateCourse from "./CreateCourses";
-// import UpdateCourse from "./UpdateCourses";
+import UpdateCourse from "./UpdateCourses"; // UNCOMMENTED
 
 // --- CONFIGURATION & CONSTANTS ---
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -55,6 +56,11 @@ interface Semester {
   moduleRows: ModuleRow[];
 }
 
+interface EntryRequirementData {
+  category: string;
+  descriptions: string[];
+}
+
 interface Course {
   _id: string;
   courseName: string;
@@ -63,7 +69,8 @@ interface Course {
   duration: string;
   intake: string;
   awardingBody: string;
-  entryRequirement: string;
+  isCampusOffering?: boolean; // ADDED
+  entryRequirements: EntryRequirementData[]; // UPDATED TO MATCH NEW SCHEMA
   progression: string;
   scholarships: string;
   semesters: Semester[];
@@ -83,6 +90,7 @@ const CourseManager = () => {
   const [syncStatus, setSyncStatus] = useState<"online" | "offline">("online");
   const [showAddForm, setShowAddForm] = useState(false);
   const [viewingItem, setViewingItem] = useState<Course | null>(null);
+  const [editingItem, setEditingItem] = useState<Course | null>(null); // ADDED EDITING STATE
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string | null }>({ open: false, id: null });
   
   // View & Selection States
@@ -204,7 +212,7 @@ const CourseManager = () => {
 
   // View Renders
   if (showAddForm) return <ThemeProvider theme={montserratTheme}><CreateCourse onBack={() => { setShowAddForm(false); fetchData(); }} /></ThemeProvider>;
-  // if (editingItem) return <ThemeProvider theme={montserratTheme}><UpdateCourse itemData={editingItem} onBack={() => { setEditingItem(null); fetchData(); }} /></ThemeProvider>;
+  if (editingItem) return <ThemeProvider theme={montserratTheme}><UpdateCourse itemData={editingItem as any} onBack={() => { setEditingItem(null); fetchData(); }} /></ThemeProvider>; // UNCOMMENTED
 
   return (
     <ThemeProvider theme={montserratTheme}>
@@ -344,11 +352,12 @@ const CourseManager = () => {
                                             <VisibilityOutlined fontSize="small" />
                                             </IconButton>
                                         </Tooltip>
-                                        {/* <Tooltip title="Edit Course">
+                                        {/* UNCOMMENTED EDIT BUTTON FOR TABLE */}
+                                        <Tooltip title="Edit Course">
                                             <IconButton size="small" onClick={() => setEditingItem(course)} sx={{ color: "#475569", bgcolor: '#F1F5F9', '&:hover': { bgcolor: '#E2E8F0' } }}>
                                             <EditOutlined fontSize="small" />
                                             </IconButton>
-                                        </Tooltip> */}
+                                        </Tooltip>
                                         <Tooltip title="Delete Course">
                                             <IconButton size="small" onClick={() => setDeleteDialog({ open: true, id: course._id })} sx={{ color: "#EF4444", bgcolor: '#FEF2F2', '&:hover': { bgcolor: '#FEE2E2' } }}>
                                             <DeleteOutline fontSize="small" />
@@ -412,7 +421,8 @@ const CourseManager = () => {
                                                 </Typography>
                                                 <Stack direction="row" spacing={0.5}>
                                                     <IconButton size="small" onClick={() => setViewingItem(course)} sx={{ color: PRIMARY_TEAL, p: 0.5 }}><VisibilityOutlined fontSize="small" /></IconButton>
-                                                    {/* <IconButton size="small" onClick={() => setEditingItem(course)} sx={{ color: "#475569", p: 0.5 }}><EditOutlined fontSize="small" /></IconButton> */}
+                                                    {/* UNCOMMENTED EDIT BUTTON FOR GRID */}
+                                                    <IconButton size="small" onClick={() => setEditingItem(course)} sx={{ color: "#475569", p: 0.5 }}><EditOutlined fontSize="small" /></IconButton>
                                                     <IconButton size="small" onClick={() => setDeleteDialog({ open: true, id: course._id })} sx={{ color: "#EF4444", p: 0.5 }}><DeleteOutline fontSize="small" /></IconButton>
                                                 </Stack>
                                             </Stack>
@@ -529,6 +539,11 @@ const CourseManager = () => {
                       <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: "#94A3B8" }}>SCHOLARSHIPS</Typography>
                       <Typography sx={{ fontWeight: 700 }} dangerouslySetInnerHTML={{ __html: viewingItem.scholarships || "None" }} />
                     </Box>
+                    {/* ADDED: Campus Offering Status */}
+                    <Box flex={1}>
+                      <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: "#94A3B8" }}>CAMPUS OFFERING</Typography>
+                      <Chip label={viewingItem.isCampusOffering ? "Available at Campus" : "Online Only"} size="small" color={viewingItem.isCampusOffering ? "success" : "default"} sx={{ fontWeight: 700, mt: 0.5 }} />
+                    </Box>
                   </Stack>
 
                   {/* 3. Curriculum Structure */}
@@ -565,7 +580,23 @@ const CourseManager = () => {
                   <Stack spacing={2}>
                     <Box sx={{ p: 2, bgcolor: "#F8FAFC", borderRadius: "12px" }}>
                       <Typography sx={{ fontWeight: 800, fontSize: "0.8rem", color: PRIMARY_TEAL, mb: 1 }}>ENTRY REQUIREMENTS</Typography>
-                      <Typography sx={{ fontSize: "0.85rem" }} dangerouslySetInnerHTML={{ __html: viewingItem.entryRequirement }} />
+                      {/* FIXED TO RENDER THE NEW ARRAY STRUCTURE */}
+                      {viewingItem.entryRequirements && viewingItem.entryRequirements.length > 0 ? (
+                        viewingItem.entryRequirements.map((reqBlock, rIdx) => (
+                          <Box key={rIdx} sx={{ mb: 2, '&:last-child': { mb: 0 } }}>
+                            <Typography sx={{ fontWeight: 800, fontSize: "0.85rem", color: "#334155" }}>{reqBlock.category}</Typography>
+                            <ul style={{ margin: '4px 0', paddingLeft: '20px' }}>
+                              {reqBlock.descriptions.map((desc, dIdx) => (
+                                <li key={dIdx}>
+                                  <Typography sx={{ fontSize: "0.8rem", color: "#475569" }}>{desc}</Typography>
+                                </li>
+                              ))}
+                            </ul>
+                          </Box>
+                        ))
+                      ) : (
+                         <Typography sx={{ fontSize: "0.8rem", color: "#64748B", fontStyle: "italic" }}>No specific entry requirements listed.</Typography>
+                      )}
                     </Box>
                     <Box sx={{ p: 2, bgcolor: "#F8FAFC", borderRadius: "12px" }}>
                       <Typography sx={{ fontWeight: 800, fontSize: "0.8rem", color: PRIMARY_TEAL, mb: 1 }}>CAREER PATHWAYS</Typography>

@@ -17,11 +17,12 @@ import Studentlife from './Page/Student-life';
 import Studentlifeview from './Page/Student-life-view';
 import News from './Page/News';
 import NewsView from './Page/News-view';
-import Course from './Page/coures';
 import Login from './Page/Admin/Login/Login';
 import Dashboard from "./Page/Admin/Dashboard/Dashboard";
 import StudentRegistration from "./Page/StudentRegistration";
 import Contactus from "./Page/contact";
+import Faculties_view from "./Page/Faculties_view";
+import Coures_view from "./Page/Couresview";
 
 // --- Scroll To Top Component ---
 // This listens for route changes and scrolls the window to the top
@@ -75,7 +76,6 @@ const AppContent = () => {
         <Route path="/student-life/view" element={<Studentlifeview />} />
         <Route path="/News" element={<News />} />
         <Route path="/news/view" element={<NewsView />} />
-        <Route path="/programmes/foundation-business" element={<Course />} />
         <Route path="/register-online" element={<StudentRegistration/>} />
         <Route path="/pricing" element={<div>Pricing Page</div>} />
         <Route path="/blog" element={<div>Blog Page</div>} />
@@ -83,6 +83,8 @@ const AppContent = () => {
         <Route path="/news/:slug" element={<NewsView />} />
         <Route path="/contact" element={<Contactus />} />
         <Route path="/events/:name" element={<Event_view />} />
+        <Route path="/faculties/:name" element={<Faculties_view />} />
+        <Route path="/courses/:id" element={<Coures_view />} />
         
         {/* Login Route */}
         <Route path="/login" element={<Login />} />
