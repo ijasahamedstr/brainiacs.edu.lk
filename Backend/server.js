@@ -76,6 +76,8 @@ app.use('/api/course',Courserouter);
 
 app.use('/api/AskOurStudent',askOurStudentRouter);
 
+app.use('/api/Intake',askOurStudentRouter);
+
 // 7. Start server
 const port = 8001;
 app.listen(port, () => {

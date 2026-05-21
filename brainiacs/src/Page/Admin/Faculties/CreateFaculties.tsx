@@ -3,7 +3,7 @@ import {
   Box, Typography, Stack, Paper, Button, TextField, 
   InputLabel, CircularProgress, Dialog, DialogTitle, 
   DialogContent, DialogContentText, DialogActions,
-  IconButton, Avatar, Chip
+  IconButton, Avatar, Chip, InputAdornment
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, TitleOutlined, 
@@ -11,11 +11,12 @@ import {
   AddOutlined, DescriptionOutlined, CollectionsOutlined, 
   HideImageOutlined, PersonOutline, ImageOutlined,
   BadgeOutlined, PanoramaHorizontalOutlined,
-  ShortTextOutlined
+  ShortTextOutlined, CloudUploadOutlined
 } from "@mui/icons-material";
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "37cd6333d9f4bd044c4a4dcc867276ae"; 
 const primaryTeal = "#004652";
 const primaryFont = "'Montserrat', sans-serif";
 const borderColor = "#E2E8F0";
@@ -42,6 +43,29 @@ const CreateFaculty = ({ onBack }: AddProps) => {
   // UI State
   const [loading, setLoading] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  
+  // Upload State
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingDean, setIsUploadingDean] = useState(false);
+  const [uploadingGalleryIndex, setUploadingGalleryIndex] = useState<number | null>(null);
+
+  // --- IMGBB UPLOAD HANDLER ---
+  const uploadToImgBB = async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || "Failed to upload image");
+    }
+  };
 
   // --- ARRAY HANDLERS ---
   const handleAddDescription = () => setDescriptions([...descriptions, ""]);
@@ -113,7 +137,7 @@ const CreateFaculty = ({ onBack }: AddProps) => {
       fontWeight: 500,
       bgcolor: "#FFF",
       "& fieldset": { borderColor: borderColor },
-      "&:hover fieldset": { borderColor: primaryTeal },
+      "& hover fieldset": { borderColor: primaryTeal },
       "&.Mui-focused fieldset": { borderColor: primaryTeal },
     },
     "& .MuiInputBase-input::placeholder": { fontFamily: primaryFont, fontSize: "0.8rem" }
@@ -163,10 +187,43 @@ const CreateFaculty = ({ onBack }: AddProps) => {
             </Box>
             <Box sx={{ flex: 1 }}>
               <InputLabel sx={labelStyle}>COVER IMAGE (URL)</InputLabel>
+              
+              <input 
+                type="file" 
+                accept="image/*" 
+                id="cover-upload-input" 
+                style={{ display: "none" }}
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setIsUploadingCover(true);
+                    try {
+                      const url = await uploadToImgBB(e.target.files[0]);
+                      setCoverImage(url);
+                    } catch (error) {
+                      console.error("Cover upload failed:", error);
+                      alert("Failed to upload cover image.");
+                    } finally {
+                      setIsUploadingCover(false);
+                    }
+                  }
+                }}
+              />
+
               <TextField 
                 fullWidth value={coverImage} onChange={(e) => setCoverImage(e.target.value)} 
-                placeholder="https://.../cover-banner.jpg" 
-                InputProps={{ startAdornment: <PanoramaHorizontalOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} /> }}
+                placeholder="Paste URL or click to upload ->" 
+                InputProps={{ 
+                  startAdornment: <PanoramaHorizontalOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} />,
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <label htmlFor="cover-upload-input">
+                        <IconButton component="span" disabled={isUploadingCover} sx={{ color: primaryTeal }}>
+                          {isUploadingCover ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                        </IconButton>
+                      </label>
+                    </InputAdornment>
+                  )
+                }}
                 sx={inputStyle}
               />
             </Box>
@@ -192,10 +249,43 @@ const CreateFaculty = ({ onBack }: AddProps) => {
               </Box>
               <Box sx={{ flex: 1 }}>
                 <InputLabel sx={labelStyle}>DEAN'S PHOTO (URL)</InputLabel>
+
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  id="dean-upload-input" 
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setIsUploadingDean(true);
+                      try {
+                        const url = await uploadToImgBB(e.target.files[0]);
+                        setDeanImage(url);
+                      } catch (error) {
+                        console.error("Dean image upload failed:", error);
+                        alert("Failed to upload dean image.");
+                      } finally {
+                        setIsUploadingDean(false);
+                      }
+                    }
+                  }}
+                />
+
                 <TextField 
                   fullWidth value={deanImage} onChange={(e) => setDeanImage(e.target.value)} 
-                  placeholder="https://.../dean-profile.jpg" 
-                  InputProps={{ startAdornment: <ImageOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} /> }}
+                  placeholder="Paste URL or click to upload ->" 
+                  InputProps={{ 
+                    startAdornment: <ImageOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} />,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <label htmlFor="dean-upload-input">
+                          <IconButton component="span" disabled={isUploadingDean} sx={{ color: primaryTeal }}>
+                            {isUploadingDean ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                          </IconButton>
+                        </label>
+                      </InputAdornment>
+                    )
+                  }}
                   sx={inputStyle}
                 />
               </Box>
@@ -247,12 +337,45 @@ const CreateFaculty = ({ onBack }: AddProps) => {
             </Stack>
             <Stack spacing={2}>
               {imageUrls.map((url, index) => (
-                <Stack key={index} direction="row" spacing={1}>
+                <Stack key={index} direction="row" spacing={1} alignItems="center">
+                  
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    id={`gallery-upload-input-${index}`} 
+                    style={{ display: "none" }}
+                    onChange={async (e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setUploadingGalleryIndex(index);
+                        try {
+                          const uploadedUrl = await uploadToImgBB(e.target.files[0]);
+                          handleUrlChange(index, uploadedUrl);
+                        } catch (error) {
+                          console.error("Gallery upload failed:", error);
+                          alert("Failed to upload gallery image.");
+                        } finally {
+                          setUploadingGalleryIndex(null);
+                        }
+                      }
+                    }}
+                  />
+
                   <TextField 
                     fullWidth value={url} 
                     onChange={(e) => handleUrlChange(index, e.target.value)}
-                    placeholder="https://.../gallery-photo.jpg"
-                    InputProps={{ startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} /> }}
+                    placeholder={`Paste URL or upload image #${index + 1}`}
+                    InputProps={{ 
+                      startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} />,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <label htmlFor={`gallery-upload-input-${index}`}>
+                            <IconButton component="span" disabled={uploadingGalleryIndex === index} sx={{ color: primaryTeal }}>
+                              {uploadingGalleryIndex === index ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                            </IconButton>
+                          </label>
+                        </InputAdornment>
+                      )
+                    }}
                     sx={inputStyle}
                   />
                   <IconButton onClick={() => handleRemoveImageUrl(index)} color="error" disabled={imageUrls.length === 1}><DeleteOutline fontSize="small" /></IconButton>

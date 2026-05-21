@@ -42,6 +42,7 @@ import FacultiesManager from "../Faculties/Faculties";
 import CourseCategoryManager from "../Academic courses/Course Category/CourseCategory";
 import CourseManager from "../Academic courses/All Courses/All Courses";
 import AskOurStudent from "../Ask Our Student/AskOurStudent";
+import IntakePeriod from "../Intake Period/IntakePeriod";
 
 // CONSTANTS
 const DRAWER_WIDTH = 290;
@@ -128,13 +129,13 @@ const Dashboard: React.FC = () => {
       children: [
         { text: "Board of Governance", icon: <AdminPanelSettingsOutlined /> },
         { text: "Our Team", icon: <GroupsOutlined /> },
-        { text: "Partners", icon: <HandshakeOutlined /> }
+        { text: "Partners", icon: <HandshakeOutlined /> },
+        { text: "Intake Period", icon: <IntakePeriod /> },
       ]
     },
     { text: "Home Slider", icon: <ViewCarouselOutlined /> },
     { text: "Student Registration", icon: <HowToRegOutlined /> },
     { text: "Certificates", icon: <WorkspacePremiumOutlined /> },
-    // { text: "Campus Offer", icon: <CampaignOutlined /> },
     { text: "Ask Our Student", icon: <QuestionAnswerOutlined /> },
     { text: "News", icon: <NewspaperOutlined /> },
     { text: "Event", icon: <EventOutlined /> },
@@ -178,6 +179,7 @@ const Dashboard: React.FC = () => {
       case "Faculties": return <FacultiesManager />;
       case "Course Category": return <CourseCategoryManager />;
       case "Ask Our Student": return <AskOurStudent />;
+      case "Intake Period": return <IntakePeriod />;
       
       // ACADEMIC STAFFS MODULE
         return (

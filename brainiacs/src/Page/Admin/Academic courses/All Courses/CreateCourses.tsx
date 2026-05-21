@@ -12,11 +12,14 @@ import {
   PlaylistAddOutlined, InfoOutlined, MenuBookOutlined, 
   SchoolOutlined, LandscapeOutlined,
   SaveOutlined, CheckCircleOutline, RestartAltOutlined,
-  HelpOutline,
+  HelpOutline, CloudUploadOutlined
 } from "@mui/icons-material";
 
 // --- CONSTANTS & STYLES ---
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+// Use environment variable with fallback for the ImgBB API key provided
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "37cd6333d9f4bd044c4a4dcc867276ae"; 
+
 const primaryTeal = "#004652";
 const secondaryTeal = "#006D7E";
 const primaryFont = '"Montserrat", sans-serif'; 
@@ -61,13 +64,17 @@ const CreateCourse = ({ onBack }: { onBack: () => void }) => {
   const [images, setImages] = useState<string[]>([""]);
   const [coverImage, setCoverImage] = useState("");
   
-  // UPDATED: Nested state for structured entry requirements
+  // Nested state for structured entry requirements
   const [entryRequirements, setEntryRequirements] = useState([
     { category: "", descriptions: [""] }
   ]); 
   
   const [progression, setProgression] = useState("");
   const [scholarships, setScholarships] = useState("");
+
+  // --- UPLOAD STATE ---
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [uploadingGalleryIndex, setUploadingGalleryIndex] = useState<number | null>(null);
 
   // --- MODULE SYSTEM STATE ---
   const [activeTab, setActiveTab] = useState(0);
@@ -167,6 +174,24 @@ const CreateCourse = ({ onBack }: { onBack: () => void }) => {
     fetchCategories();
   }, []);
 
+  // --- IMGBB UPLOAD HANDLER ---
+  const uploadToImgBB = async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || "Failed to upload image");
+    }
+  };
+
   // --- LOGIC HANDLERS ---
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -199,7 +224,6 @@ const CreateCourse = ({ onBack }: { onBack: () => void }) => {
     
     setLoading(true);
 
-    // Clean up empty bullets and categories before saving
     const cleanedEntryRequirements = entryRequirements
       .filter(req => req.category.trim() || req.descriptions.some(d => d.trim()))
       .map(req => ({
@@ -252,6 +276,8 @@ const CreateCourse = ({ onBack }: { onBack: () => void }) => {
       setProgression("");
       setScholarships("");
       setSemesters([{ id: "sem-1", semesterName: "Semester 1", moduleRows: [{ id: "mod-1", code: "", name: "", credits: "" }] }]);
+      setCoverImage("");
+      setImages([""]);
     }
   };
 
@@ -589,7 +615,6 @@ const CreateCourse = ({ onBack }: { onBack: () => void }) => {
 
             <Stack spacing={4}>
               
-              {/* UPDATED: Nested Entry Requirements Builder */}
               <Box>
                 <InputLabel sx={{ ...labelStyle, mb: 1.5 }}>Structured Entry Requirements</InputLabel>
                 <Stack spacing={2.5}>
@@ -755,6 +780,29 @@ const CreateCourse = ({ onBack }: { onBack: () => void }) => {
 
               <Box>
                 <InputLabel sx={labelStyle}>Primary Cover Image Link</InputLabel>
+                
+                {/* Hidden File Input for Cover Image */}
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  id="cover-upload-input" 
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setIsUploadingCover(true);
+                      try {
+                        const url = await uploadToImgBB(e.target.files[0]);
+                        setCoverImage(url);
+                      } catch (error) {
+                        console.error("Cover upload failed:", error);
+                        alert("Failed to upload cover image.");
+                      } finally {
+                        setIsUploadingCover(false);
+                      }
+                    }
+                  }}
+                />
+
                 <TextField 
                   fullWidth 
                   size="small"
@@ -763,9 +811,18 @@ const CreateCourse = ({ onBack }: { onBack: () => void }) => {
                   sx={inputStyle} 
                   error={!!errors.coverImage}
                   helperText={errors.coverImage}
-                  placeholder="https://images.unsplash.com/photo-example"
+                  placeholder="Paste URL or click to upload ->"
                   InputProps={{
-                    startAdornment: <InputAdornment position="start"><LandscapeOutlined sx={{ color: "#94A3B8", fontSize: "1.1rem" }} /></InputAdornment>
+                    startAdornment: <InputAdornment position="start"><LandscapeOutlined sx={{ color: "#94A3B8", fontSize: "1.1rem" }} /></InputAdornment>,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <label htmlFor="cover-upload-input">
+                          <IconButton component="span" disabled={isUploadingCover} sx={{ color: primaryTeal }}>
+                            {isUploadingCover ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                          </IconButton>
+                        </label>
+                      </InputAdornment>
+                    )
                   }}
                 />
               </Box>
@@ -775,6 +832,31 @@ const CreateCourse = ({ onBack }: { onBack: () => void }) => {
                 <Stack spacing={1.5}>
                   {images.map((img, i) => (
                     <Stack key={i} direction="row" spacing={1.5} alignItems="center">
+                      
+                      {/* Hidden File Input for Gallery Image specific to this index */}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        id={`gallery-upload-input-${i}`} 
+                        style={{ display: "none" }}
+                        onChange={async (e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setUploadingGalleryIndex(i);
+                            try {
+                              const url = await uploadToImgBB(e.target.files[0]);
+                              const upd = [...images];
+                              upd[i] = url;
+                              setImages(upd);
+                            } catch (error) {
+                              console.error("Gallery upload failed:", error);
+                              alert("Failed to upload gallery image.");
+                            } finally {
+                              setUploadingGalleryIndex(null);
+                            }
+                          }
+                        }}
+                      />
+
                       <TextField 
                         fullWidth 
                         size="small" 
@@ -785,7 +867,18 @@ const CreateCourse = ({ onBack }: { onBack: () => void }) => {
                           setImages(upd); 
                         }} 
                         sx={inputStyle} 
-                        placeholder={`Image URL #${i + 1}`}
+                        placeholder={`Paste URL or upload image #${i + 1}`}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <label htmlFor={`gallery-upload-input-${i}`}>
+                                <IconButton component="span" disabled={uploadingGalleryIndex === i} sx={{ color: primaryTeal }}>
+                                  {uploadingGalleryIndex === i ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                                </IconButton>
+                              </label>
+                            </InputAdornment>
+                          )
+                        }}
                       />
                       <IconButton size="small" onClick={() => setImages(images.filter((_, idx) => idx !== i))} sx={{ color: "#94A3B8" }}>
                         <DeleteOutline fontSize="small" />

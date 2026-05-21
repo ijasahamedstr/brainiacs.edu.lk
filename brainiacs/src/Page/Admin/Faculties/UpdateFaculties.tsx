@@ -3,7 +3,7 @@ import {
   Box, Typography, Stack, Paper, Button, TextField, 
   InputLabel, CircularProgress, Dialog, DialogTitle, 
   DialogContent, DialogContentText, DialogActions,
-  IconButton, Avatar, Chip
+  IconButton, Avatar, Chip, InputAdornment
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, TitleOutlined, 
@@ -11,14 +11,74 @@ import {
   DeleteOutline, AddOutlined, DescriptionOutlined,
   InfoOutlined, PanoramaHorizontalOutlined,
   BadgeOutlined, ImageOutlined, CollectionsOutlined,
-  ShortTextOutlined
+  ShortTextOutlined, CloudUploadOutlined
 } from "@mui/icons-material";
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "37cd6333d9f4bd044c4a4dcc867276ae";
 const primaryTeal = "#004652";
 const primaryFont = "'Montserrat', sans-serif";
 const borderColor = "#E2E8F0";
+
+// --- CLIENT-SIDE IMAGE COMPRESSION ---
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200; // Max width for web usage
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        // Calculate aspect ratio
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height *= MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width *= MAX_HEIGHT / height));
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                // Convert blob back to a File object with jpeg format and 75% quality
+                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                  type: "image/jpeg",
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file); // Fallback to original if compression fails
+              }
+            },
+            "image/jpeg",
+            0.75 // 75% Quality
+          );
+        } else {
+          resolve(file);
+        }
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 // --- INTERFACES ---
 interface Faculty {
@@ -29,7 +89,7 @@ interface Faculty {
   coverImage: string;
   deanName: string;
   deanImage: string;
-  deanDescription?: string; // [Added] Optional field
+  deanDescription?: string;
 }
 
 interface UpdateProps {
@@ -46,7 +106,7 @@ const UpdateFaculty = ({ itemData, onBack }: UpdateProps) => {
   // Leadership State
   const [deanName, setDeanName] = useState(itemData.deanName || "");
   const [deanImage, setDeanImage] = useState(itemData.deanImage || "");
-  const [deanDescription, setDeanDescription] = useState(itemData.deanDescription || ""); // [Added] State
+  const [deanDescription, setDeanDescription] = useState(itemData.deanDescription || "");
   
   // Arrays
   const [descriptions, setDescriptions] = useState<string[]>(itemData.descriptions);
@@ -54,6 +114,29 @@ const UpdateFaculty = ({ itemData, onBack }: UpdateProps) => {
   
   const [loading, setLoading] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  // Upload States
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingDean, setIsUploadingDean] = useState(false);
+  const [uploadingGalleryIndex, setUploadingGalleryIndex] = useState<number | null>(null);
+
+  // --- IMGBB UPLOAD HANDLER ---
+  const uploadToImgBB = async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || "Failed to upload image");
+    }
+  };
 
   // --- ARRAY HANDLERS (Descriptions) ---
   const handleAddDescription = () => setDescriptions([...descriptions, ""]);
@@ -103,7 +186,7 @@ const UpdateFaculty = ({ itemData, onBack }: UpdateProps) => {
           coverImage,
           deanName,
           deanImage,
-          deanDescription, // [Added] Include in payload
+          deanDescription, 
           descriptions: descriptions.filter(d => d.trim() !== ""), 
           imageUrls: imageUrls.filter(u => u.trim() !== "") 
         }),
@@ -130,7 +213,7 @@ const UpdateFaculty = ({ itemData, onBack }: UpdateProps) => {
       fontFamily: primaryFont,
       bgcolor: "#FFF",
       "& fieldset": { borderColor: borderColor },
-      "&:hover fieldset": { borderColor: primaryTeal },
+      "& hover fieldset": { borderColor: primaryTeal },
       "&.Mui-focused fieldset": { borderColor: primaryTeal },
     },
     "& .MuiInputBase-input": { fontFamily: primaryFont }
@@ -181,9 +264,44 @@ const UpdateFaculty = ({ itemData, onBack }: UpdateProps) => {
             </Box>
             <Box sx={{ flex: 1 }}>
               <InputLabel sx={labelStyle}>COVER IMAGE URL</InputLabel>
+
+              <input 
+                type="file" 
+                accept="image/*" 
+                id="update-cover-upload-input" 
+                style={{ display: "none" }}
+                onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setIsUploadingCover(true);
+                    try {
+                      const compressedFile = await compressImage(e.target.files[0]);
+                      const url = await uploadToImgBB(compressedFile);
+                      setCoverImage(url);
+                    } catch (error) {
+                      console.error("Cover upload failed:", error);
+                      alert("Failed to upload cover image.");
+                    } finally {
+                      setIsUploadingCover(false);
+                    }
+                  }
+                }}
+              />
+
               <TextField 
                 fullWidth value={coverImage} onChange={(e) => setCoverImage(e.target.value)} 
-                InputProps={{ startAdornment: <PanoramaHorizontalOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                placeholder="Paste URL or click to upload ->"
+                InputProps={{ 
+                  startAdornment: <PanoramaHorizontalOutlined sx={{ mr: 1, color: "#94A3B8" }} />,
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <label htmlFor="update-cover-upload-input">
+                        <IconButton component="span" disabled={isUploadingCover} sx={{ color: primaryTeal }}>
+                          {isUploadingCover ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                        </IconButton>
+                      </label>
+                    </InputAdornment>
+                  )
+                }}
                 sx={inputStyle}
               />
             </Box>
@@ -204,15 +322,50 @@ const UpdateFaculty = ({ itemData, onBack }: UpdateProps) => {
               </Box>
               <Box sx={{ flex: 1 }}>
                 <InputLabel sx={labelStyle}>DEAN'S PHOTO URL</InputLabel>
+
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  id="update-dean-upload-input" 
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setIsUploadingDean(true);
+                      try {
+                        const compressedFile = await compressImage(e.target.files[0]);
+                        const url = await uploadToImgBB(compressedFile);
+                        setDeanImage(url);
+                      } catch (error) {
+                        console.error("Dean image upload failed:", error);
+                        alert("Failed to upload dean image.");
+                      } finally {
+                        setIsUploadingDean(false);
+                      }
+                    }
+                  }}
+                />
+
                 <TextField 
                   fullWidth value={deanImage} onChange={(e) => setDeanImage(e.target.value)} 
-                  InputProps={{ startAdornment: <ImageOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                  placeholder="Paste URL or click to upload ->"
+                  InputProps={{ 
+                    startAdornment: <ImageOutlined sx={{ mr: 1, color: "#94A3B8" }} />,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <label htmlFor="update-dean-upload-input">
+                          <IconButton component="span" disabled={isUploadingDean} sx={{ color: primaryTeal }}>
+                            {isUploadingDean ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                          </IconButton>
+                        </label>
+                      </InputAdornment>
+                    )
+                  }}
                   sx={inputStyle}
                 />
               </Box>
             </Stack>
 
-            {/* [Added] Dean Description Input */}
+            {/* Dean Description Input */}
             <Box>
               <InputLabel sx={labelStyle}>DEAN'S BIOGRAPHY / MESSAGE</InputLabel>
               <TextField 
@@ -259,11 +412,46 @@ const UpdateFaculty = ({ itemData, onBack }: UpdateProps) => {
             </Stack>
             <Stack spacing={2}>
               {imageUrls.map((url, index) => (
-                <Stack key={index} direction="row" spacing={1}>
+                <Stack key={index} direction="row" spacing={1} alignItems="center">
+                  
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    id={`update-gallery-upload-input-${index}`} 
+                    style={{ display: "none" }}
+                    onChange={async (e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setUploadingGalleryIndex(index);
+                        try {
+                          const compressedFile = await compressImage(e.target.files[0]);
+                          const uploadedUrl = await uploadToImgBB(compressedFile);
+                          handleUrlChange(index, uploadedUrl);
+                        } catch (error) {
+                          console.error("Gallery upload failed:", error);
+                          alert("Failed to upload gallery image.");
+                        } finally {
+                          setUploadingGalleryIndex(null);
+                        }
+                      }
+                    }}
+                  />
+
                   <TextField 
                     fullWidth value={url} 
                     onChange={(e) => handleUrlChange(index, e.target.value)}
-                    InputProps={{ startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                    placeholder={`Paste URL or upload image #${index + 1}`}
+                    InputProps={{ 
+                      startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8" }} />,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <label htmlFor={`update-gallery-upload-input-${index}`}>
+                            <IconButton component="span" disabled={uploadingGalleryIndex === index} sx={{ color: primaryTeal }}>
+                              {uploadingGalleryIndex === index ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                            </IconButton>
+                          </label>
+                        </InputAdornment>
+                      )
+                    }}
                     sx={inputStyle}
                   />
                   <IconButton onClick={() => handleRemoveImageUrl(index)} color="error" disabled={imageUrls.length === 1}>
@@ -293,7 +481,6 @@ const UpdateFaculty = ({ itemData, onBack }: UpdateProps) => {
                        <Typography variant="body2" sx={{ fontFamily: primaryFont, fontWeight: 700 }}>{deanName || "Dean Name"}</Typography>
                        <Chip label="Dean" size="small" sx={{ height: 18, fontSize: '0.6rem', bgcolor: primaryTeal, color: 'white', mb: 1 }} />
                        
-                       {/* [Added] Description Preview */}
                        <Typography variant="body2" sx={{ fontFamily: primaryFont, fontSize: "0.75rem", color: "#64748B", fontStyle: 'italic', display: '-webkit-box', overflow: 'hidden', WebkitBoxOrient: 'vertical', WebkitLineClamp: 3 }}>
                           {deanDescription || "Dean's biography will appear here..."}
                        </Typography>

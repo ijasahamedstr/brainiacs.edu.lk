@@ -3,20 +3,78 @@ import {
   Box, Typography, Stack, Paper, Button, TextField, 
   InputLabel, CircularProgress, Dialog, DialogTitle, 
   DialogContent, DialogContentText, DialogActions,
-  Avatar, Divider
+  Avatar, Divider, InputAdornment, IconButton
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, SaveOutlined,
   PhotoSizeSelectActualOutlined, WorkOutline,
   BadgeOutlined, InfoOutlined, ManageAccountsOutlined,
-  DescriptionOutlined
+  DescriptionOutlined, CloudUploadOutlined
 } from "@mui/icons-material";
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "37cd6333d9f4bd044c4a4dcc867276ae";
 const primaryTeal = "#004652";
 const primaryFont = "'Montserrat', sans-serif";
 const borderColor = "#E2E8F0";
+
+// --- CLIENT-SIDE IMAGE COMPRESSION ---
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200; 
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height *= MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width *= MAX_HEIGHT / height));
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                  type: "image/jpeg",
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file); 
+              }
+            },
+            "image/jpeg",
+            0.75 
+          );
+        } else {
+          resolve(file);
+        }
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 // Updated Interface to include detailedBio
 interface BoardMember {
@@ -38,8 +96,28 @@ const UpdateGovernance = ({ itemData, onBack }: UpdateProps) => {
   const [jobDescription, setJobDescription] = useState(itemData.jobDescription);
   const [detailedBio, setDetailedBio] = useState(itemData.detailedBio || ""); // Added state
   const [imageUrl, setImageUrl] = useState(itemData.imageUrl);
+  
   const [loading, setLoading] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+
+  // --- IMGBB UPLOAD HANDLER ---
+  const uploadToImgBB = async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || "Failed to upload image");
+    }
+  };
 
   // --- UPDATE LOGIC ---
   const handleUpdateClick = () => {
@@ -189,12 +267,46 @@ const UpdateGovernance = ({ itemData, onBack }: UpdateProps) => {
               </Box>
 
               <Box>
-                <InputLabel sx={labelStyle}>IMAGE URL</InputLabel>
+                <InputLabel sx={labelStyle}>PROFILE PHOTO URL</InputLabel>
+                
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  id="update-gov-image-upload" 
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setIsUploadingImage(true);
+                      try {
+                        const compressedFile = await compressImage(e.target.files[0]);
+                        const url = await uploadToImgBB(compressedFile);
+                        setImageUrl(url);
+                      } catch (error) {
+                        console.error("Image upload failed:", error);
+                        alert("Failed to upload image.");
+                      } finally {
+                        setIsUploadingImage(false);
+                      }
+                    }
+                  }}
+                />
+
                 <TextField 
                   fullWidth value={imageUrl} 
                   onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="HTTPS link to image"
-                  InputProps={{ startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                  placeholder="Paste HTTPS link or click to upload ->"
+                  InputProps={{ 
+                    startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8" }} />,
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <label htmlFor="update-gov-image-upload">
+                          <IconButton component="span" disabled={isUploadingImage} sx={{ color: primaryTeal }}>
+                            {isUploadingImage ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                          </IconButton>
+                        </label>
+                      </InputAdornment>
+                    )
+                  }}
                   sx={inputStyle}
                 />
               </Box>

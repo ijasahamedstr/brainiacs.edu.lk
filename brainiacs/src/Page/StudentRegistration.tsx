@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ChangeEvent } from "react";
 import {
   Box, Typography, TextField, Button, FormControl, FormLabel,
   RadioGroup, FormControlLabel, Radio, Checkbox, FormGroup, 
   Paper, Stack, Stepper, Step, StepLabel, LinearProgress,
   InputAdornment, Fade, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Chip, MenuItem, useTheme, useMediaQuery, IconButton
+  Chip, MenuItem, useTheme, useMediaQuery, IconButton, CircularProgress
 } from "@mui/material";
 import {
   CloudUpload as CloudUploadIcon,
@@ -24,6 +24,7 @@ import {
 // Configuration & Global Styles
 const THEME_COLOR = "#004d40"; 
 const API_URL = `${import.meta.env.VITE_API_URL}/api/students`;
+const COURSES_API_URL = `${import.meta.env.VITE_API_URL}/api/course`;
 const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
 const CAMPUS_NAME = "BRAINIACS";
 
@@ -43,11 +44,20 @@ const inputSx = {
   mb: { xs: 2, sm: 2.5 }
 };
 
+interface Course {
+  _id: string;
+  courseName: string;
+}
+
 const StudentRegistration = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // State for fetched courses database integration
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -85,6 +95,27 @@ const StudentRegistration = () => {
   const [olRows, setOlRows] = useState(Array(10).fill(null).map(() => ({ y1: "", s1: "", g1: "", y2: "", s2: "", g2: "" })));
   const [alRows, setAlRows] = useState(Array(4).fill(null).map(() => ({ subject: "", grade: "", year: "", attempt: "" })));
   const [otherQuals] = useState(Array(4).fill(null).map(() => ({ name: "", year: "", body: "", grade: "" })));
+
+  // Hook to fetch academic streams/courses from backend database api
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch(COURSES_API_URL);
+        if (response.ok) {
+          const data = await response.json();
+          setCourses(data); 
+        } else {
+          console.error("Failed to fetch courses");
+        }
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setIsLoadingCourses(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -140,7 +171,6 @@ const StudentRegistration = () => {
     setIsSubmitting(true);
     
     try {
-      // 1. Upload files to ImgBB and collect the generated URLs
       const uploadedImageUrls: string[] = [];
       
       for (const file of selectedFiles) {
@@ -161,7 +191,6 @@ const StudentRegistration = () => {
         }
       }
 
-      // 2. Prepare the final payload for your local backend
       const sendableFormData = new FormData();
       const payload = { 
         ...formData, 
@@ -173,7 +202,6 @@ const StudentRegistration = () => {
       
       sendableFormData.append("data", JSON.stringify(payload));
       
-      // 3. Send the structured data to your backend
       const res = await fetch(API_URL, { 
         method: "POST", 
         body: sendableFormData 
@@ -229,7 +257,30 @@ const StudentRegistration = () => {
   const renderInquiry = () => (
     <Stack spacing={{ xs: 3, sm: 4 }}>
       <SectionHeader icon={BusinessIcon} title="Application Intent" />
-      <TextField fullWidth label="Academic Programme" placeholder="e.g. BEng (Hons) Software Engineering" value={formData.programme} onChange={(e) => handleInputChange("programme", e.target.value)} sx={inputSx} />
+      
+      <TextField 
+        select
+        fullWidth 
+        label="Academic Programme" 
+        value={formData.programme} 
+        onChange={(e) => handleInputChange("programme", e.target.value)} 
+        sx={inputSx}
+        disabled={isLoadingCourses}
+        InputProps={{
+          endAdornment: isLoadingCourses ? <CircularProgress size={20} color="inherit" sx={{ mr: 2 }} /> : null
+        }}
+      >
+        {courses.length === 0 && !isLoadingCourses ? (
+          <MenuItem disabled sx={GLOBAL_FONT}>No courses available</MenuItem>
+        ) : (
+          courses.map(course => (
+            <MenuItem key={course._id} value={course.courseName} sx={GLOBAL_FONT}>
+              {course.courseName}
+            </MenuItem>
+          ))
+        )}
+      </TextField>
+
       <TextField select fullWidth label="Intake Period" value={formData.intake} onChange={(e) => handleInputChange("intake", e.target.value)} sx={inputSx}>
         {["2026 February", "2026 June", "2026 October"].map(i => <MenuItem key={i} value={i} sx={GLOBAL_FONT}>{i}</MenuItem>)}
       </TextField>

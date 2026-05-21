@@ -5,7 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
   Tabs, Tab, Alert, Collapse, Fade, Tooltip,
   Avatar, Badge, Switch, FormControlLabel, Checkbox,
-  LinearProgress
+  LinearProgress, InputAdornment
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, DeleteOutline, AddOutlined, 
@@ -13,17 +13,75 @@ import {
   EditNoteOutlined, MenuBookOutlined,
   LinkOutlined, HistoryEduOutlined, WorkspacePremiumOutlined,
   PlaylistAddOutlined, PostAddOutlined,
-  GavelOutlined, LanguageOutlined
+  GavelOutlined, LanguageOutlined, CloudUploadOutlined
 } from "@mui/icons-material";
 
 // --- SYSTEM CONSTANTS ---
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "37cd6333d9f4bd044c4a4dcc867276ae";
 const primaryTeal = "#004652";
 const secondaryTeal = "#006D7E";
 const successGreen = "#10B981";
 const errorRed = "#EF4444";
 const montserrat = '"Montserrat", sans-serif'; 
 const borderColor = "#E2E8F0";
+
+// --- CLIENT-SIDE IMAGE COMPRESSION ---
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200; 
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height *= MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width *= MAX_HEIGHT / height));
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                  type: "image/jpeg",
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file); 
+              }
+            },
+            "image/jpeg",
+            0.75 
+          );
+        } else {
+          resolve(file);
+        }
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 // --- DATA CONTRACTS ---
 interface ModuleRow {
@@ -94,13 +152,32 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
   // --- UI STATE ---
   const [pathwayInput, setPathwayInput] = useState("");
   const [saveProgress, setSaveProgress] = useState(0);
+  const [isUploadingCover, setIsUploadingCover] = useState(false); // Image upload loading state
+
+  // --- IMGBB UPLOAD HANDLER ---
+  const uploadToImgBB = async (file: File) => {
+    const data = new FormData();
+    data.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: data,
+    });
+
+    const json = await res.json();
+    if (json.success) {
+      return json.data.url;
+    } else {
+      throw new Error(json.error?.message || "Failed to upload image");
+    }
+  };
 
   // --- STYLING MACROS ---
   const montserratStyle = { fontFamily: montserrat };
   
   const inputGlobalStyle = {
     "& .MuiOutlinedInput-root": {
-      borderRadius: "12px", // Adjusted for a tighter look
+      borderRadius: "12px", 
       fontFamily: montserrat,
       bgcolor: "#FFF",
       transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
@@ -108,7 +185,6 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
       "&:hover fieldset": { borderColor: primaryTeal },
       "&.Mui-focused fieldset": { borderWidth: "2px", borderColor: primaryTeal },
     },
-    // Reduced font size and padding to make inputs smaller
     "& .MuiInputBase-input": { ...montserratStyle, fontSize: "0.8rem", py: 1.2 }, 
     "& .MuiFormHelperText-root": { fontWeight: 700, ml: 1, fontSize: "0.65rem" }
   };
@@ -590,12 +666,46 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
                 </Badge>
                 <Box flex={1}>
                   <InputLabel sx={{ fontWeight: 800, mb: 1, fontSize: "0.7rem" }}>FEATURED THUMBNAIL URL</InputLabel>
+
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    id="update-course-cover-upload" 
+                    style={{ display: "none" }}
+                    onChange={async (e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setIsUploadingCover(true);
+                        try {
+                          const compressedFile = await compressImage(e.target.files[0]);
+                          const url = await uploadToImgBB(compressedFile);
+                          handleFieldChange("coverImage", url);
+                        } catch (error) {
+                          console.error("Cover upload failed:", error);
+                          alert("Failed to upload cover image.");
+                        } finally {
+                          setIsUploadingCover(false);
+                        }
+                      }
+                    }}
+                  />
+
                   <TextField 
                     size="small"
                     fullWidth value={formData.coverImage} 
                     onChange={(e) => handleFieldChange("coverImage", e.target.value)} 
                     sx={inputGlobalStyle} 
-                    InputProps={{ startAdornment: <LinkOutlined fontSize="small" sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                    InputProps={{ 
+                      startAdornment: <LinkOutlined fontSize="small" sx={{ mr: 1, color: "#94A3B8" }} />,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <label htmlFor="update-course-cover-upload">
+                            <IconButton component="span" disabled={isUploadingCover} sx={{ color: primaryTeal }}>
+                              {isUploadingCover ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                            </IconButton>
+                          </label>
+                        </InputAdornment>
+                      )
+                    }}
                     error={!!errors.coverImage}
                     helperText={errors.coverImage}
                   />

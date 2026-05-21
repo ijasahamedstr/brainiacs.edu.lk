@@ -3,20 +3,78 @@ import {
   Box, Typography, Stack, Paper, Button, TextField, 
   InputLabel, CircularProgress, Dialog, DialogTitle, 
   DialogContent, DialogContentText, DialogActions,
-  IconButton
+  IconButton, InputAdornment
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, 
   DeleteOutline, AddOutlined, DescriptionOutlined,
   LanguageOutlined, BusinessOutlined, 
-  InsertPhotoOutlined, InfoOutlined
+  InsertPhotoOutlined, InfoOutlined, CloudUploadOutlined
 } from "@mui/icons-material";
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "37cd6333d9f4bd044c4a4dcc867276ae";
 const primaryTeal = "#004652";
 const primaryFont = "'Montserrat', sans-serif";
 const borderColor = "#E2E8F0";
+
+// --- CLIENT-SIDE IMAGE COMPRESSION ---
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200; 
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height *= MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width *= MAX_HEIGHT / height));
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                  type: "image/jpeg",
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file); 
+              }
+            },
+            "image/jpeg",
+            0.75 
+          );
+        } else {
+          resolve(file);
+        }
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 interface AddProps {
   onBack: () => void;
@@ -30,6 +88,26 @@ const CreatePartner = ({ onBack }: AddProps) => {
   const [description, setDescription] = useState<string[]>([""]); // Array for paragraphs
   const [loading, setLoading] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  // --- IMGBB UPLOAD HANDLER ---
+  const uploadToImgBB = async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || "Failed to upload image");
+    }
+  };
 
   // --- DESCRIPTION ARRAY HANDLERS ---
   const handleAddDescription = () => setDescription([...description, ""]);
@@ -145,17 +223,51 @@ const CreatePartner = ({ onBack }: AddProps) => {
           <Box>
             <InputLabel sx={labelStyle}>LOGO URL</InputLabel>
             <Stack direction="row" spacing={2} alignItems="center">
+                
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  id="partner-logo-upload" 
+                  style={{ display: "none" }}
+                  onChange={async (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setIsUploadingLogo(true);
+                      try {
+                        const compressedFile = await compressImage(e.target.files[0]);
+                        const url = await uploadToImgBB(compressedFile);
+                        setLogoUrl(url);
+                      } catch (error) {
+                        console.error("Image upload failed:", error);
+                        alert("Failed to upload image.");
+                      } finally {
+                        setIsUploadingLogo(false);
+                      }
+                    }
+                  }}
+                />
+
                 <TextField 
                     fullWidth value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} 
-                    placeholder="https://example.com/logo.png" 
-                    InputProps={{ startAdornment: <InsertPhotoOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} /> }}
+                    placeholder="Paste URL or click to upload ->" 
+                    InputProps={{ 
+                      startAdornment: <InsertPhotoOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} />,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <label htmlFor="partner-logo-upload">
+                            <IconButton component="span" disabled={isUploadingLogo} sx={{ color: primaryTeal }}>
+                              {isUploadingLogo ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                            </IconButton>
+                          </label>
+                        </InputAdornment>
+                      )
+                    }}
                     sx={inputStyle}
                 />
                 {logoUrl && (
                     <Box 
                         component="img" 
                         src={logoUrl} 
-                        sx={{ width: 50, height: 50, borderRadius: "8px", objectFit: "contain", border: `1px solid ${borderColor}` }}
+                        sx={{ width: 50, height: 50, borderRadius: "8px", objectFit: "contain", border: `1px solid ${borderColor}`, bgcolor: "#F8FAFC" }}
                         onError={(e: any) => e.target.src = "https://placehold.co/100x100?text=Error"}
                     />
                 )}
