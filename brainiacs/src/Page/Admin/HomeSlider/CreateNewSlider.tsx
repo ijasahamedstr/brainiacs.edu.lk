@@ -2,8 +2,8 @@ import { useState } from "react";
 import { 
   Box, Typography, Stack, Paper, Button, TextField, 
   MenuItem, Select, InputLabel, InputAdornment, CircularProgress,
-  Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions,
-  ToggleButton, ToggleButtonGroup, Divider, Tooltip, Zoom,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  ToggleButton, ToggleButtonGroup, Divider, Tooltip,
   IconButton
 } from "@mui/material";
 import { 
@@ -14,8 +14,7 @@ import {
   SmartphoneOutlined,
   DesktopWindowsOutlined,
   CloudUploadOutlined,
-  InfoOutlined,
-  ErrorOutline
+  InfoOutlined
 } from "@mui/icons-material";
 
 // --- CONFIGURATION ---
@@ -99,7 +98,6 @@ const CreateNewSlider = ({ onBack }: AddSliderProps) => {
   const [loading, setLoading] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [urlError, setUrlError] = useState(false);
   
   // Upload Loading States
   const [isUploadingDesktop, setIsUploadingDesktop] = useState(false);
@@ -126,7 +124,6 @@ const CreateNewSlider = ({ onBack }: AddSliderProps) => {
   // 2. OPTIMIZED HANDLERS
   const handleChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | { value: unknown }>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
-    if (field === "imageUrl" || field === "mobileImageUrl") setUrlError(false);
   };
 
   const handleSaveClick = () => {
@@ -390,7 +387,6 @@ const CreateNewSlider = ({ onBack }: AddSliderProps) => {
                         <Box 
                             component="img"
                             src={previewDevice === "mobile" ? (formData.mobileImageUrl || formData.imageUrl) : formData.imageUrl}
-                            onError={() => setUrlError(true)}
                             sx={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />
                     ) : (
@@ -417,8 +413,10 @@ const CreateNewSlider = ({ onBack }: AddSliderProps) => {
             <Typography sx={{ fontFamily: primaryFont }}>The asset <b>{formData.name}</b> will be pushed live.</Typography>
         </DialogContent>
         <DialogActions>
-            <Button onClick={() => setConfirmDialogOpen(false)}>Abort</Button>
-            <Button onClick={confirmSave} variant="contained">Deploy</Button>
+            <Button onClick={() => setConfirmDialogOpen(false)} disabled={loading}>Abort</Button>
+            <Button onClick={confirmSave} variant="contained" disabled={loading}>
+              {loading ? "Deploying..." : "Deploy"}
+            </Button>
         </DialogActions>
       </Dialog>
     </Box>

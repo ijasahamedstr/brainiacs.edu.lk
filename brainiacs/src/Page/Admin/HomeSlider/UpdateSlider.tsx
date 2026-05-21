@@ -3,7 +3,7 @@ import {
   Box, Typography, Stack, Paper, Button, TextField, 
   MenuItem, Select, InputLabel, InputAdornment, CircularProgress,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  ToggleButton, ToggleButtonGroup, Divider, Tooltip, Zoom,
+  ToggleButton, ToggleButtonGroup, Divider, Tooltip,
   IconButton
 } from "@mui/material";
 import { 
@@ -15,7 +15,6 @@ import {
   DesktopWindowsOutlined,
   CloudUploadOutlined,
   InfoOutlined,
-  ErrorOutline,
   EditOutlined
 } from "@mui/icons-material";
 
@@ -107,7 +106,6 @@ const UpdateSliderForm = ({ sliderData, onBack }: UpdateProps) => {
   const [loading, setLoading] = useState(false);
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [urlError, setUrlError] = useState(false);
   
   // Upload Loading States
   const [isUploadingDesktop, setIsUploadingDesktop] = useState(false);
@@ -134,7 +132,6 @@ const UpdateSliderForm = ({ sliderData, onBack }: UpdateProps) => {
   // 2. OPTIMIZED HANDLERS
   const handleChange = (field: keyof Slider) => (e: React.ChangeEvent<HTMLInputElement | { value: unknown }>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
-    if (field === "imageUrl" || field === "mobileImageUrl") setUrlError(false);
   };
 
   const handleUpdateClick = () => {
@@ -372,7 +369,6 @@ const UpdateSliderForm = ({ sliderData, onBack }: UpdateProps) => {
                         <Box 
                             component="img"
                             src={previewDevice === "mobile" ? (formData.mobileImageUrl || formData.imageUrl) : formData.imageUrl}
-                            onError={() => setUrlError(true)}
                             sx={{ width: "100%", height: "100%", objectFit: "cover" }}
                         />
                     ) : (
