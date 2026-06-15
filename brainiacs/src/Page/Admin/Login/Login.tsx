@@ -28,13 +28,15 @@ import {
 } from "@mui/icons-material";
 
 // --- Secure Fallback Credentials ---
-// BEST PRACTICE: The system will first try to read from your secure .env file.
-// If not found, it uses Base64 encoded strings so your password is never plain-text in the source code.
-// atob("aWphc2FobWVkLnN0ckBnbWFpbC5jb20=") decodes to ijasahmed.str@gmail.com
-// atob("Um9ja0A4Njk2NzMxMg==") decodes to Rock@86967312
+const getFallbackEmail = () => {
+  const envEmail = import.meta.env.VITE_FALLBACK_EMAIL;
+  return (envEmail ? String(envEmail) : atob("aWphc2FobWVkLnN0ckBnbWFpbC5jb20=")).replace(/['"]/g, '').trim();
+};
 
-const FALLBACK_EMAIL = import.meta.env.VITE_FALLBACK_EMAIL || atob("aWphc2FobWVkLnN0ckBnbWFpbC5jb20=");
-const FALLBACK_PASSWORD = import.meta.env.VITE_FALLBACK_PASSWORD || atob("Um9ja0A4Njk2NzMxMg==");
+const getFallbackPassword = () => {
+  const envPass = import.meta.env.VITE_FALLBACK_PASSWORD;
+  return (envPass ? String(envPass) : atob("Um9ja0A4Njk2NzMxMg==")).replace(/['"]/g, '').trim();
+};
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -82,7 +84,11 @@ const Login: React.FC = () => {
 
     try {
       // 1. --- INSTANT SECURE MANUAL OVERRIDE CHECK ---
-      if (email === FALLBACK_EMAIL && password === FALLBACK_PASSWORD) {
+      // Trimming inputs to prevent accidental spaces from failing the login
+      const inputEmail = email.trim();
+      const inputPassword = password.trim();
+      
+      if (inputEmail === getFallbackEmail() && inputPassword === getFallbackPassword()) {
         console.warn("Logged in via secure manual override (Database Bypassed).");
         localStorage.setItem("token", "fallback_emergency_token");
         localStorage.setItem("adminData", JSON.stringify({ role: "admin", name: "Ijas Ahmed (Admin)" }));
