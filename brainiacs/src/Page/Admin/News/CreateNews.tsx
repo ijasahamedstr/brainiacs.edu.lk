@@ -17,7 +17,7 @@ import {
   HistoryOutlined,
   StorageOutlined, SpeedOutlined,
   TagOutlined, PublicOutlined, SearchOutlined,
-  DragIndicatorOutlined
+  DragIndicatorOutlined, CloudUploadOutlined
 } from "@mui/icons-material";
 
 /**
@@ -36,10 +36,69 @@ const Font = Quill.import('attributors/style/font');
 Font.whitelist = ['montserrat', 'roboto', 'serif', 'monospace'];
 Quill.register(Font, true);
 
+// Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "37cd6333d9f4bd044c4a4dcc867276ae";
 const primaryTeal = "#004652";
 const primaryFont = "'Montserrat', sans-serif";
 const borderColor = "#E2E8F0";
+
+// --- CLIENT-SIDE IMAGE COMPRESSION ---
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200; 
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height *= MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width *= MAX_HEIGHT / height));
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                  type: "image/jpeg",
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file); 
+              }
+            },
+            "image/jpeg",
+            0.75 
+          );
+        } else {
+          resolve(file);
+        }
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 interface CreateNewsProps {
   onBack: () => void;
@@ -58,13 +117,15 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
   // --- 2. SYSTEM & UI STATE ---
   const [loading, setLoading] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [uploadingGalleryIndices, setUploadingGalleryIndices] = useState<number[]>([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState<"visual" | "html">("visual");
   const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "success" as "success" | "error" });
   const [wordCount, setWordCount] = useState(0);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // --- 3. RICH TEXT MODULES (User Requested) ---
+  // --- 3. RICH TEXT MODULES ---
   const modules = useMemo(() => ({
     toolbar: {
       container: [
@@ -120,6 +181,62 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
   useEffect(() => {
     setSlug(heading.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''));
   }, [heading]);
+
+  // --- IMGBB UPLOAD HANDLER ---
+  const uploadToImgBB = async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || "Failed to upload image");
+    }
+  };
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setIsUploadingCover(true);
+      try {
+        const compressedFile = await compressImage(e.target.files[0]);
+        const url = await uploadToImgBB(compressedFile);
+        setDescriptionImage(url);
+        setSnackbar({ open: true, message: "Cover image uploaded successfully", type: "success" });
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        setSnackbar({ open: true, message: "Failed to upload cover image.", type: "error" });
+      } finally {
+        setIsUploadingCover(false);
+      }
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadingGalleryIndices(prev => [...prev, index]);
+      try {
+        const compressedFile = await compressImage(e.target.files[0]);
+        const url = await uploadToImgBB(compressedFile);
+        
+        const updatedUrls = [...imageUrls];
+        updatedUrls[index] = url;
+        setImageUrls(updatedUrls);
+        
+        setSnackbar({ open: true, message: "Gallery image uploaded", type: "success" });
+      } catch (error) {
+        console.error("Gallery image upload failed:", error);
+        setSnackbar({ open: true, message: "Failed to upload gallery image.", type: "error" });
+      } finally {
+        setUploadingGalleryIndices(prev => prev.filter(i => i !== index));
+      }
+    }
+  };
 
   // --- 6. HANDLERS ---
   const handleAddDescription = () => setDescriptions(prev => [...prev, ""]);
@@ -276,13 +393,34 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
           <Box>
             <InputLabel sx={sectionLabel}><ImageOutlined fontSize="small" /> COVER ASSET</InputLabel>
             <Stack direction={{ xs: "column", md: "row" }} spacing={4} alignItems="flex-start">
-              <Box sx={{ flexGrow: 1 }}>
+              <Box sx={{ flexGrow: 1, width: "100%" }}>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  id="cover-asset-upload" 
+                  style={{ display: "none" }}
+                  onChange={handleCoverUpload}
+                />
                 <TextField 
                   fullWidth value={descriptionImage} onChange={(e) => setDescriptionImage(e.target.value)} 
-                  placeholder="Paste URL for high-resolution cover..." 
+                  placeholder="Paste URL or click to upload cover..." 
                   sx={sharedInput}
+                  error={!!validationErrors.image}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <label htmlFor="cover-asset-upload">
+                          <IconButton component="span" disabled={isUploadingCover} sx={{ color: primaryTeal }}>
+                            {isUploadingCover ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                          </IconButton>
+                        </label>
+                      </InputAdornment>
+                    )
+                  }}
                 />
-                <FormHelperText sx={{ fontFamily: primaryFont, mt: 1 }}>Supports JPG, PNG, and WebP formats.</FormHelperText>
+                <FormHelperText error={!!validationErrors.image} sx={{ fontFamily: primaryFont, mt: 1 }}>
+                  {validationErrors.image || "Supports JPG, PNG, and WebP formats."}
+                </FormHelperText>
               </Box>
               {descriptionImage && (
                 <Box 
@@ -428,6 +566,13 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
             <Stack spacing={2}>
               {imageUrls.map((url, index) => (
                 <Stack key={index} direction="row" spacing={2} alignItems="center">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    id={`gallery-upload-${index}`} 
+                    style={{ display: "none" }}
+                    onChange={(e) => handleGalleryUpload(e, index)}
+                  />
                   <TextField 
                     fullWidth size="small" value={url} 
                     onChange={(e) => {
@@ -435,8 +580,19 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
                       up[index] = e.target.value;
                       setImageUrls(up);
                     }}
-                    placeholder="https://..."
+                    placeholder="https://... or click to upload"
                     sx={sharedInput}
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <label htmlFor={`gallery-upload-${index}`}>
+                            <IconButton component="span" disabled={uploadingGalleryIndices.includes(index)} sx={{ color: primaryTeal }}>
+                              {uploadingGalleryIndices.includes(index) ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                            </IconButton>
+                          </label>
+                        </InputAdornment>
+                      )
+                    }}
                   />
                   <IconButton onClick={() => setImageUrls(imageUrls.filter((_, i) => i !== index))} disabled={imageUrls.length === 1}><DeleteOutline /></IconButton>
                 </Stack>

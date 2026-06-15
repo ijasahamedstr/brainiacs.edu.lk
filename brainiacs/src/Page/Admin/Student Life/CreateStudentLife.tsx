@@ -3,20 +3,79 @@ import {
   Box, Typography, Stack, Paper, Button, TextField, 
   InputLabel, CircularProgress, Dialog, DialogTitle, 
   DialogContent, DialogContentText, DialogActions,
-  IconButton
+  IconButton, InputAdornment, Snackbar, Alert
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, TitleOutlined, 
   PhotoSizeSelectActualOutlined,
   DeleteOutline, AddOutlined, DescriptionOutlined,
-  CollectionsOutlined, HideImageOutlined
+  CollectionsOutlined, HideImageOutlined,
+  CloudUploadOutlined
 } from "@mui/icons-material";
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "37cd6333d9f4bd044c4a4dcc867276ae";
 const primaryTeal = "#004652";
 const primaryFont = "'Montserrat', sans-serif";
 const borderColor = "#E2E8F0";
+
+// --- CLIENT-SIDE IMAGE COMPRESSION ---
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200; 
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height *= MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width *= MAX_HEIGHT / height));
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                  type: "image/jpeg",
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file); 
+              }
+            },
+            "image/jpeg",
+            0.75 
+          );
+        } else {
+          resolve(file);
+        }
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 interface AddProps {
   onBack: () => void;
@@ -27,8 +86,50 @@ const CreateStudentLife = ({ onBack }: AddProps) => {
   const [name, setName] = useState("");
   const [descriptions, setDescriptions] = useState<string[]>([""]); 
   const [imageUrls, setImageUrls] = useState<string[]>([""]);       
+  
   const [loading, setLoading] = useState(false);
+  const [uploadingIndices, setUploadingIndices] = useState<number[]>([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "success" as "success" | "error" });
+
+  // --- IMGBB UPLOAD ENGINE ---
+  const uploadToImgBB = async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || "Failed to upload image");
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploadingIndices(prev => [...prev, index]);
+      try {
+        const compressedFile = await compressImage(e.target.files[0]);
+        const url = await uploadToImgBB(compressedFile);
+        
+        const updatedUrls = [...imageUrls];
+        updatedUrls[index] = url;
+        setImageUrls(updatedUrls);
+        
+        setSnackbar({ open: true, message: "Asset uploaded successfully", type: "success" });
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        setSnackbar({ open: true, message: "Failed to upload image.", type: "error" });
+      } finally {
+        setUploadingIndices(prev => prev.filter(i => i !== index));
+      }
+    }
+  };
 
   // --- ARRAY HANDLERS ---
   const handleAddDescription = () => setDescriptions([...descriptions, ""]);
@@ -59,7 +160,7 @@ const CreateStudentLife = ({ onBack }: AddProps) => {
     const validUrls = imageUrls.filter(u => u.trim() !== "");
 
     if (!name || validDescs.length === 0 || validUrls.length === 0) {
-      alert("Please fill in Name, at least one Description, and one Image URL.");
+      setSnackbar({ open: true, message: "Please fill in Name, at least one Description, and one Image.", type: "error" });
       return;
     }
     setConfirmDialogOpen(true);
@@ -79,9 +180,10 @@ const CreateStudentLife = ({ onBack }: AddProps) => {
         }),
       });
       if (response.ok) onBack();
-      else alert("Save failed.");
+      else setSnackbar({ open: true, message: "Save failed. Please try again.", type: "error" });
     } catch (error) {
       console.error(error);
+      setSnackbar({ open: true, message: "Network Error.", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -162,20 +264,38 @@ const CreateStudentLife = ({ onBack }: AddProps) => {
             </Stack>
           </Box>
 
-          {/* IMAGE URLS */}
+          {/* IMAGE URLS WITH UPLOAD */}
           <Box>
             <Stack direction="row" justifyContent="space-between" mb={1}>
-              <InputLabel sx={labelStyle}>IMAGE GALLERY (URLS)</InputLabel>
-              <Button size="small" startIcon={<AddOutlined />} onClick={handleAddImageUrl} sx={{ fontFamily: primaryFont, fontWeight: 700, color: primaryTeal, textTransform: "none" }}>Add URL</Button>
+              <InputLabel sx={labelStyle}>IMAGE GALLERY (URL OR UPLOAD)</InputLabel>
+              <Button size="small" startIcon={<AddOutlined />} onClick={handleAddImageUrl} sx={{ fontFamily: primaryFont, fontWeight: 700, color: primaryTeal, textTransform: "none" }}>Add Asset Block</Button>
             </Stack>
             <Stack spacing={2}>
               {imageUrls.map((url, index) => (
-                <Stack key={index} direction="row" spacing={1}>
+                <Stack key={index} direction="row" spacing={1} alignItems="center">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    id={`student-life-upload-${index}`} 
+                    style={{ display: "none" }}
+                    onChange={(e) => handleImageUpload(e, index)}
+                  />
                   <TextField 
                     fullWidth value={url} 
                     onChange={(e) => handleUrlChange(index, e.target.value)}
-                    placeholder="https://example.com/photo.jpg"
-                    InputProps={{ startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} /> }}
+                    placeholder="https://example.com/photo.jpg or click to upload ->"
+                    InputProps={{ 
+                      startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} />,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <label htmlFor={`student-life-upload-${index}`}>
+                            <IconButton component="span" disabled={uploadingIndices.includes(index)} sx={{ color: primaryTeal }}>
+                              {uploadingIndices.includes(index) ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                            </IconButton>
+                          </label>
+                        </InputAdornment>
+                      )
+                    }}
                     sx={inputStyle}
                   />
                   <IconButton onClick={() => handleRemoveImageUrl(index)} color="error" disabled={imageUrls.length === 1}><DeleteOutline fontSize="small" /></IconButton>
@@ -216,6 +336,17 @@ const CreateStudentLife = ({ onBack }: AddProps) => {
           </Box>
         </Stack>
       </Paper>
+
+      {/* SNACKBAR NOTIFICATIONS */}
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={4000} 
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert severity={snackbar.type} sx={{ borderRadius: "14px", fontFamily: primaryFont, fontWeight: 700, boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
       {/* DIALOG */}
       <Dialog open={confirmDialogOpen} onClose={() => setConfirmDialogOpen(false)} PaperProps={{ sx: { borderRadius: "20px" } }}>
