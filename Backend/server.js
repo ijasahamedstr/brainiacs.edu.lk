@@ -28,7 +28,7 @@ const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 3. CORS setup
 app.use(cors({
-  origin: ["https://brainiacs-edu-lk.vercel.app"],
+  origin: ["https://brainiacs-edu-lk-cyan.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
