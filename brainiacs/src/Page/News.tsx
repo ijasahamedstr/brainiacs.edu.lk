@@ -304,7 +304,7 @@ const News: React.FC = () => {
       <div ref={circleRef} style={styles.backgroundCircle}></div>
 
       <div style={styles.container}>
-        <h1 style={styles.title}>Lyceum Campus Recent News</h1>
+        <h1 style={styles.title}>Brainiacs Campus Recent News</h1>
         <h2 style={styles.subtitle}>Campus News & Highlights</h2>
 
         {isLoading ? (
