@@ -281,7 +281,7 @@ const Studentlife: React.FC = () => {
         <div ref={circleRef} style={styles.backgroundCircle}></div>
 
         <div style={styles.container}>
-          <h1 style={styles.title}>Lyceum Campus</h1>
+          <h1 style={styles.title}>Brainiacs  Campus</h1>
           <h2 style={styles.subtitle}>Past Events</h2>
 
           {isLoading ? (
