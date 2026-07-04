@@ -25,7 +25,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 // ==========================================
 // 1. TYPESCRIPT INTERFACES
 // ==========================================
-export interface BoardMember {
+export interface TeamMember {
   _id?: string;
   name: string;
   jobDescription: string;
@@ -38,34 +38,34 @@ export interface BoardMember {
 // ==========================================
 // 2. FALLBACK MOCK DATA (If API Fails)
 // ==========================================
-const MOCK_MEMBERS: BoardMember[] = [
+const MOCK_TEAM: TeamMember[] = [
   {
-    _id: "m1",
-    name: "Dr. Eleanor Vance",
-    jobDescription: "Chancellor",
-    detailedBio: "Dr. Vance brings over 30 years of experience in higher education administration. She holds a Ph.D. in Educational Leadership from Oxford University and has spearheaded numerous global research initiatives. Her vision focuses on sustainable campus development and inclusive academic excellence.",
-    imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400&auto=format&fit=crop",
+    _id: "t1",
+    name: "Dr. Arthur Pendelton",
+    jobDescription: "Dean of Computer Science",
+    detailedBio: "Dr. Pendelton has been leading the Computer Science faculty since 2021. With a Ph.D. in Artificial Intelligence from MIT, he focuses on developing next-generation curricula that align with global tech industries and research breakthroughs.",
+    imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=400&auto=format&fit=crop",
   },
   {
-    _id: "m2",
-    name: "Prof. Marcus Thorne",
-    jobDescription: "Vice Chancellor of Academic Affairs",
-    detailedBio: "Professor Thorne is a renowned physicist who transitioned into administration to bridge the gap between STEM research and student curriculum. He oversees all academic programs, ensuring they meet rigorous international accreditation standards.",
-    imageUrl: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=400&auto=format&fit=crop",
+    _id: "t2",
+    name: "Clara Oswald, M.Ed.",
+    jobDescription: "Director of Admissions",
+    detailedBio: "Clara coordinates all enrollment efforts and guides prospective students and families through their academic transition. Her passion is making quality higher education accessible and stress-free for applicants worldwide.",
+    imageUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400&auto=format&fit=crop",
   },
   {
-    _id: "m3",
-    name: "Sarah Jenkins, MBA",
-    jobDescription: "Chief Financial Officer",
-    detailedBio: "With a background in corporate finance at Fortune 500 companies, Sarah manages the university's endowment and operational budget. She has successfully increased scholarship funding by 45% over the past three years through strategic investments.",
-    imageUrl: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=400&auto=format&fit=crop",
+    _id: "t3",
+    name: "Dr. Jonathan Mercer",
+    jobDescription: "Head of Research & Development",
+    detailedBio: "Dr. Mercer oversees the university's research labs and grants. He is committed to fostering a culture of scientific inquiry, collaboration, and student-led innovations that solve real-world problems.",
+    imageUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=400&auto=format&fit=crop",
   },
   {
-    _id: "m4",
-    name: "Dr. Rajiv Patel",
-    jobDescription: "Dean of Student Life",
-    detailedBio: "Dr. Patel is a passionate advocate for student mental health and extracurricular engagement. He coordinates housing, student organizations, and counseling services, working tirelessly to create a vibrant and supportive campus community.",
-    imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&auto=format&fit=crop",
+    _id: "t4",
+    name: "Sophia Martinez",
+    jobDescription: "Senior Career Advisor",
+    detailedBio: "Sophia connects students with internships and full-time career pathways. Through corporate partnerships and resume workshops, she ensures that 95% of graduates successfully transition into their chosen fields.",
+    imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=400&auto=format&fit=crop",
   },
 ];
 
@@ -84,45 +84,43 @@ const Transition = React.forwardRef(function Transition(
 // ==========================================
 // 4. MAIN COMPONENT
 // ==========================================
-const LeadershipGovernance: React.FC = () => {
-  const [members, setMembers] = useState<BoardMember[]>([]);
+const OurTeam: React.FC = () => {
+  const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
   // Modal State
-  const [selectedMember, setSelectedMember] = useState<BoardMember | null>(null);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
   // Fetch data from the database
   useEffect(() => {
-    const fetchMembers = async () => {
+    const fetchTeam = async () => {
       try {
         const baseUrl = API_BASE_URL?.replace(/\/$/, "") || "";
-        const response = await fetch(`${baseUrl}/api/board-governance`);
+        const response = await fetch(`${baseUrl}/api/team`);
         
         if (!response.ok) {
-          throw new Error("Failed to fetch board members data");
+          throw new Error("Failed to fetch team data");
         }
         
         const data = await response.json();
-        // Check if data is empty, if so use mock data for demonstration
         const fetchedData = data.data || data;
         if (fetchedData.length === 0) {
-          setMembers(MOCK_MEMBERS);
+          setMembers(MOCK_TEAM);
         } else {
           setMembers(fetchedData);
         }
       } catch (err: any) {
-        console.warn("API Failed, falling back to mock data.", err);
+        console.warn("Team API Failed, falling back to mock data.", err);
         setError("Could not connect to live server. Displaying cached data.");
-        setMembers(MOCK_MEMBERS); // Graceful fallback
+        setMembers(MOCK_TEAM); // Graceful fallback
       } finally {
-        // Fake delay just to show off the nice skeleton loaders
         setTimeout(() => setLoading(false), 1200); 
       }
     };
 
-    fetchMembers();
+    fetchTeam();
   }, []);
 
   // Initialize Rellax for parallax effects
@@ -133,45 +131,41 @@ const LeadershipGovernance: React.FC = () => {
     };
   }, []);
 
-  // Sort members based on roles
-  const filteredMembers = useMemo(() => {
-    const roleOrder = (jobDescription: string): number => {
-      const desc = (jobDescription || "").toLowerCase();
-      if (desc.includes("president")) return 1;
-      if (desc.includes("chancellor") && !desc.includes("vice")) return 2;
-      if (desc.includes("vice chancellor") || desc.includes("vice-chancellor") || desc.includes("vicechancellor")) return 3;
-      return 4;
-    };
-
-    return [...members].sort((a, b) => roleOrder(a.jobDescription) - roleOrder(b.jobDescription));
-  }, [members]);
-
   // Handlers for Modal
-  const handleOpenModal = (member: BoardMember) => {
+  const handleOpenModal = (member: TeamMember) => {
     setSelectedMember(member);
     setModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setModalOpen(false);
-    // Slight delay to clear data so the exit animation doesn't break
     setTimeout(() => setSelectedMember(null), 300);
   };
 
-  // Split members into President(s) and others
-  const presidents = useMemo(() => {
-    return filteredMembers.filter(m => (m.jobDescription || "").toLowerCase().includes("president"));
-  }, [filteredMembers]);
+  // Split members into managers and others
+  const managers = useMemo(() => {
+    return members.filter(m => {
+      const desc = (m.jobDescription || "").toLowerCase();
+      return desc.includes("manager") || desc.includes("director") || desc.includes("dean") || desc.includes("head");
+    });
+  }, [members]);
 
   const others = useMemo(() => {
-    return filteredMembers.filter(m => !(m.jobDescription || "").toLowerCase().includes("president"));
-  }, [filteredMembers]);
+    return members.filter(m => {
+      const desc = (m.jobDescription || "").toLowerCase();
+      return !(desc.includes("manager") || desc.includes("director") || desc.includes("dean") || desc.includes("head"));
+    });
+  }, [members]);
 
-  const renderMemberCard = (member: BoardMember, isPresident: boolean, index: number) => (
+  const renderMemberCard = (
+    member: TeamMember, 
+    size: { xs: number; sm: number; md: number }, 
+    keyPrefix: string, 
+    index: number
+  ) => (
     <Grid
-      size={isPresident ? { xs: 12, sm: 8, md: 6 } : { xs: 12, sm: 6, md: 4 }}
-      key={member._id || `card-${isPresident ? 'pres' : 'other'}-${index}`}
-      sx={isPresident ? { display: "flex", justifyContent: "center", mx: "auto" } : undefined}
+      size={size}
+      key={member._id || `card-${keyPrefix}-${index}`}
     >
       <Card
         onClick={() => handleOpenModal(member)}
@@ -327,7 +321,7 @@ const LeadershipGovernance: React.FC = () => {
                 letterSpacing: 1.5,
               }}
             >
-              Council Members
+              Our Team
             </Typography>
             <Typography
               variant="h3"
@@ -335,14 +329,12 @@ const LeadershipGovernance: React.FC = () => {
                 fontWeight: 800,
                 color: "#0a5397",
                 fontFamily: "'Montserrat', sans-serif",
-                fontSize: { xs: "2rem", md: "2.75rem" },
+                fontSize: { xs: "1.8rem", md: "2rem" },
                 mb: 4,
               }}
             >
-              Meet the Minds Shaping Campus Excellence
+              Meet our Dedicated Academic & Support Team
             </Typography>
-
-
           </Box>
 
           {/* Error Alert */}
@@ -358,8 +350,8 @@ const LeadershipGovernance: React.FC = () => {
           <Grid container spacing={4} justifyContent="center">
             {/* Loading Skeleton State */}
             {loading ? (
-              Array.from(new Array(6)).map((_, index) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={`skeleton-${index}`}>
+              Array.from(new Array(4)).map((_, index) => (
+                <Grid size={{ xs: 12, sm: 6, md: 3 }} key={`skeleton-${index}`}>
                   <Card sx={{ height: 380, borderRadius: 4, mt: 6, position: "relative", overflow: "visible" }}>
                     <Box sx={{ height: 80, backgroundColor: "#e0e0e0", borderTopLeftRadius: 16, borderTopRightRadius: 16 }} />
                     <Box sx={{ display: "flex", justifyContent: "center", mt: -7 }}>
@@ -375,25 +367,29 @@ const LeadershipGovernance: React.FC = () => {
                   </Card>
                 </Grid>
               ))
-            ) : filteredMembers.length > 0 ? (
+            ) : members.length > 0 ? (
               <>
-                {/* Presidents Row */}
-                {presidents.map((member, index) => renderMemberCard(member, true, index))}
-                
-                {/* Break / Divider to force next row if there's a President */}
-                {presidents.length > 0 && others.length > 0 && (
+                {/* Row 1: Managers */}
+                {managers.map((member, index) => 
+                  renderMemberCard(member, { xs: 12, sm: 6, md: 4 }, "mgr", index)
+                )}
+
+                {/* Line break if both groups have items */}
+                {managers.length > 0 && others.length > 0 && (
                   <Grid size={12} sx={{ py: 0 }} />
                 )}
 
-                {/* Others Row */}
-                {others.map((member, index) => renderMemberCard(member, false, index))}
+                {/* Row 2: Others (3 cards per line) */}
+                {others.map((member, index) => 
+                  renderMemberCard(member, { xs: 12, sm: 6, md: 4 }, "oth", index)
+                )}
               </>
             ) : (
               /* No Results State */
               <Grid size={12}>
                 <Box sx={{ textAlign: "center", py: 8 }}>
                   <Typography variant="h6" color="text.secondary">
-                    No council members found.
+                    No team members found.
                   </Typography>
                 </Box>
               </Grid>
@@ -446,7 +442,6 @@ const LeadershipGovernance: React.FC = () => {
                     height: 140,
                     border: "6px solid #fff",
                     boxShadow: "0 6px 15px rgba(0,0,0,0.15)",
-                    fontFamily: "'Montserrat', sans-serif",
                   }}
                 />
               </Box>
@@ -473,4 +468,4 @@ const LeadershipGovernance: React.FC = () => {
   );
 };
 
-export default LeadershipGovernance;
+export default OurTeam;

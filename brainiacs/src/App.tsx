@@ -23,6 +23,7 @@ import StudentRegistration from "./Page/StudentRegistration";
 import Contactus from "./Page/contact";
 import Faculties_view from "./Page/Faculties_view";
 import Coures_view from "./Page/Couresview";
+import OurTeam from "./Page/OurTeam";
 
 // --- Scroll To Top Component ---
 // This listens for route changes and scrolls the window to the top
@@ -85,6 +86,7 @@ const AppContent = () => {
         <Route path="/event/:eventslug" element={<Event_view />} />
         <Route path="/faculties/:name" element={<Faculties_view />} />
         <Route path="/courses/:id" element={<Coures_view />} />
+        <Route path="/our-team" element={<OurTeam />} />
         
         {/* Login Route */}
         <Route path="/login" element={<Login />} />

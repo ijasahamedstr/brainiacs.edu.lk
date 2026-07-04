@@ -34,6 +34,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import HomeIcon from '@mui/icons-material/Home';
+import SchoolIcon from '@mui/icons-material/School';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import InfoIcon from '@mui/icons-material/Info';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -55,6 +56,7 @@ const ourStoryLinks = [
   { label: 'Leadership & Governance', path: '/leadership-governance' },
   { label: "President's Message", path: '/Presidentmessage' },
   { label: 'Our Partners', path: '/partners' },
+  { label: 'Our Team', path: '/our-team' },
 ];
 
 /* --- Types --- */
@@ -251,7 +253,7 @@ export default function Navbar() {
 
   const MOBILE_GRID_MENU = [
     { text: 'Home', icon: <HomeIcon sx={{ fontSize: '22px' }} />, path: '/' },
-    // { text: 'Faculties', icon: <SchoolIcon sx={{ fontSize: '22px' }} />, action: 'facs' },
+    { text: 'Faculties', icon: <SchoolIcon sx={{ fontSize: '22px' }} />, action: 'facs' },
     { text: 'Programmes', icon: <MenuBookIcon sx={{ fontSize: '22px' }} />, action: 'prog' },
     { text: 'Our Story', icon: <InfoIcon sx={{ fontSize: '22px' }} />, action: 'story' },
     { text: 'Contact', icon: <PhoneIcon sx={{ fontSize: '22px' }} />, path: '/contact' },
@@ -288,7 +290,7 @@ export default function Navbar() {
                 component="img"
                 src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
                 sx={{
-                  height: { xs: '26px', md: '45px' }, // Increased desktop size to 65px
+                  height: { xs: '26px', md: '45px' }, // Increased desktop size to 45px
                   objectFit: 'contain',
                   filter: 'drop-shadow(0px 2px 6px rgba(0,0,0,0.6))'
                 }}
@@ -299,7 +301,7 @@ export default function Navbar() {
               <Box sx={{ display: 'flex', flexGrow: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
                 <NavButton active={location.pathname === '/'} onClick={() => handleNavigate('/')}>Home</NavButton>
                 <NavButton active={isDropdownActive(ourStoryLinks)} onClick={(e) => handleOpenMenu(e, 'story')} endIcon={<ArrowDropDownIcon />}>Our Story</NavButton>
-                {/* <NavButton active={isDropdownActive(dynamicFacultyLinks)} onClick={(e) => handleOpenMenu(e, 'facs')} endIcon={<ArrowDropDownIcon />}>Faculties</NavButton> */}
+                <NavButton active={isDropdownActive(dynamicFacultyLinks)} onClick={(e) => handleOpenMenu(e, 'facs')} endIcon={<ArrowDropDownIcon />}>Faculties</NavButton>
                 <NavButton active={isMegaMenuActive()} onClick={(e) => handleOpenMenu(e, 'prog')} endIcon={<ArrowDropDownIcon />}>Programmes</NavButton>
                 <NavButton active={location.pathname === '/student-life'} onClick={() => handleNavigate('/student-life')}>Student Life</NavButton>
                 <NavButton active={location.pathname === '/News'} onClick={() => handleNavigate('/News')}>News</NavButton>
@@ -429,7 +431,7 @@ export default function Navbar() {
           }}
         >
           <BottomNavigationAction label="Home" value="/" icon={<HomeIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => handleNavigate('/')} />
-          {/* <BottomNavigationAction label="Faculties" value="/faculties" icon={<SchoolIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('facs')} /> */}
+          <BottomNavigationAction label="Faculties" value="/faculties" icon={<SchoolIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('facs')} />
           <BottomNavigationAction label="Modules" value="/programmes" icon={<MenuBookIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('prog')} />
           <BottomNavigationAction label="Menu" value="menu" icon={<MenuIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => setDrawerOpen(true)} />
         </BottomNavigation>
@@ -505,7 +507,7 @@ export default function Navbar() {
         {/* Dynamic Lists View with Animations */}
         <Box sx={{ overflowY: 'auto', px: 3, pb: 8, flexGrow: 1 }}>
           <Collapse in={activeMobileTab === 'facs'} timeout="auto" unmountOnExit>
-            {/* <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Faculties</Typography> */}
+            <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Faculties</Typography>
             <List disablePadding sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
               {dynamicFacultyLinks.map(link => (
                 <ListItemButton key={link.path} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(255,255,255,0.03)', '&:last-child': { borderBottom: 'none' } }}>
