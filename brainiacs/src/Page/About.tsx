@@ -9,9 +9,9 @@ const About: React.FC = () => {
   ];
 
   return (
-    <Container 
-      maxWidth={false} 
-      disableGutters 
+    <Container
+      maxWidth={false}
+      disableGutters
       sx={{ p: 0, m: 0, width: "100%", overflowX: "hidden" }}
     >
       <Box
@@ -37,11 +37,11 @@ const About: React.FC = () => {
             width: "100%",
             // Fluid horizontal padding using clamp for perfect scaling
             // clamp(minimum, preferred, maximum)
-            px: { 
-              xs: 2, 
-              sm: 4, 
-              md: "clamp(40px, 8vw, 120px)", 
-              lg: "clamp(100px, 12vw, 300px)" 
+            px: {
+              xs: 2,
+              sm: 4,
+              md: "clamp(40px, 8vw, 120px)",
+              lg: "clamp(100px, 12vw, 300px)"
             },
             display: "flex",
             flexDirection: { xs: "column", lg: "row" },
@@ -65,11 +65,11 @@ const About: React.FC = () => {
                 color: "#1a2b3c",
                 mb: 1,
                 // Fluid font size for header
-                fontSize: { 
-                  xs: "clamp(1.8rem, 5vw, 2.2rem)", 
-                  md: "clamp(2.2rem, 4vw, 3.2rem)" 
+                fontSize: {
+                  xs: "clamp(1.8rem, 5vw, 2.2rem)",
+                  md: "clamp(2.2rem, 4vw, 3.2rem)"
                 },
-                letterSpacing: "-0.5px", 
+                letterSpacing: "-0.5px",
                 lineHeight: 1.1,
               }}
             >
@@ -88,7 +88,7 @@ const About: React.FC = () => {
                 lineHeight: 1.4,
               }}
             >
-              is not just about Higher Education, it's more than that
+              IS NOT JUST A PLACE TO STUDY, IT'S A PLACE TO GROW
             </Typography>
 
             <Box sx={{ maxWidth: "700px", mb: 6 }}>
@@ -104,7 +104,7 @@ const About: React.FC = () => {
                   pl: { xs: 2, md: 4 },
                 }}
               >
-                Witness Lyceum Campus symbolizing great significance among all with a vision of facilitating and guiding young souls on their journey of learning.
+                Discover Brainiacs Campus standing as a beacon of opportunity for all, driven by a mission to nurture and empower young minds on their path to success.
               </Typography>
 
               <Typography
@@ -115,14 +115,14 @@ const About: React.FC = () => {
                   color: "#555",
                 }}
               >
-                The perfect blend of knowledge, continuous learning, and global integration. Lyceum Campus is geared to provide unwavering support to all students.
+                Combining knowledge, hands-on experience, and a global perspective. Brainiacs Campus is committed to offering steady guidance to every learner.
               </Typography>
             </Box>
 
             {/* Stats Cards - Optimized for Stacking */}
-            <Box sx={{ 
-              display: "flex", 
-              gap: { xs: 2, md: 2.5 }, 
+            <Box sx={{
+              display: "flex",
+              gap: { xs: 2, md: 2.5 },
               flexDirection: { xs: "column", sm: "row" }, // Stack on small mobile
               width: "100%",
             }}>

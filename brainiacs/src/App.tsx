@@ -82,7 +82,7 @@ const AppContent = () => {
         <Route path="/events/:eventName" element={<Studentlifeview />} />
         <Route path="/news/:slug" element={<NewsView />} />
         <Route path="/contact" element={<Contactus />} />
-        <Route path="/events/:name" element={<Event_view />} />
+        <Route path="/event/:eventslug" element={<Event_view />} />
         <Route path="/faculties/:name" element={<Faculties_view />} />
         <Route path="/courses/:id" element={<Coures_view />} />
         

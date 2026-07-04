@@ -37,7 +37,7 @@ app.use(express.json());
 // Serve the uploads folder statically so you can view images via URL
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
- 
+
 // 5. Connect Database
 connectDB();
 
@@ -46,37 +46,37 @@ app.get("/", (req, res) => {
   res.send("Server is running");
 });
 
-app.use('/api',Adminrouter);
+app.use('/api', Adminrouter);
 
-app.use('/api/guidance',Guidancerouter);
+app.use('/api/guidance', Guidancerouter);
 
-app.use('/api/events',Eventrouter);
+app.use('/api/events', Eventrouter);
 
 app.use('/api/sliders', Sliderrouter);
 
-app.use('/api/partners',Partnerrouter);
+app.use('/api/partners', Partnerrouter);
 
-app.use('/api/student-life',StudentLiferouter);
+app.use('/api/student-life', StudentLiferouter);
 
-app.use('/api/news',Newsrouter);
+app.use('/api/news', Newsrouter);
 
 app.use('/api/board-governance', BoardGovernancerouter);
 
-app.use('/api/team',OurTeamrouter);
+app.use('/api/team', OurTeamrouter);
 
 app.use('/api/students', StudentRegistrationrouter);
 
-app.use('/api/academic-staff',AcademicStaffRouter);
+app.use('/api/academic-staff', AcademicStaffRouter);
 
 app.use('/api/faculties', Facultyrouter);
 
-app.use('/api/course-categories',CourseCategoryrouter);
+app.use('/api/course-categories', CourseCategoryrouter);
 
-app.use('/api/course',Courserouter);
+app.use('/api/course', Courserouter);
 
-app.use('/api/AskOurStudent',askOurStudentRouter);
+app.use('/api/AskOurStudent', askOurStudentRouter);
 
-app.use('/api/Intake',askOurStudentRouter);
+app.use('/api/Intake', askOurStudentRouter);
 
 // 7. Start server
 const port = 8001;

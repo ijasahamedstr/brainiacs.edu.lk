@@ -81,8 +81,8 @@ const StyledToolbar = styled(Toolbar)<{ isScrolled?: boolean }>(({ theme, isScro
   boxShadow: isScrolled ? '0 10px 40px rgba(0,0,0,0.5)' : 'none',
   transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
   [theme.breakpoints.down('lg')]: { borderRadius: '16px', marginTop: '10px' },
-  [theme.breakpoints.down('sm')]: { 
-    borderRadius: isScrolled ? '16px' : '20px', 
+  [theme.breakpoints.down('sm')]: {
+    borderRadius: isScrolled ? '16px' : '20px',
     marginTop: isScrolled ? '8px' : '12px',
     backgroundColor: isScrolled ? 'rgba(10, 10, 10, 0.95)' : 'rgba(18, 18, 18, 0.6)',
   }
@@ -111,8 +111,8 @@ const NavButton = styled(Button)<{ active?: boolean }>(({ active }) => ({
     transition: 'transform 0.3s ease',
     boxShadow: active ? '0 0 10px rgba(76, 175, 80, 0.6)' : 'none',
   },
-  '&:hover': { 
-    color: '#4caf50', 
+  '&:hover': {
+    color: '#4caf50',
     backgroundColor: 'transparent',
     transform: 'translateY(-2px)',
     '&::after': { transform: 'translateX(-50%) scaleX(1)' }
@@ -132,7 +132,7 @@ const GradientBtn = styled(Button)(() => ({
   boxShadow: '0 4px 15px rgba(76, 175, 80, 0.3)',
   transition: 'all 0.3s ease',
   border: '1px solid rgba(255,255,255,0.1)',
-  '&:hover': { 
+  '&:hover': {
     background: 'linear-gradient(135deg, #66bb6a 0%, #388e3c 100%)',
     boxShadow: '0 6px 20px rgba(76, 175, 80, 0.5)',
     transform: 'translateY(-2px)'
@@ -180,7 +180,7 @@ export default function Navbar() {
         const data = await response.json();
         const fetchedLinks = data.map((faculty: { _id: string; name: string }) => ({
           label: faculty.name,
-          path: `/faculties/${generateSlug(faculty.name)}` 
+          path: `/faculties/${generateSlug(faculty.name)}`
         }));
         setDynamicFacultyLinks(fetchedLinks);
       } catch (error) {
@@ -245,14 +245,14 @@ export default function Navbar() {
   const isDropdownActive = (links: NavLink[]) => links.some(link => link.path === location.pathname);
 
   const isMegaMenuActive = () => {
-    return dynamicProgrammeGroups.some(group => 
+    return dynamicProgrammeGroups.some(group =>
       group.items.some(item => item.path === location.pathname)
     );
   };
 
   const MOBILE_GRID_MENU = [
     { text: 'Home', icon: <HomeIcon sx={{ fontSize: '22px' }} />, path: '/' },
-    { text: 'Faculties', icon: <SchoolIcon sx={{ fontSize: '22px' }} />, action: 'facs' },
+    // { text: 'Faculties', icon: <SchoolIcon sx={{ fontSize: '22px' }} />, action: 'facs' },
     { text: 'Programmes', icon: <MenuBookIcon sx={{ fontSize: '22px' }} />, action: 'prog' },
     { text: 'Our Story', icon: <InfoIcon sx={{ fontSize: '22px' }} />, action: 'story' },
     { text: 'Contact', icon: <PhoneIcon sx={{ fontSize: '22px' }} />, path: '/contact' },
@@ -264,39 +264,67 @@ export default function Navbar() {
       <AppBar position="fixed" sx={{ bgcolor: 'transparent', boxShadow: 'none', zIndex: 1300, pointerEvents: 'none' }}>
         <Container maxWidth="xl" sx={{ pointerEvents: 'auto' }}>
           <StyledToolbar isScrolled={isScrolled}>
-            <Box onClick={() => handleNavigate('/')} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-              <Box component="img" src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" sx={{ height: { xs: '26px', md: '34px' }, filter: 'brightness(0) invert(1)' }} />
+
+            {/* UPDATED LOGO CONTAINER */}
+            <Box
+              onClick={() => handleNavigate('/')}
+              sx={{
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                bgcolor: 'rgba(255, 255, 255, 0.03)',
+                padding: '6px 12px',
+                borderRadius: '12px',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.08)',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 6px 25px rgba(0, 0, 0, 0.25)',
+                }
+              }}
+            >
+              <Box
+                component="img"
+                src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
+                sx={{
+                  height: { xs: '26px', md: '45px' }, // Increased desktop size to 65px
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0px 2px 6px rgba(0,0,0,0.6))'
+                }}
+              />
             </Box>
 
             {isDesktop ? (
               <Box sx={{ display: 'flex', flexGrow: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
                 <NavButton active={location.pathname === '/'} onClick={() => handleNavigate('/')}>Home</NavButton>
                 <NavButton active={isDropdownActive(ourStoryLinks)} onClick={(e) => handleOpenMenu(e, 'story')} endIcon={<ArrowDropDownIcon />}>Our Story</NavButton>
-                <NavButton active={isDropdownActive(dynamicFacultyLinks)} onClick={(e) => handleOpenMenu(e, 'facs')} endIcon={<ArrowDropDownIcon />}>Faculties</NavButton>
+                {/* <NavButton active={isDropdownActive(dynamicFacultyLinks)} onClick={(e) => handleOpenMenu(e, 'facs')} endIcon={<ArrowDropDownIcon />}>Faculties</NavButton> */}
                 <NavButton active={isMegaMenuActive()} onClick={(e) => handleOpenMenu(e, 'prog')} endIcon={<ArrowDropDownIcon />}>Programmes</NavButton>
                 <NavButton active={location.pathname === '/student-life'} onClick={() => handleNavigate('/student-life')}>Student Life</NavButton>
                 <NavButton active={location.pathname === '/News'} onClick={() => handleNavigate('/News')}>News</NavButton>
                 <NavButton active={location.pathname === '/contact'} onClick={() => handleNavigate('/contact')}>Contact</NavButton>
 
-                <Menu 
+                <Menu
                   anchorEl={anchorEl} open={activeMenu === 'story' || activeMenu === 'facs'} onClose={handleCloseMenu} sx={{ zIndex: 1600 }}
-                  PaperProps={{ 
-                    sx: { 
-                      bgcolor: 'rgba(15,15,15,0.95)', backdropFilter: 'blur(20px)', color: '#fff', mt: 2, 
-                      borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', minWidth: 220, 
-                      boxShadow: '0 20px 40px rgba(0,0,0,0.8)' 
-                    } 
+                  PaperProps={{
+                    sx: {
+                      bgcolor: 'rgba(15,15,15,0.95)', backdropFilter: 'blur(20px)', color: '#fff', mt: 2,
+                      borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', minWidth: 220,
+                      boxShadow: '0 20px 40px rgba(0,0,0,0.8)'
+                    }
                   }}
                 >
                   {(activeMenu === 'story' ? ourStoryLinks : dynamicFacultyLinks).map((link) => (
-                    <MenuItem 
-                      key={link.path} onClick={() => handleNavigate(link.path)} 
-                      sx={{ 
+                    <MenuItem
+                      key={link.path} onClick={() => handleNavigate(link.path)}
+                      sx={{
                         fontSize: '0.85rem', py: 1.4, px: 3, my: 0.5, mx: 1, borderRadius: '8px',
-                        color: location.pathname === link.path ? '#4caf50' : '#e4e4e7', fontFamily: 'Montserrat', fontWeight: 600, 
+                        color: location.pathname === link.path ? '#4caf50' : '#e4e4e7', fontFamily: 'Montserrat', fontWeight: 600,
                         borderLeft: location.pathname === link.path ? '3px solid #4caf50' : '3px solid transparent',
                         transition: 'all 0.2s',
-                        '&:hover': { color: '#4caf50', bgcolor: alpha('#4caf50', 0.1), borderLeft: '3px solid #4caf50', transform: 'translateX(4px)' } 
+                        '&:hover': { color: '#4caf50', bgcolor: alpha('#4caf50', 0.1), borderLeft: '3px solid #4caf50', transform: 'translateX(4px)' }
                       }}
                     >
                       {link.label}
@@ -307,10 +335,10 @@ export default function Navbar() {
                 <Popper open={activeMenu === 'prog'} anchorEl={anchorEl} transition placement="bottom-end" sx={{ zIndex: 1600 }}>
                   {({ TransitionProps }) => (
                     <Grow {...TransitionProps}>
-                      <Paper sx={{ 
-                        mt: 2, p: 3.5, bgcolor: 'rgba(15,15,15,0.95)', backdropFilter: 'blur(20px)', color: '#fff', 
-                        borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: 4, 
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.8)', maxHeight: '70vh', overflowY: 'auto' 
+                      <Paper sx={{
+                        mt: 2, p: 3.5, bgcolor: 'rgba(15,15,15,0.95)', backdropFilter: 'blur(20px)', color: '#fff',
+                        borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: 4,
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.8)', maxHeight: '70vh', overflowY: 'auto'
                       }}>
                         <ClickAwayListener onClickAway={(e) => {
                           if (anchorEl && anchorEl.contains(e.target as Node)) return;
@@ -320,33 +348,33 @@ export default function Navbar() {
                             {dynamicProgrammeGroups.length > 0 ? (
                               dynamicProgrammeGroups.map((group) => (
                                 <Box key={group.title} sx={{ minWidth: 220, mb: 1 }}>
-                                  <Typography sx={{ 
-                                    color: '#fff', fontWeight: 800, fontSize: '0.7rem', mb: 1.5, textTransform: 'uppercase', 
-                                    letterSpacing: '1px', pb: 1, borderBottom: '1px solid rgba(255,255,255,0.1)' 
+                                  <Typography sx={{
+                                    color: '#fff', fontWeight: 800, fontSize: '0.7rem', mb: 1.5, textTransform: 'uppercase',
+                                    letterSpacing: '1px', pb: 1, borderBottom: '1px solid rgba(255,255,255,0.1)'
                                   }}>
                                     {group.title}
                                   </Typography>
                                   {group.items.map((item) => (
-                                    <ListItemButton 
-                                      key={item.label} onClick={() => handleNavigate(item.path)} 
-                                      sx={{ 
+                                    <ListItemButton
+                                      key={item.label} onClick={() => handleNavigate(item.path)}
+                                      sx={{
                                         p: 1, borderRadius: '8px', mb: 0.5, transition: 'all 0.2s',
-                                        '&:hover': { bgcolor: alpha('#4caf50', 0.1), transform: 'translateX(4px)' } 
+                                        '&:hover': { bgcolor: alpha('#4caf50', 0.1), transform: 'translateX(4px)' }
                                       }}
                                     >
-                                      <ListItemText 
-                                        primary={item.label} 
-                                        primaryTypographyProps={{ 
-                                          fontSize: '0.8rem', fontWeight: 500, fontFamily: 'Montserrat', 
-                                          color: location.pathname === item.path ? '#4caf50' : '#a1a1aa' 
-                                        }} 
+                                      <ListItemText
+                                        primary={item.label}
+                                        primaryTypographyProps={{
+                                          fontSize: '0.8rem', fontWeight: 500, fontFamily: 'Montserrat',
+                                          color: location.pathname === item.path ? '#4caf50' : '#a1a1aa'
+                                        }}
                                       />
                                     </ListItemButton>
                                   ))}
                                 </Box>
                               ))
                             ) : (
-                               <Typography sx={{ color: '#71717a', fontSize: '0.8rem', p: 1 }}>Loading modules...</Typography>
+                              <Typography sx={{ color: '#71717a', fontSize: '0.8rem', p: 1 }}>Loading modules...</Typography>
                             )}
                           </Box>
                         </ClickAwayListener>
@@ -356,13 +384,13 @@ export default function Navbar() {
                 </Popper>
 
                 <Box sx={{ ml: 2.5, display: 'flex', gap: 1.5 }}>
-                  <Button 
-                    onClick={() => handleNavigate('/login')} 
-                    sx={{ 
-                      borderRadius: '12px', textTransform: 'none', fontSize: '0.78rem', fontWeight: 700, 
+                  <Button
+                    onClick={() => handleNavigate('/login')}
+                    sx={{
+                      borderRadius: '12px', textTransform: 'none', fontSize: '0.78rem', fontWeight: 700,
                       fontFamily: '"Montserrat", sans-serif', padding: '8px 18px', height: '40px',
-                      bgcolor: 'rgba(255,255,255,0.03)', color: '#d4d4d8', border: '1px solid rgba(255,255,255,0.1)', 
-                      transition: 'all 0.3s', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', color: '#fff', transform: 'translateY(-2px)' } 
+                      bgcolor: 'rgba(255,255,255,0.03)', color: '#d4d4d8', border: '1px solid rgba(255,255,255,0.1)',
+                      transition: 'all 0.3s', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', color: '#fff', transform: 'translateY(-2px)' }
                     }}
                   >
                     Portal
@@ -393,8 +421,8 @@ export default function Navbar() {
             bgcolor: 'transparent',
             height: '66px',
             '& .MuiBottomNavigationAction-root': { color: '#71717a', minWidth: 'auto', padding: '8px 0 6px', transition: 'all 0.3s ease' },
-            '& .Mui-selected': { 
-              color: '#4caf50', 
+            '& .Mui-selected': {
+              color: '#4caf50',
               transform: 'translateY(-4px)',
               '& .MuiSvgIcon-root': { filter: 'drop-shadow(0 2px 6px rgba(76, 175, 80, 0.5))' }
             },
@@ -402,18 +430,18 @@ export default function Navbar() {
           }}
         >
           <BottomNavigationAction label="Home" value="/" icon={<HomeIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => handleNavigate('/')} />
-          <BottomNavigationAction label="Faculties" value="/faculties" icon={<SchoolIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('facs')} />
+          {/* <BottomNavigationAction label="Faculties" value="/faculties" icon={<SchoolIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('facs')} /> */}
           <BottomNavigationAction label="Modules" value="/programmes" icon={<MenuBookIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('prog')} />
           <BottomNavigationAction label="Menu" value="menu" icon={<MenuIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => setDrawerOpen(true)} />
         </BottomNavigation>
       </FloatingBottomNav>
 
       {/* 🚀 Ultimate Premium Mobile Grid Menu Drawer 🚀 */}
-      <Drawer 
+      <Drawer
         anchor="bottom" open={drawerOpen} onClose={() => setDrawerOpen(false)} sx={{ zIndex: 1600 }}
-        PaperProps={{ 
-          sx: { 
-            bgcolor: '#0a0a0a', 
+        PaperProps={{
+          sx: {
+            bgcolor: '#0a0a0a',
             backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(76, 175, 80, 0.1) 0%, transparent 50%)',
             color: '#ffffff',
             borderTopLeftRadius: '28px', borderTopRightRadius: '28px',
@@ -422,7 +450,7 @@ export default function Navbar() {
             maxHeight: '85vh',
             display: 'flex', flexDirection: 'column',
             pb: 'env(safe-area-inset-bottom)'
-          } 
+          }
         }}
       >
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pt: 2, pb: 1.5 }}>
@@ -444,7 +472,7 @@ export default function Navbar() {
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5, mb: 2 }}>
             {MOBILE_GRID_MENU.map((item) => {
               const isActive = (item.path && location.pathname === item.path) || (item.action && activeMobileTab === item.action);
-              
+
               return (
                 <Paper
                   key={item.text} elevation={0}
@@ -478,7 +506,7 @@ export default function Navbar() {
         {/* Dynamic Lists View with Animations */}
         <Box sx={{ overflowY: 'auto', px: 3, pb: 8, flexGrow: 1 }}>
           <Collapse in={activeMobileTab === 'facs'} timeout="auto" unmountOnExit>
-            <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Faculties</Typography>
+            {/* <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Faculties</Typography> */}
             <List disablePadding sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
               {dynamicFacultyLinks.map(link => (
                 <ListItemButton key={link.path} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(255,255,255,0.03)', '&:last-child': { borderBottom: 'none' } }}>
@@ -491,8 +519,8 @@ export default function Navbar() {
           </Collapse>
 
           <Collapse in={activeMobileTab === 'prog'} timeout="auto" unmountOnExit>
-             <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Programmes</Typography>
-             <Box sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', p: 1.5, border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
+            <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Programmes</Typography>
+            <Box sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', p: 1.5, border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
               {dynamicProgrammeGroups.map(group => (
                 <Box key={group.title} sx={{ mb: 2, '&:last-child': { mb: 0 } }}>
                   <Typography sx={{ color: '#4caf50', fontSize: '0.65rem', fontWeight: 800, px: 1, mb: 0.8, textTransform: 'uppercase', letterSpacing: '0.8px' }}>{group.title}</Typography>
@@ -505,7 +533,7 @@ export default function Navbar() {
                   ))}
                 </Box>
               ))}
-             </Box>
+            </Box>
           </Collapse>
 
           <Collapse in={activeMobileTab === 'story'} timeout="auto" unmountOnExit>
@@ -521,15 +549,15 @@ export default function Navbar() {
           </Collapse>
 
           {!activeMobileTab && (
-             <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Button 
+            <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              <Button
                 fullWidth variant="contained" startIcon={<AppRegistrationIcon sx={{ fontSize: '20px' }} />}
-                sx={{ 
-                  background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)', color: '#fff', py: 1.6, 
-                  borderRadius: '14px', fontWeight: 800, fontFamily: 'Montserrat', fontSize: '0.9rem', 
+                sx={{
+                  background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)', color: '#fff', py: 1.6,
+                  borderRadius: '14px', fontWeight: 800, fontFamily: 'Montserrat', fontSize: '0.9rem',
                   boxShadow: '0 8px 25px rgba(76, 175, 80, 0.4)', textTransform: 'none',
                   border: '1px solid rgba(255,255,255,0.1)', '&:hover': { transform: 'translateY(-2px)' }
-                }} 
+                }}
                 onClick={() => handleNavigate('/register-online')}
               >
                 Start New Enrollment
@@ -538,7 +566,7 @@ export default function Navbar() {
           )}
         </Box>
       </Drawer>
-      
+
       <Box sx={{ height: { xs: '85px', lg: '0px' } }} />
     </React.Fragment>
   );

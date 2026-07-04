@@ -133,7 +133,7 @@ const NewsEvent: React.FC = () => {
     const handleEventClick = () => {
       setShowAllEvents(false);
       const eventRouteName = generateEventSlug(item.eventName);
-      navigate(`/events/${eventRouteName}`);
+      navigate(`/event/${eventRouteName}`);
     };
 
     return (

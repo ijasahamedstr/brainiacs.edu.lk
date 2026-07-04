@@ -90,18 +90,11 @@ const Presidentmessage: React.FC = () => {
                     fontFamily: "'Montserrat', sans-serif",
                   }}
                 >
-                  BMS is a provider of high-quality education in association with
-                  the best of British universities. We are committed to providing
-                  the best study opportunities for both school leavers and those who
-                  are working or thinking of returning to study, with our very
-                  successful concept of ‘Managing Work, Study & Home’. We are
-                  equipped with excellent, well-qualified academic staff; a
-                  supportive, student-friendly learning environment; and
-                  state-of-the-art facilities to give you the best learning
-                  experience. We are thankful to you for taking the time to consider
-                  BMS as your study option. Our team looks forward to welcoming you
-                  at BMS, where we know you will have a pleasant, enjoyable,
-                  challenging and successful journey.
+                  It is with great pride and deep responsibility that I welcome you to the Brainiacs Campus – a place where knowledge, innovation, and character converge to shape the leaders of tomorrow.<br/>
+                  At Brainiacs, we believe that education goes beyond the classroom. It is a journey of discovery, critical thinking, and creativity that empowers our students to contribute meaningfully to society.Our Misson is to nurture bright minds, foster integrity, and cultivate a spirit of excellence that will serve not only the individual but also the community and the world at large. <br/>
+                  The Board of Governors is committed to ensuring that the value of quality education, inclusivity, and innovation remain at the heart of everything we do. Through our policies, oversight, and vision, we strive to provide an enabling environment where teachers inspire, students flourish, and ideas thrive.<br/>
+                  As the Chairman, I invite all stakeholders – students and parents. Faculty, partners, and the wider community to join hands with us in building a legacy of excellence. Together, we will continue to transform Brainiacs Campus into a hub of intellectual growth, ethical leadership, and global impact.<br/>
+                  Let us remain steadfast in our pursuit of knowledge and in our commitment to shaping a brighter future.
                   {/* Bottom Quote Inline */}
                   <FormatQuoteIcon
                     sx={{
@@ -141,8 +134,8 @@ const Presidentmessage: React.FC = () => {
                     fontFamily: "'Montserrat', sans-serif"
                   }}
                 >
-                  B.Sc (Hons), PGDM, FCPM, and D.Lit (Honorary) <br />
-                  <strong>Retired University Registrar</strong> | Chairman of the Board of Governors
+                  ( B.Sc ( Hons), PGDM, FCPM, and D.Lit ( Honorary)), <br />
+                  <strong>Retired University Registrar</strong> | Chairman of the Board of Governors of the Brainiacs Campus
                 </Typography>
               </Box>
             </Box>
