@@ -5,7 +5,6 @@ import {
   Container,
   Typography,
   Card,
-  CardMedia,
   Box,
   Dialog,
   Skeleton,

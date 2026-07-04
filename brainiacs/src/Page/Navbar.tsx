@@ -34,7 +34,6 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import HomeIcon from '@mui/icons-material/Home';
-import SchoolIcon from '@mui/icons-material/School';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import InfoIcon from '@mui/icons-material/Info';
 import PhoneIcon from '@mui/icons-material/Phone';
