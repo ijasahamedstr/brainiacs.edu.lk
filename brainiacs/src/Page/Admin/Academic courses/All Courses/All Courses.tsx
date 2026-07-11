@@ -18,7 +18,7 @@ import {
 
 // Components 
 import CreateCourse from "./CreateCourses";
-import UpdateCourse from "./UpdateCourses"; // UNCOMMENTED
+import UpdateCourse from "./UpdateCourses"; 
 
 // --- CONFIGURATION & CONSTANTS ---
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -69,12 +69,15 @@ interface Course {
   duration: string;
   intake: string;
   awardingBody: string;
-  isCampusOffering?: boolean; // ADDED
-  entryRequirements: EntryRequirementData[]; // UPDATED TO MATCH NEW SCHEMA
+  isCampusOffering?: boolean; 
+  entryRequirements: EntryRequirementData[]; 
   progression: string;
   scholarships: string;
+  moduleMode: "semester" | "course"; // NEW
   semesters: Semester[];
+  courseModules: ModuleRow[]; // NEW
   careerPathways: string[];
+  bannerImage: string; // NEW
   coverImage: string;
   images: string[];
   createdAt: string;
@@ -90,7 +93,7 @@ const CourseManager = () => {
   const [syncStatus, setSyncStatus] = useState<"online" | "offline">("online");
   const [showAddForm, setShowAddForm] = useState(false);
   const [viewingItem, setViewingItem] = useState<Course | null>(null);
-  const [editingItem, setEditingItem] = useState<Course | null>(null); // ADDED EDITING STATE
+  const [editingItem, setEditingItem] = useState<Course | null>(null); 
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; id: string | null }>({ open: false, id: null });
   
   // View & Selection States
@@ -212,7 +215,7 @@ const CourseManager = () => {
 
   // View Renders
   if (showAddForm) return <ThemeProvider theme={montserratTheme}><CreateCourse onBack={() => { setShowAddForm(false); fetchData(); }} /></ThemeProvider>;
-  if (editingItem) return <ThemeProvider theme={montserratTheme}><UpdateCourse itemData={editingItem as any} onBack={() => { setEditingItem(null); fetchData(); }} /></ThemeProvider>; // UNCOMMENTED
+  if (editingItem) return <ThemeProvider theme={montserratTheme}><UpdateCourse itemData={editingItem as any} onBack={() => { setEditingItem(null); fetchData(); }} /></ThemeProvider>; 
 
   return (
     <ThemeProvider theme={montserratTheme}>
@@ -342,7 +345,8 @@ const CourseManager = () => {
                                     </TableCell>
                                     <TableCell>
                                         <Typography variant="caption" sx={{ fontWeight: 700, color: "#64748B", display: 'flex', alignItems: 'center', gap: 1 }}>
-                                            <LayersOutlined sx={{ fontSize: 16 }} /> {course.semesters?.length || 0} Semesters
+                                            <LayersOutlined sx={{ fontSize: 16 }} /> 
+                                            {course.moduleMode === 'course' ? `${course.courseModules?.length || 0} Modules` : `${course.semesters?.length || 0} Semesters`}
                                         </Typography>
                                     </TableCell>
                                     <TableCell align="right" sx={{ pr: 2 }}>
@@ -352,7 +356,6 @@ const CourseManager = () => {
                                             <VisibilityOutlined fontSize="small" />
                                             </IconButton>
                                         </Tooltip>
-                                        {/* UNCOMMENTED EDIT BUTTON FOR TABLE */}
                                         <Tooltip title="Edit Course">
                                             <IconButton size="small" onClick={() => setEditingItem(course)} sx={{ color: "#475569", bgcolor: '#F1F5F9', '&:hover': { bgcolor: '#E2E8F0' } }}>
                                             <EditOutlined fontSize="small" />
@@ -412,7 +415,8 @@ const CourseManager = () => {
                                                     <CalendarMonthOutlined sx={{ fontSize: 16, color: PRIMARY_TEAL }} /> {course.duration}
                                                 </Typography>
                                                 <Typography sx={{ fontSize: '0.75rem', color: '#475569', display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                    <LayersOutlined sx={{ fontSize: 16, color: PRIMARY_TEAL }} /> {course.semesters?.length || 0} Semesters
+                                                    <LayersOutlined sx={{ fontSize: 16, color: PRIMARY_TEAL }} /> 
+                                                    {course.moduleMode === 'course' ? `${course.courseModules?.length || 0} Modules` : `${course.semesters?.length || 0} Semesters`}
                                                 </Typography>
                                             </Stack>
                                             <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -421,7 +425,6 @@ const CourseManager = () => {
                                                 </Typography>
                                                 <Stack direction="row" spacing={0.5}>
                                                     <IconButton size="small" onClick={() => setViewingItem(course)} sx={{ color: PRIMARY_TEAL, p: 0.5 }}><VisibilityOutlined fontSize="small" /></IconButton>
-                                                    {/* UNCOMMENTED EDIT BUTTON FOR GRID */}
                                                     <IconButton size="small" onClick={() => setEditingItem(course)} sx={{ color: "#475569", p: 0.5 }}><EditOutlined fontSize="small" /></IconButton>
                                                     <IconButton size="small" onClick={() => setDeleteDialog({ open: true, id: course._id })} sx={{ color: "#EF4444", p: 0.5 }}><DeleteOutline fontSize="small" /></IconButton>
                                                 </Stack>
@@ -504,21 +507,32 @@ const CourseManager = () => {
         >
           {viewingItem && (
             <Box>
-              {/* Header */}
-              <Box sx={{ p: 3, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                 <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 800, color: PRIMARY_TEAL, fontSize: '1.2rem', letterSpacing: -0.5 }}>{viewingItem.courseName}</Typography>
-                    <Typography sx={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 500 }}>ID: {viewingItem._id}</Typography>
-                 </Box>
+              {/* Header - Simple control bar */}
+              <Box sx={{ p: 2, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                 <Typography sx={{ fontSize: '0.8rem', color: '#64748B', fontWeight: 500 }}>RECORD ID: {viewingItem._id}</Typography>
                  <IconButton size="medium" onClick={() => setViewingItem(null)} sx={{ bgcolor: '#FFF', border: '1px solid #E2E8F0', '&:hover': { bgcolor: '#F1F5F9' } }}>
                      <CloseOutlined fontSize="small" />
                  </IconButton>
               </Box>
               
-              <Box sx={{ maxHeight: '75vh', overflowY: 'auto' }}>
-                <Box component="img" src={viewingItem.coverImage} sx={{ width: '100%', height: 240, objectFit: 'cover' }} />
+              <Box sx={{ maxHeight: '80vh', overflowY: 'auto' }}>
+                {/* Banner Image placed above the title */}
+                <Box 
+                    component="img" 
+                    src={viewingItem.bannerImage || viewingItem.coverImage} 
+                    sx={{ width: '100%', height: { xs: 180, md: 240 }, objectFit: 'cover' }} 
+                    alt="Course Banner"
+                />
                 
-                <Stack spacing={4} sx={{ p: 4 }}>
+                <Stack spacing={4} sx={{ p: 4, pt: 3 }}>
+                  
+                  {/* Course Title Placed Below Banner */}
+                  <Box>
+                      <Typography variant="h4" sx={{ fontWeight: 800, color: PRIMARY_TEAL, letterSpacing: -0.5 }}>
+                          {viewingItem.courseName}
+                      </Typography>
+                  </Box>
+
                   {/* 1. Description */}
                   <Box>
                     <Typography variant="overline" sx={{ fontWeight: 900, color: PRIMARY_TEAL }}>About Program</Typography>
@@ -539,19 +553,20 @@ const CourseManager = () => {
                       <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: "#94A3B8" }}>SCHOLARSHIPS</Typography>
                       <Typography sx={{ fontWeight: 700 }} dangerouslySetInnerHTML={{ __html: viewingItem.scholarships || "None" }} />
                     </Box>
-                    {/* ADDED: Campus Offering Status */}
                     <Box flex={1}>
                       <Typography sx={{ fontSize: "0.75rem", fontWeight: 800, color: "#94A3B8" }}>CAMPUS OFFERING</Typography>
                       <Chip label={viewingItem.isCampusOffering ? "Available at Campus" : "Online Only"} size="small" color={viewingItem.isCampusOffering ? "success" : "default"} sx={{ fontWeight: 700, mt: 0.5 }} />
                     </Box>
                   </Stack>
 
-                  {/* 3. Curriculum Structure */}
+                  {/* 3. Curriculum Structure (Toggles between Semester and Course based on Schema) */}
                   <Box>
                     <Typography variant="overline" sx={{ fontWeight: 900, color: PRIMARY_TEAL, display: 'block', mb: 2 }}>Academic Syllabus</Typography>
-                    {viewingItem.semesters.map((sem, sIdx) => (
-                      <Box key={sIdx} sx={{ mb: 3 }}>
-                        <Typography sx={{ fontWeight: 800, fontSize: "0.85rem", bgcolor: "#F1F5F9", p: 1, borderRadius: "8px", mb: 1 }}>{sem.semesterName}</Typography>
+                    
+                    {viewingItem.moduleMode === 'course' ? (
+                      // Single Course Module List Rendering
+                      <Box sx={{ mb: 3 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: "0.85rem", bgcolor: "#F1F5F9", p: 1, borderRadius: "8px", mb: 1 }}>Unified Course Modules</Typography>
                         <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: "10px" }}>
                           <Table size="small">
                             <TableHead sx={{ bgcolor: "#F8FAFC" }}>
@@ -562,7 +577,7 @@ const CourseManager = () => {
                               </TableRow>
                             </TableHead>
                             <TableBody>
-                              {sem.moduleRows.map((row, rIdx) => (
+                              {(viewingItem.courseModules || []).map((row, rIdx) => (
                                 <TableRow key={rIdx}>
                                   <TableCell sx={{ fontSize: "0.75rem" }}>{row.code}</TableCell>
                                   <TableCell sx={{ fontSize: "0.75rem", fontWeight: 600 }}>{row.name}</TableCell>
@@ -573,14 +588,40 @@ const CourseManager = () => {
                           </Table>
                         </TableContainer>
                       </Box>
-                    ))}
+                    ) : (
+                      // Semester List Rendering
+                      viewingItem.semesters?.map((sem, sIdx) => (
+                        <Box key={sIdx} sx={{ mb: 3 }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: "0.85rem", bgcolor: "#F1F5F9", p: 1, borderRadius: "8px", mb: 1 }}>{sem.semesterName}</Typography>
+                          <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: "10px" }}>
+                            <Table size="small">
+                              <TableHead sx={{ bgcolor: "#F8FAFC" }}>
+                                <TableRow>
+                                  <TableCell sx={{ fontWeight: 700, fontSize: "0.7rem" }}>CODE</TableCell>
+                                  <TableCell sx={{ fontWeight: 700, fontSize: "0.7rem" }}>MODULE</TableCell>
+                                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: "0.7rem" }}>CREDITS</TableCell>
+                                </TableRow>
+                              </TableHead>
+                              <TableBody>
+                                {sem.moduleRows.map((row, rIdx) => (
+                                  <TableRow key={rIdx}>
+                                    <TableCell sx={{ fontSize: "0.75rem" }}>{row.code}</TableCell>
+                                    <TableCell sx={{ fontSize: "0.75rem", fontWeight: 600 }}>{row.name}</TableCell>
+                                    <TableCell align="right" sx={{ fontSize: "0.75rem" }}>{row.credits}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </TableContainer>
+                        </Box>
+                      ))
+                    )}
                   </Box>
 
                   {/* 4. Rich Text Sections */}
                   <Stack spacing={2}>
                     <Box sx={{ p: 2, bgcolor: "#F8FAFC", borderRadius: "12px" }}>
                       <Typography sx={{ fontWeight: 800, fontSize: "0.8rem", color: PRIMARY_TEAL, mb: 1 }}>ENTRY REQUIREMENTS</Typography>
-                      {/* FIXED TO RENDER THE NEW ARRAY STRUCTURE */}
                       {viewingItem.entryRequirements && viewingItem.entryRequirements.length > 0 ? (
                         viewingItem.entryRequirements.map((reqBlock, rIdx) => (
                           <Box key={rIdx} sx={{ mb: 2, '&:last-child': { mb: 0 } }}>
@@ -625,7 +666,7 @@ const CourseManager = () => {
             </Box>
             <Typography sx={{ fontWeight: 800, color: "#1E293B", fontSize: '1.1rem', mb: 1 }}>Confirm Curriculum Purge</Typography>
             <Typography sx={{ color: "#64748B", mb: 4, fontWeight: 500, fontSize: '0.85rem', lineHeight: 1.5 }}>
-              You are about to permanently delete this course and all associated semester data. This action cannot be undone.
+              You are about to permanently delete this course and all associated syllabus data. This action cannot be undone.
             </Typography>
             <Stack direction="row" spacing={2}>
               <Button size="large" onClick={() => setDeleteDialog({ open: false, id: null })} fullWidth variant="outlined" sx={{ fontWeight: 700, color: "#64748B", borderColor: '#CBD5E1', fontSize: '0.8rem' }}>Abort</Button>

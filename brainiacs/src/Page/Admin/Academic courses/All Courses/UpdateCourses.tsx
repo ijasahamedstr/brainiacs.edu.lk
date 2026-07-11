@@ -5,7 +5,7 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, 
   Tabs, Tab, Alert, Collapse, Fade, Tooltip,
   Avatar, Badge, Switch, FormControlLabel, Checkbox,
-  LinearProgress, InputAdornment
+  LinearProgress, InputAdornment, ToggleButtonGroup, ToggleButton
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, DeleteOutline, AddOutlined, 
@@ -13,7 +13,8 @@ import {
   EditNoteOutlined, MenuBookOutlined,
   LinkOutlined, HistoryEduOutlined, WorkspacePremiumOutlined,
   PlaylistAddOutlined, PostAddOutlined,
-  GavelOutlined, LanguageOutlined, CloudUploadOutlined
+  GavelOutlined, LanguageOutlined, CloudUploadOutlined,
+  ViewTimelineOutlined, ViewListOutlined
 } from "@mui/icons-material";
 
 // --- SYSTEM CONSTANTS ---
@@ -113,11 +114,14 @@ interface CourseData {
   courseDescription: string[];
   images: string[];
   coverImage: string;
+  bannerImage: string; // NEW FIELD
   isCampusOffering?: boolean; 
   entryRequirements: EntryRequirementData[]; 
   progression: string;
   scholarships: string;
+  moduleMode: "semester" | "course"; // NEW FIELD
   semesters: SemesterData[];
+  courseModules: ModuleRow[]; // NEW FIELD
   careerPathways: string[];
   metaTitle?: string;
   metaDescription?: string;
@@ -133,13 +137,23 @@ interface ValidationErrors {
 }
 
 const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () => void }) => {
-  // Initialize Entry Requirements if missing from old data
+  // Initialize Defaults if missing from old data
   const initialRequirements = itemData.entryRequirements && itemData.entryRequirements.length > 0 
     ? itemData.entryRequirements 
     : [{ category: "", descriptions: [""] }];
 
+  const initialModuleMode = itemData.moduleMode || "semester";
+  const initialCourseModules = itemData.courseModules || [{ id: `mod-${Date.now()}`, code: "", name: "", credits: "", isElective: false }];
+  const initialBannerImage = itemData.bannerImage || "";
+
   // --- CORE STATE ---
-  const [formData, setFormData] = useState<CourseData>(itemData);
+  const [formData, setFormData] = useState<CourseData>({
+    ...itemData,
+    moduleMode: initialModuleMode,
+    courseModules: initialCourseModules,
+    bannerImage: initialBannerImage
+  });
+  
   const [entryRequirements, setEntryRequirements] = useState<EntryRequirementData[]>(initialRequirements);
   const [isCampusOffering, setIsCampusOffering] = useState(itemData.isCampusOffering || false);
 
@@ -152,7 +166,8 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
   // --- UI STATE ---
   const [pathwayInput, setPathwayInput] = useState("");
   const [saveProgress, setSaveProgress] = useState(0);
-  const [isUploadingCover, setIsUploadingCover] = useState(false); // Image upload loading state
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
 
   // --- IMGBB UPLOAD HANDLER ---
   const uploadToImgBB = async (file: File) => {
@@ -182,7 +197,7 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
       bgcolor: "#FFF",
       transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
       "& fieldset": { borderColor: "#CBD5E1" },
-      "&:hover fieldset": { borderColor: primaryTeal },
+      "& :hover fieldset": { borderColor: primaryTeal },
       "&.Mui-focused fieldset": { borderWidth: "2px", borderColor: primaryTeal },
     },
     "& .MuiInputBase-input": { ...montserratStyle, fontSize: "0.8rem", py: 1.2 }, 
@@ -224,12 +239,18 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleUpdateModule = (sIdx: number, rIdx: number, field: keyof ModuleRow, val: any) => {
+  const handleUpdateSemesterModule = (sIdx: number, rIdx: number, field: keyof ModuleRow, val: any) => {
     const updatedSems = [...formData.semesters];
     const updatedRows = [...updatedSems[sIdx].moduleRows];
     updatedRows[rIdx] = { ...updatedRows[rIdx], [field]: val };
     updatedSems[sIdx] = { ...updatedSems[sIdx], moduleRows: updatedRows };
     handleFieldChange("semesters", updatedSems);
+  };
+
+  const handleUpdateUnifiedModule = (rIdx: number, field: keyof ModuleRow, val: any) => {
+    const updated = [...formData.courseModules];
+    updated[rIdx] = { ...updated[rIdx], [field]: val };
+    handleFieldChange("courseModules", updated);
   };
 
   const syncToDatabase = async () => {
@@ -440,40 +461,65 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
 
           {/* SECTION 3: SYLLABUS ENGINE */}
           <Paper sx={{ p: 4, borderRadius: "24px", border: `1px solid ${borderColor}` }} elevation={0}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={4} flexWrap="wrap" gap={2}>
               {sectionLabel(<MenuBookOutlined />, "Syllabus Registry", "Curriculum Module Management")}
-              <Button 
+              
+              {/* TOGGLE FOR SEMESTER VS COURSE MODULES */}
+              <ToggleButtonGroup
+                value={formData.moduleMode}
+                exclusive
+                onChange={(_, newMode) => { if (newMode) handleFieldChange("moduleMode", newMode); }}
                 size="small"
-                variant="outlined" 
-                startIcon={<PostAddOutlined fontSize="small" />} 
-                onClick={() => {
-                  const newSem: SemesterData = {
-                    id: `sem-${Date.now()}`,
-                    semesterName: `Semester ${formData.semesters.length + 1}`,
-                    moduleRows: [{ id: `m-${Date.now()}`, code: "", name: "", credits: "", isElective: false }]
-                  };
-                  handleFieldChange("semesters", [...formData.semesters, newSem]);
-                  setActiveTab(formData.semesters.length);
-                }}
-                sx={{ borderRadius: "8px", border: `1px solid ${primaryTeal}`, color: primaryTeal, fontWeight: 800, fontSize: "0.7rem" }}
+                sx={{ bgcolor: "#F8FAFC", borderRadius: "10px", p: 0.5, border: `1px solid ${borderColor}` }}
               >
-                New Semester
-              </Button>
+                <ToggleButton value="semester" sx={{ px: 3, border: "none", borderRadius: "8px !important", "&.Mui-selected": { bgcolor: "#FFF", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", color: primaryTeal, fontWeight: 800 } }}>
+                  <ViewTimelineOutlined fontSize="small" sx={{ mr: 1 }} />
+                  <Typography sx={{ ...montserratStyle, fontWeight: 700, fontSize: "0.7rem" }}>Semester Wise</Typography>
+                </ToggleButton>
+                <ToggleButton value="course" sx={{ px: 3, border: "none", borderRadius: "8px !important", "&.Mui-selected": { bgcolor: "#FFF", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", color: primaryTeal, fontWeight: 800 } }}>
+                  <ViewListOutlined fontSize="small" sx={{ mr: 1 }} />
+                  <Typography sx={{ ...montserratStyle, fontWeight: 700, fontSize: "0.7rem" }}>Unified Course</Typography>
+                </ToggleButton>
+              </ToggleButtonGroup>
             </Stack>
 
-            {formData.semesters.length > 0 ? (
-                <>
-                    <Tabs 
-                    value={activeTab} 
-                    onChange={(_, v) => setActiveTab(v)} 
-                    variant="scrollable"
-                    sx={{ 
-                        mb: 3, borderBottom: `1px solid ${borderColor}`, minHeight: "36px",
-                        "& .MuiTab-root": { fontWeight: 800, minWidth: 120, minHeight: "36px", fontFamily: montserrat, fontSize: "0.75rem", color: "#94A3B8" },
-                        "& .Mui-selected": { color: primaryTeal }
+            {/* CONDITIONAL RENDERING BASED ON MODE */}
+            {formData.moduleMode === "semester" ? (
+              // --- SEMESTER MODE UI ---
+              <Box>
+                <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+                  <Button 
+                    size="small"
+                    variant="outlined" 
+                    startIcon={<PostAddOutlined fontSize="small" />} 
+                    onClick={() => {
+                      const newSem: SemesterData = {
+                        id: `sem-${Date.now()}`,
+                        semesterName: `Semester ${formData.semesters.length + 1}`,
+                        moduleRows: [{ id: `m-${Date.now()}`, code: "", name: "", credits: "", isElective: false }]
+                      };
+                      handleFieldChange("semesters", [...formData.semesters, newSem]);
+                      setActiveTab(formData.semesters.length);
                     }}
+                    sx={{ borderRadius: "8px", border: `1px solid ${primaryTeal}`, color: primaryTeal, fontWeight: 800, fontSize: "0.7rem" }}
+                  >
+                    New Semester
+                  </Button>
+                </Box>
+                
+                {formData.semesters.length > 0 ? (
+                  <>
+                    <Tabs 
+                      value={activeTab} 
+                      onChange={(_, v) => setActiveTab(v)} 
+                      variant="scrollable"
+                      sx={{ 
+                          mb: 3, borderBottom: `1px solid ${borderColor}`, minHeight: "36px",
+                          "& .MuiTab-root": { fontWeight: 800, minWidth: 120, minHeight: "36px", fontFamily: montserrat, fontSize: "0.75rem", color: "#94A3B8" },
+                          "& .Mui-selected": { color: primaryTeal }
+                      }}
                     >
-                    {formData.semesters.map((sem) => <Tab key={sem.id || sem.semesterName} label={sem.semesterName} />)}
+                      {formData.semesters.map((sem) => <Tab key={sem.id || sem.semesterName} label={sem.semesterName} />)}
                     </Tabs>
 
                     <Box>
@@ -492,16 +538,16 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
                             {formData.semesters[activeTab].moduleRows.map((row, rIdx) => (
                                 <TableRow key={rIdx} sx={{ "&:hover": { bgcolor: "#FBFCFD" } }}>
                                 <TableCell width="120px" sx={{ py: 1.5 }}>
-                                    <TextField size="small" fullWidth value={row.code} onChange={(e) => handleUpdateModule(activeTab, rIdx, "code", e.target.value)} sx={inputGlobalStyle} />
+                                    <TextField size="small" fullWidth value={row.code} onChange={(e) => handleUpdateSemesterModule(activeTab, rIdx, "code", e.target.value)} sx={inputGlobalStyle} />
                                 </TableCell>
                                 <TableCell>
-                                    <TextField size="small" fullWidth value={row.name} onChange={(e) => handleUpdateModule(activeTab, rIdx, "name", e.target.value)} sx={inputGlobalStyle} />
+                                    <TextField size="small" fullWidth value={row.name} onChange={(e) => handleUpdateSemesterModule(activeTab, rIdx, "name", e.target.value)} sx={inputGlobalStyle} />
                                 </TableCell>
                                 <TableCell width="90px">
-                                    <TextField size="small" fullWidth value={row.credits} onChange={(e) => handleUpdateModule(activeTab, rIdx, "credits", e.target.value)} sx={inputGlobalStyle} />
+                                    <TextField size="small" fullWidth value={row.credits} onChange={(e) => handleUpdateSemesterModule(activeTab, rIdx, "credits", e.target.value)} sx={inputGlobalStyle} />
                                 </TableCell>
                                 <TableCell width="70px" align="center">
-                                    <Switch size="small" checked={row.isElective || false} onChange={(e) => handleUpdateModule(activeTab, rIdx, "isElective", e.target.checked)} color="info" />
+                                    <Switch size="small" checked={row.isElective || false} onChange={(e) => handleUpdateSemesterModule(activeTab, rIdx, "isElective", e.target.checked)} color="info" />
                                 </TableCell>
                                 <TableCell align="center">
                                     <IconButton 
@@ -537,9 +583,74 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
                         </Box>
                         </TableContainer>
                     </Box>
-                </>
+                  </>
+                ) : (
+                  <Typography textAlign="center" color="text.secondary" sx={{ fontSize: "0.8rem" }}>No semesters configured. Click 'New Semester' to begin.</Typography>
+                )}
+              </Box>
             ) : (
-                <Typography textAlign="center" color="text.secondary" sx={{ fontSize: "0.8rem" }}>No semesters configured. Click 'New Semester' to begin.</Typography>
+              // --- COURSE MODULES MODE UI ---
+              <Box>
+                <TableContainer component={Paper} elevation={0} sx={{ border: `1px solid ${borderColor}`, borderRadius: "16px", overflow: "hidden" }}>
+                  <Table size="small">
+                    <TableHead sx={{ bgcolor: "#F8FAFC" }}>
+                      <TableRow>
+                          <TableCell sx={{ fontWeight: 800, color: "#475569", fontSize: "0.65rem", py: 2 }}>CODE</TableCell>
+                          <TableCell sx={{ fontWeight: 800, color: "#475569", fontSize: "0.65rem" }}>MODULE DESCRIPTION</TableCell>
+                          <TableCell sx={{ fontWeight: 800, color: "#475569", fontSize: "0.65rem" }}>CREDITS</TableCell>
+                          <TableCell sx={{ fontWeight: 800, color: "#475569", fontSize: "0.65rem" }}>ELECTIVE</TableCell>
+                          <TableCell align="center" sx={{ fontWeight: 800, color: "#475569", fontSize: "0.65rem" }}>ACTION</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {formData.courseModules.map((row, rIdx) => (
+                          <TableRow key={rIdx} sx={{ "&:hover": { bgcolor: "#FBFCFD" } }}>
+                          <TableCell width="120px" sx={{ py: 1.5 }}>
+                              <TextField size="small" fullWidth value={row.code} onChange={(e) => handleUpdateUnifiedModule(rIdx, "code", e.target.value)} sx={inputGlobalStyle} />
+                          </TableCell>
+                          <TableCell>
+                              <TextField size="small" fullWidth value={row.name} onChange={(e) => handleUpdateUnifiedModule(rIdx, "name", e.target.value)} sx={inputGlobalStyle} />
+                          </TableCell>
+                          <TableCell width="90px">
+                              <TextField size="small" fullWidth value={row.credits} onChange={(e) => handleUpdateUnifiedModule(rIdx, "credits", e.target.value)} sx={inputGlobalStyle} />
+                          </TableCell>
+                          <TableCell width="70px" align="center">
+                              <Switch size="small" checked={row.isElective || false} onChange={(e) => handleUpdateUnifiedModule(rIdx, "isElective", e.target.checked)} color="info" />
+                          </TableCell>
+                          <TableCell align="center">
+                              <IconButton 
+                              size="small"
+                              color="error" 
+                              onClick={() => {
+                                  const upd = [...formData.courseModules];
+                                  upd.splice(rIdx, 1);
+                                  handleFieldChange("courseModules", upd);
+                              }}
+                              disabled={formData.courseModules.length === 1}
+                              >
+                              <DeleteOutline fontSize="small" />
+                              </IconButton>
+                          </TableCell>
+                          </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                  <Box sx={{ p: 2, bgcolor: "#F8FAFC", textAlign: "center" }}>
+                      <Button 
+                      size="small"
+                      startIcon={<PlaylistAddOutlined fontSize="small" />} 
+                      onClick={() => {
+                          const upd = [...formData.courseModules];
+                          upd.push({ id: `mod-${Date.now()}`, code: "", name: "", credits: "", isElective: false });
+                          handleFieldChange("courseModules", upd);
+                      }}
+                      sx={{ color: primaryTeal, fontWeight: 800, fontSize: "0.75rem", textTransform: "none" }}
+                      >
+                      Inject New Module
+                      </Button>
+                  </Box>
+                </TableContainer>
+              </Box>
             )}
           </Paper>
 
@@ -660,56 +771,106 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
           <Paper sx={{ p: 4, borderRadius: "24px", border: `1px solid ${borderColor}` }} elevation={0}>
             {sectionLabel(<LanguageOutlined />, "Search & Discover", "SEO Meta Matrix & Gallery Assets")}
             <Stack spacing={4}>
-              <Stack direction={{ xs: "column", md: "row" }} spacing={3} alignItems="center">
-                <Badge badgeContent={<Tooltip title="Validated"><CheckCircleOutline sx={{ bgcolor: successGreen, color: "#FFF", borderRadius: "50%", p: 0.2, fontSize: 16 }} /></Tooltip>} overlap="circular">
-                  <Avatar src={formData.coverImage} variant="rounded" sx={{ width: 140, height: 95, border: `3px solid ${primaryTeal}`, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }} />
-                </Badge>
-                <Box flex={1}>
-                  <InputLabel sx={{ fontWeight: 800, mb: 1, fontSize: "0.7rem" }}>FEATURED THUMBNAIL URL</InputLabel>
-
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    id="update-course-cover-upload" 
-                    style={{ display: "none" }}
-                    onChange={async (e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setIsUploadingCover(true);
-                        try {
-                          const compressedFile = await compressImage(e.target.files[0]);
-                          const url = await uploadToImgBB(compressedFile);
-                          handleFieldChange("coverImage", url);
-                        } catch (error) {
-                          console.error("Cover upload failed:", error);
-                          alert("Failed to upload cover image.");
-                        } finally {
-                          setIsUploadingCover(false);
+              
+              {/* IMAGE UPLOADS (COVER & BANNER) */}
+              <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+                
+                {/* 1. Cover Image */}
+                <Stack direction="row" spacing={3} alignItems="center" flex={1}>
+                  <Badge badgeContent={<Tooltip title="Validated"><CheckCircleOutline sx={{ bgcolor: successGreen, color: "#FFF", borderRadius: "50%", p: 0.2, fontSize: 16 }} /></Tooltip>} overlap="circular">
+                    <Avatar src={formData.coverImage} variant="rounded" sx={{ width: 100, height: 100, border: `3px solid ${primaryTeal}`, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }} />
+                  </Badge>
+                  <Box flex={1}>
+                    <InputLabel sx={{ fontWeight: 800, mb: 1, fontSize: "0.7rem" }}>FEATURED THUMBNAIL (1:1)</InputLabel>
+                    <input 
+                      type="file" accept="image/*" id="update-course-cover-upload" style={{ display: "none" }}
+                      onChange={async (e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setIsUploadingCover(true);
+                          try {
+                            const compressedFile = await compressImage(e.target.files[0]);
+                            const url = await uploadToImgBB(compressedFile);
+                            handleFieldChange("coverImage", url);
+                          } catch (error) {
+                            console.error("Cover upload failed:", error);
+                            alert("Failed to upload cover image.");
+                          } finally {
+                            setIsUploadingCover(false);
+                          }
                         }
-                      }
-                    }}
-                  />
+                      }}
+                    />
+                    <TextField 
+                      size="small"
+                      fullWidth value={formData.coverImage} 
+                      onChange={(e) => handleFieldChange("coverImage", e.target.value)} 
+                      sx={inputGlobalStyle} 
+                      InputProps={{ 
+                        startAdornment: <LinkOutlined fontSize="small" sx={{ mr: 1, color: "#94A3B8" }} />,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <label htmlFor="update-course-cover-upload">
+                              <IconButton component="span" disabled={isUploadingCover} sx={{ color: primaryTeal }}>
+                                {isUploadingCover ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                              </IconButton>
+                            </label>
+                          </InputAdornment>
+                        )
+                      }}
+                      error={!!errors.coverImage}
+                      helperText={errors.coverImage}
+                    />
+                  </Box>
+                </Stack>
 
-                  <TextField 
-                    size="small"
-                    fullWidth value={formData.coverImage} 
-                    onChange={(e) => handleFieldChange("coverImage", e.target.value)} 
-                    sx={inputGlobalStyle} 
-                    InputProps={{ 
-                      startAdornment: <LinkOutlined fontSize="small" sx={{ mr: 1, color: "#94A3B8" }} />,
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <label htmlFor="update-course-cover-upload">
-                            <IconButton component="span" disabled={isUploadingCover} sx={{ color: primaryTeal }}>
-                              {isUploadingCover ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
-                            </IconButton>
-                          </label>
-                        </InputAdornment>
-                      )
-                    }}
-                    error={!!errors.coverImage}
-                    helperText={errors.coverImage}
-                  />
-                </Box>
+                {/* 2. Banner Image */}
+                <Stack direction="row" spacing={3} alignItems="center" flex={1}>
+                  <Badge badgeContent={<Tooltip title="Optional Banner"><CheckCircleOutline sx={{ bgcolor: formData.bannerImage ? successGreen : "#CBD5E1", color: "#FFF", borderRadius: "50%", p: 0.2, fontSize: 16 }} /></Tooltip>} overlap="circular">
+                    <Avatar src={formData.bannerImage} variant="rounded" sx={{ width: 160, height: 100, border: `3px solid ${borderColor}`, boxShadow: "0 10px 25px rgba(0,0,0,0.05)" }}>
+                        {!formData.bannerImage && <LanguageOutlined sx={{ color: "#94A3B8" }} />}
+                    </Avatar>
+                  </Badge>
+                  <Box flex={1}>
+                    <InputLabel sx={{ fontWeight: 800, mb: 1, fontSize: "0.7rem" }}>COURSE BANNER (16:9)</InputLabel>
+                    <input 
+                      type="file" accept="image/*" id="update-course-banner-upload" style={{ display: "none" }}
+                      onChange={async (e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setIsUploadingBanner(true);
+                          try {
+                            const compressedFile = await compressImage(e.target.files[0]);
+                            const url = await uploadToImgBB(compressedFile);
+                            handleFieldChange("bannerImage", url);
+                          } catch (error) {
+                            console.error("Banner upload failed:", error);
+                            alert("Failed to upload banner image.");
+                          } finally {
+                            setIsUploadingBanner(false);
+                          }
+                        }
+                      }}
+                    />
+                    <TextField 
+                      size="small"
+                      fullWidth value={formData.bannerImage} 
+                      onChange={(e) => handleFieldChange("bannerImage", e.target.value)} 
+                      sx={inputGlobalStyle} 
+                      InputProps={{ 
+                        startAdornment: <LinkOutlined fontSize="small" sx={{ mr: 1, color: "#94A3B8" }} />,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <label htmlFor="update-course-banner-upload">
+                              <IconButton component="span" disabled={isUploadingBanner} sx={{ color: primaryTeal }}>
+                                {isUploadingBanner ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                              </IconButton>
+                            </label>
+                          </InputAdornment>
+                        )
+                      }}
+                    />
+                  </Box>
+                </Stack>
+
               </Stack>
 
               <Divider />

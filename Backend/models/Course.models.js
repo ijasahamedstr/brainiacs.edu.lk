@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 // 1. Sub-schema for individual module rows
 const ModuleRowSchema = new mongoose.Schema({
+  id: { type: String }, // Optional: helpful if you generate IDs on the frontend
   code: { type: String, trim: true },
   name: { type: String, trim: true },
   credits: { type: String, trim: true }
@@ -18,12 +19,11 @@ const SemesterSchema = new mongoose.Schema({
   moduleRows: [ModuleRowSchema]
 }, { _id: false });
 
-// NEW: 3. Sub-schema for nested Entry Requirements (Category + Bullet Points)
+// 3. Sub-schema for nested Entry Requirements (Category + Bullet Points)
 const EntryRequirementSchema = new mongoose.Schema({
   category: { type: String, trim: true },
   descriptions: { type: [String], default: [] }
 }, { _id: false });
-
 
 // 4. Main Course Schema
 const CourseSchema = new mongoose.Schema({
@@ -51,7 +51,7 @@ const CourseSchema = new mongoose.Schema({
   intake: { type: String, trim: true },
   awardingBody: { type: String, trim: true },
   
-  // UPDATED: Now uses the updated Category + descriptions Array format
+  // Structured Entry Requirements
   entryRequirements: { 
     type: [EntryRequirementSchema], 
     default: [] 
@@ -60,12 +60,33 @@ const CourseSchema = new mongoose.Schema({
   progression: { type: String },
   scholarships: { type: String },
   
+  // NEW: Tracks which module structure the course uses
+  moduleMode: {
+    type: String,
+    enum: ['semester', 'course'],
+    default: 'semester'
+  },
+
+  // Stores semester-based modules
   semesters: {
     type: [SemesterSchema],
     default: []
   },
+
+  // NEW: Stores flat course modules (used when moduleMode === 'course')
+  courseModules: {
+    type: [ModuleRowSchema],
+    default: []
+  },
   
   careerPathways: { type: [String], default: [] },
+  
+  // NEW: Wide format banner image
+  bannerImage: {
+    type: String,
+    trim: true
+  },
+
   coverImage: { 
     type: String, 
     required: [true, "Primary cover image is required"] 

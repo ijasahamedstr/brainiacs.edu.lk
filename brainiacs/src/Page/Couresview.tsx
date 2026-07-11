@@ -17,7 +17,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-// TypeScript interfaces based on your Mongoose schema
+// TypeScript interfaces based on the updated Mongoose schema
 interface ModuleRow {
   code: string;
   name: string;
@@ -47,8 +47,11 @@ interface CourseData {
   entryRequirements: EntryRequirement[];
   progression: string;
   scholarships: string;
+  moduleMode: "semester" | "course"; 
   semesters: Semester[];
+  courseModules: ModuleRow[]; 
   careerPathways: string[];
+  bannerImage?: string; 
   coverImage: string;
   images: string[];
 }
@@ -97,22 +100,28 @@ const Coures_view: React.FC = () => {
     );
   }
 
+  // Determine which module structure to render
+  const isCourseMode = course.moduleMode === "course";
+  const hasModulesToDisplay = isCourseMode 
+    ? (course.courseModules && course.courseModules.length > 0)
+    : (course.semesters && course.semesters.length > 0);
+
   return (
     <>
-      {/* Header Banner with Text */}
+      {/* 1. Header Banner (Image Only) */}
       <Box
         sx={{
           position: "relative",
           width: "100%",
-          height: { xs: "220px", md: "320px" },
+          height: { xs: "220px", md: "350px", lg: "400px" },
           overflow: "hidden",
           background: "#F5F5F4",
         }}
       >
         <Box
           component="img"
-          src={course.coverImage || "https://i.ibb.co/m5WnyvxK/Gemini-Generated-Image-yeqnwvyeqnwvyeqn.png"}
-          alt={course.courseName}
+          src={course.bannerImage || course.coverImage || "https://i.ibb.co/m5WnyvxK/Gemini-Generated-Image-yeqnwvyeqnwvyeqn.png"}
+          alt={`${course.courseName} Banner`}
           sx={{
             width: "100%",
             height: "100%",
@@ -120,100 +129,63 @@ const Coures_view: React.FC = () => {
             fontFamily: '"Montserrat", sans-serif',
           }}
         />
-
-        {/* Left-side Text */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: { xs: "50%", md: "55%" },
-            left: { xs: "5%", md: "7%" },
-            transform: "translateY(-50%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            gap: 1,
-            backgroundColor: "rgba(255, 255, 255, 0.85)", 
-            p: 2.5,
-            borderRadius: 2,
-          }}
-        >
-          <Typography
-            sx={{
-              color: "#00cc99",
-              fontWeight: 700,
-              fontSize: { xs: "14px", sm: "16px", md: "20px" },
-              fontFamily: "'Montserrat', sans-serif",
-              lineHeight: 1.1,
-            }}
-          >
-            {course.courseCategory}
-          </Typography>
-
-          <Typography
-            sx={{
-              color: "#0a5397",
-              fontWeight: 700,
-              fontSize: { xs: "20px", sm: "24px", md: "32px" },
-              fontFamily: "'Montserrat', sans-serif",
-              lineHeight: 1.1,
-              
-            }}
-          >
-            {course.courseName}
-          </Typography>
-        </Box>
       </Box>
 
-      {/* Breadcrumb Section */}
-      <Box
-        sx={{
-          bgcolor: "#F1F5F9",
-          fontFamily: "'Montserrat', sans-serif",
-          py: 1.5,
-        }}
-      >
-        <Box
-          sx={{
-            width: "90%",
-            maxWidth: "1300px",
-            mx: "auto",
-          }}
-        >
+      {/* 2. Breadcrumb Section */}
+      <Box sx={{ bgcolor: "#F1F5F9", fontFamily: "'Montserrat', sans-serif", py: 1.5 }}>
+        <Box sx={{ width: "90%", maxWidth: "1300px", mx: "auto", px: { xs: 2, md: 4 } }}>
           <Breadcrumbs
             aria-label="breadcrumb"
             separator="›"
-            sx={{
-              fontSize: { xs: "12px", md: "13px" },
-              fontWeight: 500,
-            }}
+            sx={{ fontSize: { xs: "12px", md: "13px" }, fontWeight: 500 }}
           >
             <Link
               underline="hover"
               color="inherit"
               href="/"
-              sx={{
-                color: "#1E293B",
-                fontFamily: "'Montserrat', sans-serif",
-                "&:hover": { color: "#0F172A" },
-              }}
+              sx={{ color: "#1E293B", fontFamily: "'Montserrat', sans-serif", "&:hover": { color: "#0F172A" } }}
             >
               Home
             </Link>
-            <Typography
-              sx={{
-                color: "#0F172A",
-                fontWeight: 600,
-                fontSize: { xs: "12px", md: "13px" },
-                fontFamily: "'Montserrat', sans-serif",
-              }}
-            >
+            <Typography sx={{ color: "#0F172A", fontWeight: 600, fontSize: { xs: "12px", md: "13px" }, fontFamily: "'Montserrat', sans-serif" }}>
               {course.courseName}
             </Typography>
           </Breadcrumbs>
         </Box>
       </Box>
 
-      {/* Program Information Section */}
+      {/* 3. Course Title Block (Moved below banner) */}
+      <Box sx={{ width: "100%", mt: { xs: 3, md: 5 }, px: { xs: 2, md: 4 } }}>
+        <Box sx={{ width: "100%", maxWidth: "1400px", mx: "auto" }}>
+            <Typography
+              sx={{
+                color: "#00cc99",
+                fontWeight: 800,
+                fontSize: { xs: "14px", sm: "16px", md: "18px" },
+                fontFamily: "'Montserrat', sans-serif",
+                lineHeight: 1.1,
+                mb: 1
+              }}
+            >
+              {course.courseCategory.toUpperCase()}
+            </Typography>
+            <Typography
+              variant="h1"
+              sx={{
+                color: "#0a5397",
+                fontWeight: 900,
+                fontSize: { xs: "28px", sm: "32px", md: "42px" },
+                fontFamily: "'Montserrat', sans-serif",
+                lineHeight: 1.2,
+                letterSpacing: "-0.5px"
+              }}
+            >
+              {course.courseName}
+            </Typography>
+        </Box>
+      </Box>
+
+      {/* 4. Program Information Section */}
       <Box sx={{ width: "100%", mt: 4, mb: { xs: 3, md: 4 }, px: { xs: 2, md: 4 } }}>
         <Card
           sx={{
@@ -237,7 +209,7 @@ const Coures_view: React.FC = () => {
                 fontFamily: '"Montserrat", sans-serif',
               }}
             >
-              {course.courseName} Overview
+              Program Overview
             </Typography>
 
             {course.courseDescription.map((desc, index) => (
@@ -258,7 +230,7 @@ const Coures_view: React.FC = () => {
         </Card>
       </Box>
 
-      {/* Details Section */}
+      {/* 5. Key Details Section */}
       <Box sx={{ width: "100%", mt: 0, mb: { xs: 3, md: 4 }, px: { xs: 2, md: 4 } }}>
         <Card
           sx={{
@@ -397,8 +369,8 @@ const Coures_view: React.FC = () => {
         </Card>
       </Box>
 
-      {/* Modules (Semesters) Section */}
-      {course.semesters && course.semesters.length > 0 && (
+      {/* 6. Dynamic Academic Syllabus Section */}
+      {hasModulesToDisplay && (
         <Box
           sx={{
             width: "100%",
@@ -437,17 +409,18 @@ const Coures_view: React.FC = () => {
                 textAlign: "center",
               }}
             >
-              Course Modules
+              Academic Syllabus
             </Typography>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              {course.semesters.map((sem, sIdx) => (
-                <Box key={sIdx}>
+              {isCourseMode ? (
+                // --- RENDERING: UNIFIED COURSE MODULES ---
+                <Box>
                   <Typography
                     variant="h6"
                     sx={{
                       fontWeight: 600,
-                      mb: 1.5,
+                      mb: 2,
                       fontSize: { xs: "15px", md: "16px" },
                       fontFamily: '"Montserrat", sans-serif',
                       color: "#00cc99",
@@ -456,7 +429,7 @@ const Coures_view: React.FC = () => {
                       pb: 0.5,
                     }}
                   >
-                    {sem.semesterName}
+                    Core Curriculum Modules
                   </Typography>
 
                   <Box
@@ -466,7 +439,7 @@ const Coures_view: React.FC = () => {
                       gap: 1.5,
                     }}
                   >
-                    {sem.moduleRows.map((mod, mIdx) => (
+                    {course.courseModules.map((mod, mIdx) => (
                       <Box
                         key={mIdx}
                         sx={{
@@ -526,13 +499,101 @@ const Coures_view: React.FC = () => {
                     ))}
                   </Box>
                 </Box>
-              ))}
+              ) : (
+                // --- RENDERING: SEMESTER WISE ---
+                course.semesters.map((sem, sIdx) => (
+                  <Box key={sIdx}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 600,
+                        mb: 1.5,
+                        fontSize: { xs: "15px", md: "16px" },
+                        fontFamily: '"Montserrat", sans-serif',
+                        color: "#00cc99",
+                        borderBottom: "2px solid #00cc99",
+                        display: "inline-block",
+                        pb: 0.5,
+                      }}
+                    >
+                      {sem.semesterName}
+                    </Typography>
+
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr", md: "1fr 1fr 1fr" },
+                        gap: 1.5,
+                      }}
+                    >
+                      {sem.moduleRows.map((mod, mIdx) => (
+                        <Box
+                          key={mIdx}
+                          sx={{
+                            display: "flex",
+                            alignItems: "flex-start",
+                            gap: 1,
+                            px: 1.5,
+                            py: 0.8,
+                            backgroundColor: "rgba(0, 0, 0, 0.4)",
+                            borderRadius: 2,
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              backgroundColor: "white",
+                              color: "#1E4CA1",
+                              borderRadius: "50%",
+                              width: 16,
+                              height: 16,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              fontWeight: "bold",
+                              fontSize: 12,
+                              flexShrink: 0,
+                              mt: 0.3,
+                            }}
+                          >
+                            ›
+                          </Box>
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontFamily: '"Montserrat", sans-serif',
+                                fontSize: { xs: "12px", md: "13px" },
+                                fontWeight: 600,
+                                lineHeight: 1.3,
+                              }}
+                            >
+                              {mod.name}
+                            </Typography>
+                            {(mod.code || mod.credits) && (
+                              <Typography
+                                sx={{
+                                  fontFamily: '"Montserrat", sans-serif',
+                                  fontSize: "10px",
+                                  color: "#ccc",
+                                  mt: 0.2,
+                                }}
+                              >
+                                {mod.code && `Code: ${mod.code} `}
+                                {mod.credits && `| Credits: ${mod.credits}`}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                ))
+              )}
             </Box>
           </Box>
         </Box>
       )}
 
-      {/* Career Opportunities Section */}
+      {/* 7. Career Opportunities Section */}
       {course.careerPathways && course.careerPathways.length > 0 && (
         <Box
           sx={{

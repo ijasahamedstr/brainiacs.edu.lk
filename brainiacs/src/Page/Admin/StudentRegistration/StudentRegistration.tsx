@@ -16,7 +16,7 @@ import {
   BadgeOutlined, PublicOutlined, EscalatorWarningOutlined, 
   NavigateNext, HistoryToggleOffOutlined,
   GridViewOutlined, ViewListOutlined, CheckCircleOutline, CloseOutlined,
-  WarningAmberRounded, InfoOutlined, AssignmentIndOutlined
+  WarningAmberRounded, InfoOutlined, AssignmentIndOutlined, PrintOutlined
 } from "@mui/icons-material";
 
 // --- CONFIGURATION & CONSTANTS ---
@@ -191,6 +191,10 @@ const StudentRegistrationManager = () => {
 
   const handleSelectOne = (id: string) => {
     setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   const filteredData = useMemo(() => {
@@ -374,7 +378,7 @@ const StudentRegistrationManager = () => {
                                     </TableCell>
                                     <TableCell align="right" sx={{ pr: 2 }}>
                                     <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                        <Tooltip title="View Profile">
+                                        <Tooltip title="View & Print Profile">
                                             <IconButton onClick={() => setViewingRequest(s)} size="small" sx={{ color: PRIMARY_TEAL, bgcolor: '#F1F5F9' }}>
                                               <VisibilityOutlined fontSize="small" />
                                             </IconButton>
@@ -480,7 +484,7 @@ const StudentRegistrationManager = () => {
           </Paper>
         </Box>
 
-        {/* --- FULL PROFILE DIALOG --- */}
+        {/* --- FULL PROFILE DIALOG WITH PRINT OVERRIDE --- */}
         <Dialog 
           open={Boolean(viewingItem)} 
           onClose={() => setViewingRequest(null)} 
@@ -489,16 +493,74 @@ const StudentRegistrationManager = () => {
         >
           {viewingItem && (
             <Box>
-              <Box sx={{ p: 3, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {/* Dynamic CSS Block for isolated, robust printing */}
+              <style type="text/css" media="print">
+                {`
+                  @page { size: A4 portrait; margin: 15mm; }
+                  body { margin: 0; padding: 0; background-color: white !important; }
+                  
+                  /* Hide main application UI completely */
+                  body > *:not(.MuiDialog-root) { display: none !important; }
+                  .no-print { display: none !important; }
+
+                  /* Override MUI Dialog constraints for unclipped printing */
+                  .MuiDialog-root { position: absolute !important; top: 0 !important; left: 0 !important; z-index: 9999 !important; }
+                  .MuiDialog-container { display: block !important; height: auto !important; position: static !important; }
+                  .MuiBackdrop-root { display: none !important; }
+                  
+                  .MuiPaper-root { 
+                    box-shadow: none !important; 
+                    position: static !important; 
+                    width: 100% !important; 
+                    max-width: 100% !important; 
+                    margin: 0 !important;
+                    border: none !important;
+                  }
+                  
+                  .MuiDialogContent-root { 
+                    overflow: visible !important; 
+                    max-height: none !important; 
+                    padding: 0 !important; 
+                  }
+
+                  * { 
+                    -webkit-print-color-adjust: exact !important; 
+                    print-color-adjust: exact !important; 
+                  }
+                `}
+              </style>
+
+              <Box className="no-print" sx={{ p: 3, bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Box>
                     <Typography sx={{ fontWeight: 900, color: PRIMARY_TEAL, fontSize: "1.2rem", letterSpacing: -0.5 }}>Student Enrollment Profile</Typography>
                     <Typography sx={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 700 }}>REFERENCE ID: {viewingItem._id}</Typography>
                 </Box>
-                <IconButton onClick={() => setViewingRequest(null)} size="small" sx={{ bgcolor: '#FFF', border: '1px solid #E2E8F0' }}><CloseOutlined fontSize="small" /></IconButton>
+                <Stack direction="row" spacing={1}>
+                    <IconButton onClick={handlePrint} size="small" sx={{ bgcolor: '#FFF', border: `1px solid ${PRIMARY_TEAL}`, color: PRIMARY_TEAL, '&:hover': { bgcolor: '#F0F5F6' } }}>
+                        <PrintOutlined fontSize="small" />
+                    </IconButton>
+                    <IconButton onClick={() => setViewingRequest(null)} size="small" sx={{ bgcolor: '#FFF', border: '1px solid #E2E8F0' }}>
+                        <CloseOutlined fontSize="small" />
+                    </IconButton>
+                </Stack>
               </Box>
 
-              <DialogContent sx={{ p: 0, maxHeight: '75vh', overflowY: 'auto' }}>
-                <Box sx={{ p: 4 }}>
+              {/* Printable Content Area */}
+              <DialogContent id="printable-form" sx={{ p: 0, maxHeight: '75vh', overflowY: 'auto' }}>
+                <Box sx={{ p: { xs: 2, md: 4 } }}>
+                  
+                  {/* Print-Only Header Block with Embedded Logo */}
+                  <Box sx={{ display: 'none', '@media print': { display: 'block', textAlign: 'center', mb: 4, pb: 2, borderBottom: `2px solid ${PRIMARY_TEAL}` } }}>
+                      <Box 
+                          component="img" 
+                          src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp" 
+                          alt="Institution Logo" 
+                          sx={{ height: 60, mb: 1, objectFit: 'contain' }} 
+                      />
+                      <Typography variant="h4" sx={{ fontWeight: 900, color: PRIMARY_TEAL, letterSpacing: "-1px" }}>Official Student Registry Form</Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#64748B', mt: 0.5 }}>Generated: {new Date().toLocaleDateString()} | Reference: {viewingItem._id}</Typography>
+                  </Box>
+
                   {/* Intent & Academic Header */}
                   <Stack direction={{xs: 'column', md: 'row'}} spacing={4} mb={4}>
                       <Box flex={1}>
@@ -523,7 +585,7 @@ const StudentRegistrationManager = () => {
                               label={viewingItem.termsAccepted ? "Terms Accepted" : "Terms Pending"} 
                               color={viewingItem.termsAccepted ? "success" : "error"}
                               icon={<CheckCircleOutline />}
-                              sx={{ fontWeight: 800 }}
+                              sx={{ fontWeight: 800, justifyContent: "flex-start", width: 'fit-content' }}
                             />
                             <Typography variant="caption" sx={{ color: '#94A3B8', fontWeight: 700 }}>Registered: {new Date(viewingItem.createdAt).toLocaleString()}</Typography>
                         </Stack>
@@ -561,26 +623,29 @@ const StudentRegistrationManager = () => {
                     renderAcademicTable("Other Qualifications", viewingItem.otherQuals, false)
                   }
 
-                  <Divider sx={{ my: 4 }} />
+                  <Divider sx={{ my: 4 }} className="no-print" />
 
-                  {/* Documents */}
-                  <Typography variant="overline" sx={{ fontWeight: 900, color: PRIMARY_TEAL, mb: 2, display: 'block' }}>Submitted Documents</Typography>
-                  <Stack direction="row" spacing={1} flexWrap="wrap">
-                    {viewingItem.documents.map((doc, i) => (
-                      <Button 
-                        key={i} variant="contained" size="small" startIcon={<FileDownloadOutlined />}
-                        href={`${API_BASE_URL}/${doc.filePath}`} target="_blank"
-                        sx={{ bgcolor: "#F1F5F9", color: PRIMARY_TEAL, mb: 1, border: '1px solid #E2E8F0', boxShadow: 'none', '&:hover': { bgcolor: '#E2E8F0' } }}
-                      >
-                        {doc.fileName.split('-').pop()}
-                      </Button>
-                    ))}
-                  </Stack>
+                  {/* Documents (Hidden during print as links are not useful on paper) */}
+                  <Box className="no-print">
+                    <Typography variant="overline" sx={{ fontWeight: 900, color: PRIMARY_TEAL, mb: 2, display: 'block' }}>Submitted Documents</Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                      {viewingItem.documents.map((doc, i) => (
+                        <Button 
+                          key={i} variant="contained" size="small" startIcon={<FileDownloadOutlined />}
+                          href={`${API_BASE_URL}/${doc.filePath}`} target="_blank"
+                          sx={{ bgcolor: "#F1F5F9", color: PRIMARY_TEAL, mb: 1, border: '1px solid #E2E8F0', boxShadow: 'none', '&:hover': { bgcolor: '#E2E8F0' } }}
+                        >
+                          {doc.fileName.split('-').pop()}
+                        </Button>
+                      ))}
+                    </Stack>
+                  </Box>
                 </Box>
               </DialogContent>
 
-              <DialogActions sx={{ p: 3, bgcolor: '#F8FAFC' }}>
-                <Button onClick={() => setViewingRequest(null)} fullWidth variant="contained" sx={{ bgcolor: PRIMARY_TEAL, py: 1.2, borderRadius: "10px" }}>Dismiss Profile</Button>
+              <DialogActions className="no-print" sx={{ p: 3, bgcolor: '#F8FAFC', gap: 2 }}>
+                <Button onClick={handlePrint} variant="outlined" startIcon={<PrintOutlined />} sx={{ color: PRIMARY_TEAL, borderColor: PRIMARY_TEAL, py: 1.2, borderRadius: "10px", width: '30%' }}>Print Form</Button>
+                <Button onClick={() => setViewingRequest(null)} variant="contained" sx={{ bgcolor: PRIMARY_TEAL, py: 1.2, borderRadius: "10px", width: '70%' }}>Dismiss Profile</Button>
               </DialogActions>
             </Box>
           )}
@@ -622,7 +687,7 @@ const GridContainer = ({children}: {children: React.ReactNode}) => (
 
 const InfoBlock = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) => (
     <Stack direction="row" spacing={2} alignItems="flex-start">
-        <Avatar sx={{ bgcolor: '#F1F5F9', color: PRIMARY_TEAL, width: 32, height: 32 }}>{icon}</Avatar>
+        <Avatar className="no-print-avatar" sx={{ bgcolor: '#F1F5F9', color: PRIMARY_TEAL, width: 32, height: 32 }}>{icon}</Avatar>
         <Box>
             <Typography variant="caption" sx={{ fontWeight: 800, color: '#94A3B8', textTransform: 'uppercase', display: 'block' }}>{label}</Typography>
             <Typography sx={{ fontWeight: 700, color: '#1E293B', fontSize: '0.9rem' }}>{value}</Typography>

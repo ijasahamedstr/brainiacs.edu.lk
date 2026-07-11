@@ -17,7 +17,7 @@ import {
   HistoryOutlined,
   StorageOutlined, SpeedOutlined,
   TagOutlined, PublicOutlined, SearchOutlined,
-  DragIndicatorOutlined, CloudUploadOutlined
+  DragIndicatorOutlined, CloudUploadOutlined, HideImageOutlined
 } from "@mui/icons-material";
 
 /**
@@ -118,6 +118,7 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
   const [loading, setLoading] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
   const [uploadingGalleryIndices, setUploadingGalleryIndices] = useState<number[]>([]);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [editMode, setEditMode] = useState<"visual" | "html">("visual");
@@ -217,23 +218,63 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
     }
   };
 
+  // MULTI-UPLOAD: Handles individual row but supports multiple file selection
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    if (e.target.files && e.target.files[0]) {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
       setUploadingGalleryIndices(prev => [...prev, index]);
+      
       try {
-        const compressedFile = await compressImage(e.target.files[0]);
-        const url = await uploadToImgBB(compressedFile);
+        const uploadedUrls: string[] = [];
+        for (const file of files) {
+          const compressedFile = await compressImage(file);
+          const url = await uploadToImgBB(compressedFile);
+          uploadedUrls.push(url);
+        }
         
-        const updatedUrls = [...imageUrls];
-        updatedUrls[index] = url;
-        setImageUrls(updatedUrls);
+        setImageUrls(prev => {
+          const updated = [...prev];
+          updated[index] = uploadedUrls[0]; // Replace current index with first image
+          if (uploadedUrls.length > 1) {
+            return [...updated, ...uploadedUrls.slice(1)]; // Append the rest
+          }
+          return updated;
+        });
         
-        setSnackbar({ open: true, message: "Gallery image uploaded", type: "success" });
+        setSnackbar({ open: true, message: `Successfully uploaded ${files.length} asset(s)`, type: "success" });
       } catch (error) {
         console.error("Gallery image upload failed:", error);
-        setSnackbar({ open: true, message: "Failed to upload gallery image.", type: "error" });
+        setSnackbar({ open: true, message: "Failed to upload gallery image(s).", type: "error" });
       } finally {
         setUploadingGalleryIndices(prev => prev.filter(i => i !== index));
+        e.target.value = ""; // clear input
+      }
+    }
+  };
+
+  // MULTI-UPLOAD: Dedicated Bulk Upload feature
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      setIsBulkUploading(true);
+      try {
+        const newUrls: string[] = [];
+        for (const file of files) {
+          const compressed = await compressImage(file);
+          const url = await uploadToImgBB(compressed);
+          newUrls.push(url);
+        }
+        setImageUrls(prev => {
+          const filtered = prev.filter(u => u.trim() !== ""); // Remove empty rows before appending
+          return [...filtered, ...newUrls].length ? [...filtered, ...newUrls] : [""];
+        });
+        setSnackbar({ open: true, message: `Successfully bulk uploaded ${files.length} asset(s)`, type: "success" });
+      } catch (error) {
+        console.error("Bulk upload failed:", error);
+        setSnackbar({ open: true, message: "Failed to upload one or more images.", type: "error" });
+      } finally {
+        setIsBulkUploading(false);
+        e.target.value = '';
       }
     }
   };
@@ -559,15 +600,39 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
           <Box>
             <Stack direction="row" justifyContent="space-between" mb={3} alignItems="center">
               <InputLabel sx={sectionLabel}><CollectionsOutlined fontSize="small" /> PHOTO GALLERY SET</InputLabel>
-              <Button size="small" variant="text" startIcon={<AddPhotoAlternateOutlined />} onClick={() => setImageUrls([...imageUrls, ""])} sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal }}>
-                Append Photo
-              </Button>
+              <Stack direction="row" spacing={1}>
+                {/* BULK UPLOAD BUTTON */}
+                <input 
+                  type="file" 
+                  multiple 
+                  accept="image/*" 
+                  id="bulk-upload-news" 
+                  style={{ display: "none" }}
+                  onChange={handleBulkUpload}
+                />
+                <label htmlFor="bulk-upload-news">
+                  <Button 
+                    component="span" 
+                    size="small" 
+                    startIcon={isBulkUploading ? <CircularProgress size={16} /> : <CloudUploadOutlined />} 
+                    disabled={isBulkUploading} 
+                    sx={{ fontFamily: primaryFont, fontWeight: 700, color: primaryTeal, textTransform: "none" }}
+                  >
+                    Bulk Upload
+                  </Button>
+                </label>
+                <Button size="small" variant="text" startIcon={<AddPhotoAlternateOutlined />} onClick={() => setImageUrls([...imageUrls, ""])} sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal, textTransform: "none" }}>
+                  Add Link
+                </Button>
+              </Stack>
             </Stack>
+
             <Stack spacing={2}>
               {imageUrls.map((url, index) => (
                 <Stack key={index} direction="row" spacing={2} alignItems="center">
                   <input 
                     type="file" 
+                    multiple
                     accept="image/*" 
                     id={`gallery-upload-${index}`} 
                     style={{ display: "none" }}
@@ -586,7 +651,7 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
                       endAdornment: (
                         <InputAdornment position="end">
                           <label htmlFor={`gallery-upload-${index}`}>
-                            <IconButton component="span" disabled={uploadingGalleryIndices.includes(index)} sx={{ color: primaryTeal }}>
+                            <IconButton component="span" disabled={uploadingGalleryIndices.includes(index) || isBulkUploading} sx={{ color: primaryTeal }}>
                               {uploadingGalleryIndices.includes(index) ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
                             </IconButton>
                           </label>
@@ -594,10 +659,37 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
                       )
                     }}
                   />
-                  <IconButton onClick={() => setImageUrls(imageUrls.filter((_, i) => i !== index))} disabled={imageUrls.length === 1}><DeleteOutline /></IconButton>
+                  <IconButton onClick={() => setImageUrls(imageUrls.filter((_, i) => i !== index))} disabled={imageUrls.length === 1} color="error"><DeleteOutline /></IconButton>
                 </Stack>
               ))}
             </Stack>
+          </Box>
+
+          {/* --- GRID PREVIEW (6 IMAGES PER ROW) --- */}
+          <Box sx={{ mt: 4, p: 3, bgcolor: "#F8FAFC", borderRadius: "16px", border: `1px solid ${borderColor}` }}>
+            <Stack direction="row" spacing={1} alignItems="center" mb={3}>
+              <CollectionsOutlined sx={{ fontSize: 18, color: primaryTeal }} />
+              <Typography sx={{ fontFamily: primaryFont, fontWeight: 800, fontSize: "0.65rem", color: primaryTeal, letterSpacing: 1 }}>ASSET PREVIEW (GRID VIEW)</Typography>
+            </Stack>
+            
+            {imageUrls.filter(u => u.trim() !== "").length > 0 ? (
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' }, 
+                gap: 2 
+              }}>
+                {imageUrls.map((url, i) => url.trim() && (
+                  <Box key={i} sx={{ aspectRatio: '4/3', borderRadius: "10px", overflow: "hidden", border: `1px solid ${borderColor}`, bgcolor: "#FFF" }}>
+                    <Box component="img" src={url} sx={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e: any) => e.target.src="https://placehold.co/400x300?text=Invalid"} />
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ opacity: 0.5, py: 2 }}>
+                <HideImageOutlined />
+                <Typography sx={{ fontFamily: primaryFont, fontSize: "0.75rem", fontWeight: 600 }}>Awaiting image links...</Typography>
+              </Stack>
+            )}
           </Box>
 
           {/* METRICS & ANALYTICS BAR */}
@@ -634,7 +726,7 @@ const CreateNews = ({ onBack }: CreateNewsProps) => {
             <Button 
               variant="contained" 
               onClick={handlePublishClick} 
-              disabled={loading} 
+              disabled={loading || isBulkUploading || uploadingGalleryIndices.length > 0 || isUploadingCover} 
               sx={{ 
                 bgcolor: primaryTeal, 
                 px: 12, py: 2, 

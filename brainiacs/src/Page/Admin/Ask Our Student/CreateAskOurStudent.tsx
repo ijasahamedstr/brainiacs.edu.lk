@@ -3,7 +3,7 @@ import {
   Box, Typography, Stack, Paper, Button, TextField, 
   InputLabel, InputAdornment, CircularProgress,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Divider, Tooltip, Zoom, Avatar
+  Divider, Tooltip, Zoom, Avatar, IconButton
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, 
@@ -11,14 +11,16 @@ import {
   PersonOutlineOutlined,
   SchoolOutlined,
   ClassOutlined,
-  LinkOutlined, 
   InfoOutlined,
   DescriptionOutlined,
-  FormatQuoteOutlined
+  FormatQuoteOutlined,
+  CloudUploadOutlined,
+  PhotoSizeSelectActualOutlined
 } from "@mui/icons-material";
 
 // --- CONFIGURATION ---
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "YOUR_IMGBB_API_KEY"; // Ensure this is in your .env
 const primaryTeal = "#004652";
 const primaryFont = "'Montserrat', sans-serif";
 const borderColor = "#E2E8F0";
@@ -38,6 +40,7 @@ const CreateAskOurStudent = ({ onBack }: AddStudentProps) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   // 2. OPTIMIZED HANDLERS
@@ -53,7 +56,47 @@ const CreateAskOurStudent = ({ onBack }: AddStudentProps) => {
     setConfirmDialogOpen(true);
   };
 
-  // 3. FAST DATABASE SYNC
+  // 3. IMGBB UPLOAD ENGINE
+  const uploadToImgBB = async (file: File) => {
+    const uploadData = new FormData();
+    uploadData.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: uploadData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || "Failed to upload image");
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setIsUploading(true);
+      try {
+        const file = e.target.files[0];
+        
+        // If you have a compressImage utility function, uncomment the line below:
+        // const compressedFile = await compressImage(file);
+        
+        const url = await uploadToImgBB(file);
+        
+        // Update the single image string in our formData
+        setFormData(prev => ({ ...prev, image: url }));
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        alert("Failed to upload image. Please try again.");
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
+  // 4. FAST DATABASE SYNC
   const confirmSave = async () => {
     setConfirmDialogOpen(false);
     setLoading(true);
@@ -78,10 +121,10 @@ const CreateAskOurStudent = ({ onBack }: AddStudentProps) => {
     }
   };
 
-  // 4. SHARED UI STYLES - Matched to CreateStudentLife + Guaranteed Black Text
+  // 5. SHARED UI STYLES
   const inputStyle = {
     "& .MuiInputBase-input": {
-      color: "#000000 !important", // Forces typed text to be black
+      color: "#000000 !important",
       WebkitTextFillColor: "#000000 !important", 
     },
     "& textarea.MuiInputBase-input": {
@@ -92,11 +135,12 @@ const CreateAskOurStudent = ({ onBack }: AddStudentProps) => {
       borderRadius: "12px",
       fontFamily: primaryFont,
       fontSize: "0.85rem",
-      fontWeight: 500, // Updated to match CreateStudentLife
-      bgcolor: "#FFF", // Updated to match CreateStudentLife
-      "& fieldset": { borderColor: borderColor }, // Updated to match CreateStudentLife
-      "&:hover fieldset": { borderColor: primaryTeal }, // Updated to match CreateStudentLife
-      "&.Mui-focused fieldset": { borderColor: primaryTeal }, // Updated to match CreateStudentLife
+      fontWeight: 500,
+      bgcolor: "#FFF",
+      "& fieldset": { borderColor: borderColor },
+      "&:-webkit-autofill": { WebkitBoxShadow: "0 0 0 1000px white inset" },
+      "&:hover fieldset": { borderColor: primaryTeal },
+      "&.Mui-focused fieldset": { borderColor: primaryTeal },
     },
     "& .MuiInputBase-input::placeholder": { 
       fontFamily: primaryFont, 
@@ -104,7 +148,6 @@ const CreateAskOurStudent = ({ onBack }: AddStudentProps) => {
     }
   };
 
-  // New Label Style matched from CreateStudentLife
   const labelStyle = {
     fontFamily: primaryFont,
     fontWeight: 700,
@@ -193,27 +236,51 @@ const CreateAskOurStudent = ({ onBack }: AddStudentProps) => {
                                 />
                             </Box>
                             <Box>
-                                <InputLabel sx={labelStyle}>BATCH NUMBER</InputLabel>
+                                <InputLabel sx={labelStyle}>POSITION</InputLabel>
                                 <TextField 
                                     fullWidth value={formData.batch} onChange={handleChange("batch")}
-                                    placeholder="e.g. Batch 05"
+                                    placeholder="Position"
                                     InputProps={{ startAdornment: <InputAdornment position="start"><ClassOutlined sx={{ fontSize: 18, color: "#94A3B8" }} /></InputAdornment> }}
                                     sx={inputStyle}
                                 />
                             </Box>
+
+                            {/* UPDATED: PROFILE IMAGE UPLOAD BLOCK */}
                             <Box>
                                 <Stack direction="row" alignItems="center" gap={0.5} sx={{ mb: 1 }}>
-                                    <InputLabel sx={{ ...labelStyle, mb: 0 }}>PROFILE IMAGE URL</InputLabel>
-                                    <Tooltip title="Provide a direct URL to a square aspect ratio portrait.">
+                                    <InputLabel sx={{ ...labelStyle, mb: 0 }}>PROFILE IMAGE (URL OR UPLOAD)</InputLabel>
+                                    <Tooltip title="Provide a direct URL or click the cloud icon to upload an image.">
                                         <InfoOutlined sx={{ fontSize: 14, color: "#94A3B8", cursor: "help" }} />
                                     </Tooltip>
                                 </Stack>
-                                <TextField 
-                                    fullWidth value={formData.image} onChange={handleChange("image")}
-                                    placeholder="https://example.com/student-portrait.jpg"
-                                    InputProps={{ startAdornment: <InputAdornment position="start"><LinkOutlined sx={{ fontSize: 18, color: "#94A3B8" }} /></InputAdornment> }}
-                                    sx={inputStyle}
-                                />
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                    <input 
+                                        type="file" 
+                                        accept="image/*" 
+                                        id="profile-upload" 
+                                        style={{ display: "none" }}
+                                        onChange={handleImageUpload}
+                                    />
+                                    <TextField 
+                                        fullWidth 
+                                        value={formData.image} 
+                                        onChange={handleChange("image")} 
+                                        placeholder="https://link.com or click to upload ->" 
+                                        InputProps={{ 
+                                            startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8" }} />,
+                                            endAdornment: (
+                                                <InputAdornment position="end">
+                                                    <label htmlFor="profile-upload">
+                                                        <IconButton component="span" disabled={isUploading} sx={{ color: primaryTeal }}>
+                                                            {isUploading ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                                                        </IconButton>
+                                                    </label>
+                                                </InputAdornment>
+                                            )
+                                        }} 
+                                        sx={inputStyle} 
+                                    />
+                                </Stack>
                             </Box>
                         </Box>
                     </Box>
@@ -266,7 +333,7 @@ const CreateAskOurStudent = ({ onBack }: AddStudentProps) => {
                                     {formData.name || "Student Name"}
                                 </Typography>
                                 <Typography sx={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 600, mt: 0.5 }}>
-                                    {formData.course || "Course Name"} • {formData.batch || "Batch"}
+                                    {formData.course || "Course Name"} • {formData.batch || "Position"}
                                 </Typography>
                             </Box>
                         </Stack>
@@ -287,7 +354,7 @@ const CreateAskOurStudent = ({ onBack }: AddStudentProps) => {
                         fullWidth
                         variant="contained" 
                         onClick={handleSaveClick}
-                        disabled={loading}
+                        disabled={loading || isUploading}
                         sx={{ 
                             bgcolor: primaryTeal, py: 1.8, borderRadius: "14px",
                             fontFamily: primaryFont, fontWeight: 800, fontSize: '0.85rem',

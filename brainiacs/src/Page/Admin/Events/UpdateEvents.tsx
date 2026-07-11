@@ -3,21 +3,80 @@ import {
   Box, Typography, Stack, Paper, Button, TextField, 
   InputLabel, CircularProgress, Dialog, DialogTitle, 
   DialogContent, DialogContentText, DialogActions,
-  IconButton
+  IconButton, InputAdornment, Snackbar, Alert
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, TitleOutlined, 
   PhotoSizeSelectActualOutlined, SaveOutlined,
   DeleteOutline, AddOutlined, DescriptionOutlined,
   InfoOutlined, PlaceOutlined, AccessTimeOutlined,
-  TodayOutlined, BrokenImageOutlined
+  TodayOutlined, CloudUploadOutlined, 
+  CollectionsOutlined, HideImageOutlined
 } from "@mui/icons-material";
 
 // Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY || "37cd6333d9f4bd044c4a4dcc867276ae";
 const primaryTeal = "#004652";
 const primaryFont = "'Montserrat', sans-serif";
 const borderColor = "#E2E8F0";
+
+// --- CLIENT-SIDE IMAGE COMPRESSION ---
+const compressImage = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1200; 
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height *= MAX_WIDTH / width));
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width *= MAX_HEIGHT / height));
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                  type: "image/jpeg",
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                resolve(file); 
+              }
+            },
+            "image/jpeg",
+            0.75 
+          );
+        } else {
+          resolve(file);
+        }
+      };
+      img.onerror = (error) => reject(error);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+};
 
 interface EventData {
   _id: string;
@@ -43,19 +102,105 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
   };
 
   // --- STATE ---
-  const [eventName, setEventName] = useState(itemData.eventName);
-  const [eventDescription, setEventDescription] = useState<string[]>(itemData.eventDescription);
-  const [eventPlace, setEventPlace] = useState(itemData.eventPlace);
-  const [eventTime, setEventTime] = useState(itemData.eventTime);
+  const [eventName, setEventName] = useState(itemData.eventName || "");
+  const [eventDescription, setEventDescription] = useState<string[]>(itemData.eventDescription?.length ? itemData.eventDescription : [""]);
+  const [eventPlace, setEventPlace] = useState(itemData.eventPlace || "");
+  const [eventTime, setEventTime] = useState(itemData.eventTime || "");
   const [startDate, setStartDate] = useState(formatDate(itemData.startDate));
   const [finishDate, setFinishDate] = useState(formatDate(itemData.finishDate));
-  const [imageUrls, setImageUrls] = useState<string[]>(itemData.imageUrls);
+  const [imageUrls, setImageUrls] = useState<string[]>(itemData.imageUrls?.length ? itemData.imageUrls : [""]);
   
   const [loading, setLoading] = useState(false);
+  const [uploadingIndices, setUploadingIndices] = useState<number[]>([]);
+  const [isBulkUploading, setIsBulkUploading] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", type: "success" as "success" | "error" });
+
+  // --- IMGBB UPLOAD ENGINE ---
+  const uploadToImgBB = async (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      return data.data.url;
+    } else {
+      throw new Error(data.error?.message || "Failed to upload image");
+    }
+  };
+
+  // MULTI-UPLOAD: Handles individual row but supports multiple file selection
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      setUploadingIndices(prev => [...prev, index]);
+      
+      try {
+        const uploadedUrls: string[] = [];
+        for (const file of files) {
+          const compressedFile = await compressImage(file);
+          const url = await uploadToImgBB(compressedFile);
+          uploadedUrls.push(url);
+        }
+        
+        setImageUrls(prev => {
+          const updated = [...prev];
+          updated[index] = uploadedUrls[0]; // Replace current index with first image
+          if (uploadedUrls.length > 1) {
+            return [...updated, ...uploadedUrls.slice(1)]; // Append the rest
+          }
+          return updated;
+        });
+        
+        setSnackbar({ open: true, message: `Successfully uploaded ${files.length} asset(s)`, type: "success" });
+      } catch (error) {
+        console.error("Image upload failed:", error);
+        setSnackbar({ open: true, message: "Failed to upload image(s).", type: "error" });
+      } finally {
+        setUploadingIndices(prev => prev.filter(i => i !== index));
+        e.target.value = ""; // clear input
+      }
+    }
+  };
+
+  // MULTI-UPLOAD: Dedicated Bulk Upload feature
+  const handleBulkUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const files = Array.from(e.target.files);
+      setIsBulkUploading(true);
+      try {
+        const newUrls: string[] = [];
+        for (const file of files) {
+          const compressed = await compressImage(file);
+          const url = await uploadToImgBB(compressed);
+          newUrls.push(url);
+        }
+        setImageUrls(prev => {
+          const filtered = prev.filter(u => u.trim() !== ""); // Remove empty rows before appending
+          return [...filtered, ...newUrls].length ? [...filtered, ...newUrls] : [""];
+        });
+        setSnackbar({ open: true, message: `Successfully bulk uploaded ${files.length} asset(s)`, type: "success" });
+      } catch (error) {
+        console.error("Bulk upload failed:", error);
+        setSnackbar({ open: true, message: "Failed to upload one or more images.", type: "error" });
+      } finally {
+        setIsBulkUploading(false);
+        e.target.value = '';
+      }
+    }
+  };
 
   // --- HANDLERS ---
   const handleAddDescription = () => setEventDescription([...eventDescription, ""]);
+  const handleRemoveDescription = (index: number) => {
+    const newDesc = eventDescription.filter((_, i) => i !== index);
+    setEventDescription(newDesc.length ? newDesc : [""]);
+  };
   const handleDescChange = (index: number, value: string) => {
     const updated = [...eventDescription];
     updated[index] = value;
@@ -63,6 +208,10 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
   };
 
   const handleAddImageUrl = () => setImageUrls([...imageUrls, ""]);
+  const handleRemoveImageUrl = (index: number) => {
+    const newUrls = imageUrls.filter((_, i) => i !== index);
+    setImageUrls(newUrls.length ? newUrls : [""]);
+  };
   const handleUrlChange = (index: number, value: string) => {
     const updated = [...imageUrls];
     updated[index] = value;
@@ -71,8 +220,11 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
 
   // --- UPDATE LOGIC ---
   const handleUpdateClick = () => {
-    if (!eventName || !eventPlace || !startDate || !finishDate) {
-      alert("Please fill in all required event details.");
+    const validDescs = eventDescription.filter(d => d.trim() !== "");
+    const validUrls = imageUrls.filter(u => u.trim() !== "");
+
+    if (!eventName || !eventPlace || !startDate || !finishDate || validDescs.length === 0 || validUrls.length === 0) {
+      setSnackbar({ open: true, message: "Please fill in all required event details.", type: "error" });
       return;
     }
     setConfirmDialogOpen(true);
@@ -96,11 +248,15 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
         }),
       });
 
-      if (response.ok) onBack(); 
-      else alert("Update failed.");
+      if (response.ok) {
+        onBack(); 
+      } else {
+        const errorData = await response.json();
+        setSnackbar({ open: true, message: `Error: ${errorData.message}`, type: "error" });
+      }
     } catch (error) {
       console.error(error);
-      alert("Could not connect to the server.");
+      setSnackbar({ open: true, message: "Could not connect to the server.", type: "error" });
     } finally {
       setLoading(false);
     }
@@ -151,48 +307,6 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
 
         <Stack spacing={4}>
           
-          {/* IMAGE PREVIEW - HORIZONTAL SCROLL (NEW) */}
-          {imageUrls.some(u => u.trim() !== "") && (
-            <Box>
-              <InputLabel sx={labelStyle}>CURRENT IMAGE PREVIEW</InputLabel>
-              <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', pb: 1, scrollbarWidth: 'thin' }}>
-                {imageUrls.map((url, index) => (
-                  url.trim() !== "" && (
-                    <Box 
-                      key={index} 
-                      sx={{ 
-                        minWidth: 160, 
-                        height: 110, 
-                        borderRadius: "12px", 
-                        overflow: "hidden", 
-                        border: `1px solid ${borderColor}`, 
-                        position: 'relative', 
-                        bgcolor: '#F8FAFC',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <Box 
-                        component="img" 
-                        src={url} 
-                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={(e: any) => { 
-                          e.target.style.display = 'none'; 
-                          e.target.nextSibling.style.display = 'flex'; 
-                        }}
-                      />
-                      <Box sx={{ display: 'none', flexDirection: 'column', alignItems: 'center', color: '#94A3B8' }}>
-                        <BrokenImageOutlined fontSize="small" />
-                        <Typography sx={{ fontSize: '0.6rem', fontFamily: primaryFont }}>Invalid URL</Typography>
-                      </Box>
-                    </Box>
-                  )
-                ))}
-              </Stack>
-            </Box>
-          )}
-
           {/* EVENT NAME */}
           <Box>
             <InputLabel sx={labelStyle}>EVENT NAME</InputLabel>
@@ -203,45 +317,49 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
             />
           </Box>
 
-          {/* PLACE */}
-          <Box>
-            <InputLabel sx={labelStyle}>LOCATION / PLACE</InputLabel>
-            <TextField 
-              fullWidth value={eventPlace} onChange={(e) => setEventPlace(e.target.value)} 
-              InputProps={{ startAdornment: <PlaceOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
-              sx={inputStyle}
-            />
-          </Box>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+            {/* PLACE */}
+            <Box sx={{ flex: 1 }}>
+              <InputLabel sx={labelStyle}>LOCATION / PLACE</InputLabel>
+              <TextField 
+                fullWidth value={eventPlace} onChange={(e) => setEventPlace(e.target.value)} 
+                InputProps={{ startAdornment: <PlaceOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                sx={inputStyle}
+              />
+            </Box>
 
-          {/* TIME */}
-          <Box>
-            <InputLabel sx={labelStyle}>TIME</InputLabel>
-            <TextField 
-              fullWidth value={eventTime} onChange={(e) => setEventTime(e.target.value)} 
-              InputProps={{ startAdornment: <AccessTimeOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
-              sx={inputStyle}
-            />
-          </Box>
+            {/* TIME */}
+            <Box sx={{ flex: 1 }}>
+              <InputLabel sx={labelStyle}>TIME</InputLabel>
+              <TextField 
+                fullWidth value={eventTime} onChange={(e) => setEventTime(e.target.value)} 
+                InputProps={{ startAdornment: <AccessTimeOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                sx={inputStyle}
+              />
+            </Box>
+          </Stack>
 
-          {/* START DATE */}
-          <Box>
-            <InputLabel sx={labelStyle}>START DATE</InputLabel>
-            <TextField 
-              fullWidth type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} 
-              InputProps={{ startAdornment: <TodayOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
-              sx={inputStyle}
-            />
-          </Box>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={3}>
+            {/* START DATE */}
+            <Box sx={{ flex: 1 }}>
+              <InputLabel sx={labelStyle}>START DATE</InputLabel>
+              <TextField 
+                fullWidth type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} 
+                InputProps={{ startAdornment: <TodayOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                sx={inputStyle}
+              />
+            </Box>
 
-          {/* FINISH DATE */}
-          <Box>
-            <InputLabel sx={labelStyle}>FINISH DATE</InputLabel>
-            <TextField 
-              fullWidth type="date" value={finishDate} onChange={(e) => setFinishDate(e.target.value)} 
-              InputProps={{ startAdornment: <TodayOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
-              sx={inputStyle}
-            />
-          </Box>
+            {/* FINISH DATE */}
+            <Box sx={{ flex: 1 }}>
+              <InputLabel sx={labelStyle}>FINISH DATE</InputLabel>
+              <TextField 
+                fullWidth type="date" value={finishDate} onChange={(e) => setFinishDate(e.target.value)} 
+                InputProps={{ startAdornment: <TodayOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                sx={inputStyle}
+              />
+            </Box>
+          </Stack>
 
           {/* DESCRIPTIONS */}
           <Box>
@@ -266,7 +384,7 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
                     sx={inputStyle}
                   />
                   <IconButton 
-                    onClick={() => setEventDescription(eventDescription.filter((_, i) => i !== index))} 
+                    onClick={() => handleRemoveDescription(index)} 
                     color="error" 
                     disabled={eventDescription.length === 1}
                     sx={{ mt: 1 }}
@@ -278,29 +396,65 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
             </Stack>
           </Box>
 
-          {/* IMAGE URLS */}
+          {/* IMAGE URLS WITH MULTI-UPLOAD */}
           <Box>
             <Stack direction="row" justifyContent="space-between" mb={1}>
-              <InputLabel sx={labelStyle}>IMAGE GALLERY URLS</InputLabel>
-              <Button 
-                size="small" 
-                startIcon={<AddOutlined />} 
-                onClick={handleAddImageUrl} 
-                sx={{ fontFamily: primaryFont, color: primaryTeal, fontWeight: 700, textTransform: 'none' }}
-              >
-                Add Image URL
-              </Button>
+              <InputLabel sx={labelStyle}>IMAGE GALLERY (URL OR UPLOAD)</InputLabel>
+              <Stack direction="row" spacing={1}>
+                {/* BULK UPLOAD BUTTON */}
+                <input 
+                  type="file" 
+                  multiple 
+                  accept="image/*" 
+                  id="bulk-upload-update-event" 
+                  style={{ display: "none" }}
+                  onChange={handleBulkUpload}
+                />
+                <label htmlFor="bulk-upload-update-event">
+                  <Button 
+                    component="span" 
+                    size="small" 
+                    startIcon={isBulkUploading ? <CircularProgress size={16} /> : <CloudUploadOutlined />} 
+                    disabled={isBulkUploading} 
+                    sx={{ fontFamily: primaryFont, fontWeight: 700, color: primaryTeal, textTransform: "none" }}
+                  >
+                    Bulk Upload
+                  </Button>
+                </label>
+                <Button size="small" startIcon={<AddOutlined />} onClick={handleAddImageUrl} sx={{ fontFamily: primaryFont, color: primaryTeal, fontWeight: 700, textTransform: "none" }}>Add Link</Button>
+              </Stack>
             </Stack>
+
             <Stack spacing={2}>
               {imageUrls.map((url, index) => (
                 <Stack key={index} direction="row" spacing={1} alignItems="center">
+                  <input 
+                    type="file" 
+                    multiple 
+                    accept="image/*" 
+                    id={`event-update-upload-${index}`} 
+                    style={{ display: "none" }}
+                    onChange={(e) => handleImageUpload(e, index)}
+                  />
                   <TextField 
                     fullWidth value={url} 
                     onChange={(e) => handleUrlChange(index, e.target.value)}
-                    InputProps={{ startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+                    placeholder="https://example.com/photo.jpg or click to upload ->"
+                    InputProps={{ 
+                      startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8" }} />,
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <label htmlFor={`event-update-upload-${index}`}>
+                            <IconButton component="span" disabled={uploadingIndices.includes(index) || isBulkUploading} sx={{ color: primaryTeal }}>
+                              {uploadingIndices.includes(index) ? <CircularProgress size={20} color="inherit" /> : <CloudUploadOutlined fontSize="small" />}
+                            </IconButton>
+                          </label>
+                        </InputAdornment>
+                      )
+                    }}
                     sx={inputStyle}
                   />
-                  <IconButton onClick={() => setImageUrls(imageUrls.filter((_, i) => i !== index))} color="error" disabled={imageUrls.length === 1}>
+                  <IconButton onClick={() => handleRemoveImageUrl(index)} color="error" disabled={imageUrls.length === 1}>
                     <DeleteOutline />
                   </IconButton>
                 </Stack>
@@ -308,13 +462,40 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
             </Stack>
           </Box>
 
+          {/* --- GRID PREVIEW (6 IMAGES PER ROW) --- */}
+          <Box sx={{ p: 3, bgcolor: "#F8FAFC", borderRadius: "16px", border: `1px solid ${borderColor}` }}>
+            <Stack direction="row" spacing={1} alignItems="center" mb={3}>
+              <CollectionsOutlined sx={{ fontSize: 18, color: primaryTeal }} />
+              <Typography sx={{ fontFamily: primaryFont, fontWeight: 800, fontSize: "0.65rem", color: primaryTeal, letterSpacing: 1 }}>ASSET PREVIEW (GRID VIEW)</Typography>
+            </Stack>
+            
+            {imageUrls.filter(u => u.trim() !== "").length > 0 ? (
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' }, 
+                gap: 2 
+              }}>
+                {imageUrls.map((url, i) => url.trim() && (
+                  <Box key={i} sx={{ aspectRatio: '4/3', borderRadius: "10px", overflow: "hidden", border: `1px solid ${borderColor}`, bgcolor: "#FFF" }}>
+                    <Box component="img" src={url} sx={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e: any) => e.target.src="https://placehold.co/400x300?text=Invalid"} />
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ opacity: 0.5, py: 2 }}>
+                <HideImageOutlined />
+                <Typography sx={{ fontFamily: primaryFont, fontSize: "0.75rem", fontWeight: 600 }}>Awaiting image links...</Typography>
+              </Stack>
+            )}
+          </Box>
+
           {/* ACTIONS */}
           <Box sx={{ pt: 3, borderTop: `1px solid ${borderColor}`, display: "flex", justifyContent: "flex-end", gap: 2 }}>
-            <Button onClick={onBack} sx={{ fontFamily: primaryFont, color: "#94A3B8", fontWeight: 700 }}>Cancel</Button>
+            <Button onClick={onBack} sx={{ fontFamily: primaryFont, color: "#94A3B8", fontWeight: 700, textTransform: "none" }}>Cancel</Button>
             <Button 
               variant="contained" 
               onClick={handleUpdateClick}
-              disabled={loading}
+              disabled={loading || isBulkUploading || uploadingIndices.length > 0}
               startIcon={loading ? <CircularProgress size={18} color="inherit" /> : <SaveOutlined />}
               sx={{ 
                 fontFamily: primaryFont, 
@@ -322,6 +503,7 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
                 px: 4, 
                 borderRadius: "10px", 
                 fontWeight: 800,
+                textTransform: "none",
                 '&:hover': { bgcolor: '#00333d' }
               }}
             >
@@ -331,23 +513,34 @@ const UpdateEvent = ({ itemData, onBack }: UpdateProps) => {
         </Stack>
       </Paper>
 
+      {/* SNACKBAR NOTIFICATIONS */}
+      <Snackbar 
+        open={snackbar.open} 
+        autoHideDuration={4000} 
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+      >
+        <Alert severity={snackbar.type} sx={{ borderRadius: "14px", fontFamily: primaryFont, fontWeight: 700, boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       {/* CONFIRMATION DIALOG */}
       <Dialog 
         open={confirmDialogOpen} 
         onClose={() => setConfirmDialogOpen(false)}
         PaperProps={{ sx: { borderRadius: "20px" } }}
       >
-        <DialogTitle sx={{ fontFamily: primaryFont, display: 'flex', alignItems: 'center', gap: 1.5, fontWeight: 800 }}>
+        <DialogTitle sx={{ fontFamily: primaryFont, display: 'flex', alignItems: 'center', gap: 1.5, fontWeight: 800, color: primaryTeal }}>
           <InfoOutlined sx={{ color: primaryTeal }} /> Confirm Update
         </DialogTitle>
         <DialogContent>
-          <DialogContentText sx={{ fontFamily: primaryFont }}>
+          <DialogContentText sx={{ fontFamily: primaryFont, fontWeight: 500 }}>
             Are you sure you want to update this event? The changes will be visible on the public calendar immediately.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setConfirmDialogOpen(false)} sx={{ fontFamily: primaryFont, fontWeight: 700 }}>Keep Editing</Button>
-          <Button onClick={confirmUpdate} variant="contained" sx={{ fontFamily: primaryFont, bgcolor: primaryTeal, fontWeight: 700 }}>Update Now</Button>
+          <Button onClick={() => setConfirmDialogOpen(false)} sx={{ fontFamily: primaryFont, fontWeight: 700, color: "#94A3B8" }}>Keep Editing</Button>
+          <Button onClick={confirmUpdate} variant="contained" sx={{ fontFamily: primaryFont, bgcolor: primaryTeal, fontWeight: 700, borderRadius: "10px" }}>Update Now</Button>
         </DialogActions>
       </Dialog>
     </Box>
