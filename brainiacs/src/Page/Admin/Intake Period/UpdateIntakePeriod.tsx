@@ -2,14 +2,11 @@ import { useState } from "react";
 import { 
   Box, Typography, Stack, Paper, Button, TextField, 
   InputLabel, CircularProgress, Dialog, DialogTitle, 
-  DialogContent, DialogContentText, DialogActions,
-  Avatar, Divider
+  DialogContent, DialogContentText, DialogActions
 } from "@mui/material";
 import { 
   ArrowBackIosNewOutlined, SaveOutlined,
-  PhotoSizeSelectActualOutlined, WorkOutline,
-  BadgeOutlined, InfoOutlined, ManageAccountsOutlined,
-  DescriptionOutlined
+  InfoOutlined, CalendarMonthOutlined
 } from "@mui/icons-material";
 
 // Configuration
@@ -18,33 +15,28 @@ const primaryTeal = "#004652";
 const primaryFont = "'Montserrat', sans-serif";
 const borderColor = "#E2E8F0";
 
-// Updated Interface for Team Members
-interface TeamMember {
+// Updated Interface matching your new IntakeModel
+interface IntakePeriodData {
   _id: string;
-  name: string;
-  jobDescription: string;
-  detailedBio: string;
-  imageUrl: string;
+  intakeYear: string;
+  createdAt?: string; // Optional if you are passing it down
 }
 
 interface UpdateProps {
-  itemData: TeamMember;
+  itemData: IntakePeriodData;
   onBack: () => void;
 }
 
-const UpdateTeamMember = ({ itemData, onBack }: UpdateProps) => {
+const UpdateIntakePeriod = ({ itemData, onBack }: UpdateProps) => {
   // --- STATE ---
-  const [name, setName] = useState(itemData.name);
-  const [jobDescription, setJobDescription] = useState(itemData.jobDescription);
-  const [detailedBio, setDetailedBio] = useState(itemData.detailedBio || "");
-  const [imageUrl, setImageUrl] = useState(itemData.imageUrl);
+  const [intakeYear, setIntakeYear] = useState(itemData.intakeYear);
   const [loading, setLoading] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
 
   // --- UPDATE LOGIC ---
   const handleUpdateClick = () => {
-    if (!name || !jobDescription || !detailedBio || !imageUrl) {
-      alert("Please ensure all fields (Name, Designation, Bio, and Image URL) are filled out.");
+    if (!intakeYear.trim()) {
+      alert("Please ensure the Intake Year is filled out.");
       return;
     }
     setConfirmDialogOpen(true);
@@ -54,16 +46,11 @@ const UpdateTeamMember = ({ itemData, onBack }: UpdateProps) => {
     setConfirmDialogOpen(false);
     setLoading(true);
     try {
-      // ENDPOINT UPDATED TO /api/team
-      const response = await fetch(`${API_BASE_URL}/api/team/${itemData._id}`, {
+      // Endpoint updated to /api/Intake
+      const response = await fetch(`${API_BASE_URL}/api/Intake/${itemData._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            name, 
-            jobDescription, 
-            detailedBio, 
-            imageUrl 
-        }),
+        body: JSON.stringify({ intakeYear }),
       });
 
       if (response.ok) {
@@ -86,6 +73,7 @@ const UpdateTeamMember = ({ itemData, onBack }: UpdateProps) => {
       fontFamily: primaryFont,
       bgcolor: "#FFF",
       "& fieldset": { borderColor: borderColor },
+      "&:-webkit-autofill": { WebkitBoxShadow: "0 0 0 100px #FFF inset" },
       "&:hover fieldset": { borderColor: primaryTeal },
       "&.Mui-focused fieldset": { borderColor: primaryTeal },
     },
@@ -121,89 +109,31 @@ const UpdateTeamMember = ({ itemData, onBack }: UpdateProps) => {
       <Paper elevation={0} sx={{ p: { xs: 3, md: 5 }, borderRadius: "24px", border: `1px solid ${borderColor}`, bgcolor: "#FFF" }}>
         <Box sx={{ mb: 4 }}>
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <ManageAccountsOutlined sx={{ color: primaryTeal, fontSize: 30 }} />
+            <CalendarMonthOutlined sx={{ color: primaryTeal, fontSize: 30 }} />
             <Typography variant="h5" sx={{ fontFamily: primaryFont, fontWeight: 800, color: primaryTeal }}>
-              Edit Team Member Profile
+              Edit Intake Period
             </Typography>
           </Stack>
           <Typography sx={{ fontFamily: primaryFont, fontSize: "0.8rem", color: "#64748B", mt: 1 }}>
-            Staff Registry ID: <span style={{ color: primaryTeal, fontWeight: 700 }}>{itemData._id}</span>
+            Record ID: <span style={{ color: primaryTeal, fontWeight: 700 }}>{itemData._id}</span>
           </Typography>
         </Box>
 
         <Stack spacing={4}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={5} alignItems="flex-start">
-            
-            {/* PROFILE PREVIEW SECTION */}
-            <Box sx={{ width: { xs: "100%", md: 220 }, textAlign: "center" }}>
-              <InputLabel sx={labelStyle}>PROFILE PREVIEW</InputLabel>
-              <Avatar 
-                src={imageUrl} 
-                variant="rounded" 
-                sx={{ 
-                  width: 180, 
-                  height: 180, 
-                  mx: "auto", 
-                  borderRadius: "20px", 
-                  border: `4px solid ${primaryTeal}15`,
-                  boxShadow: "0 10px 20px rgba(0,0,0,0.05)"
-                }} 
-              />
-              <Typography variant="caption" sx={{ display: "block", mt: 2, fontFamily: primaryFont, color: "#94A3B8" }}>
-                Live updates enabled
-              </Typography>
-            </Box>
-
-            <Divider orientation="vertical" flexItem sx={{ display: { xs: "none", md: "block" } }} />
-
-            {/* FORM FIELDS */}
-            <Stack spacing={3} sx={{ flexGrow: 1 }}>
-              <Box>
-                <InputLabel sx={labelStyle}>FULL NAME</InputLabel>
-                <TextField 
-                  fullWidth value={name} onChange={(e) => setName(e.target.value)} 
-                  placeholder="Full Name"
-                  InputProps={{ startAdornment: <BadgeOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
-                  sx={inputStyle}
-                />
-              </Box>
-
-              <Box>
-                <InputLabel sx={labelStyle}>JOB TITLE / DESIGNATION</InputLabel>
-                <TextField 
-                  fullWidth value={jobDescription} onChange={(e) => setJobDescription(e.target.value)} 
-                  placeholder="e.g. Lead Developer"
-                  InputProps={{ startAdornment: <WorkOutline sx={{ mr: 1, color: "#94A3B8" }} /> }}
-                  sx={inputStyle}
-                />
-              </Box>
-
-              <Box>
-                <InputLabel sx={labelStyle}>PROFESSIONAL BIO</InputLabel>
-                <TextField 
-                  fullWidth multiline rows={4} value={detailedBio} 
-                  onChange={(e) => setDetailedBio(e.target.value)} 
-                  placeholder="Update staff biography..."
-                  InputProps={{ startAdornment: <DescriptionOutlined sx={{ mr: 1, mt: 1, color: "#94A3B8" }} /> }}
-                  sx={inputStyle}
-                />
-              </Box>
-
-              <Box>
-                <InputLabel sx={labelStyle}>IMAGE URL</InputLabel>
-                <TextField 
-                  fullWidth value={imageUrl} 
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="Link to profile image"
-                  InputProps={{ startAdornment: <PhotoSizeSelectActualOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
-                  sx={inputStyle}
-                />
-              </Box>
-            </Stack>
-          </Stack>
+          <Box sx={{ maxWidth: "500px" }}>
+            <InputLabel sx={labelStyle}>INTAKE YEAR</InputLabel>
+            <TextField 
+              fullWidth 
+              value={intakeYear} 
+              onChange={(e) => setIntakeYear(e.target.value)} 
+              placeholder="e.g. 2026/2027"
+              InputProps={{ startAdornment: <CalendarMonthOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+              sx={inputStyle}
+            />
+          </Box>
 
           {/* ACTIONS */}
-          <Box sx={{ pt: 3, borderTop: `1px solid ${borderColor}`, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+          <Box sx={{ pt: 3, borderTop: `1px solid ${borderColor}`, display: "flex", justifyContent: "flex-start", gap: 2 }}>
             <Button onClick={onBack} sx={{ fontFamily: primaryFont, color: "#94A3B8", fontWeight: 700, textTransform: "none" }}>Discard</Button>
             <Button 
               variant="contained" 
@@ -220,7 +150,7 @@ const UpdateTeamMember = ({ itemData, onBack }: UpdateProps) => {
                 '&:hover': { bgcolor: "#00353d" }
               }}
             >
-              Update Team Profile
+              Update Record
             </Button>
           </Box>
         </Stack>
@@ -233,7 +163,7 @@ const UpdateTeamMember = ({ itemData, onBack }: UpdateProps) => {
         </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ fontFamily: primaryFont, color: "#475569" }}>
-            Are you sure you want to update <strong>{name}</strong>'s profile? This will update the website's team directory immediately.
+            Are you sure you want to update this record to <strong>{intakeYear}</strong>? This will reflect in the database immediately.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>
@@ -245,4 +175,4 @@ const UpdateTeamMember = ({ itemData, onBack }: UpdateProps) => {
   );
 };
 
-export default UpdateTeamMember;
+export default UpdateIntakePeriod;

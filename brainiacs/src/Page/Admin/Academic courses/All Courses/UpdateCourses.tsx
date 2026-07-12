@@ -478,7 +478,7 @@ const UpdateCourse = ({ itemData, onBack }: { itemData: CourseData, onBack: () =
                 </ToggleButton>
                 <ToggleButton value="course" sx={{ px: 3, border: "none", borderRadius: "8px !important", "&.Mui-selected": { bgcolor: "#FFF", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", color: primaryTeal, fontWeight: 800 } }}>
                   <ViewListOutlined fontSize="small" sx={{ mr: 1 }} />
-                  <Typography sx={{ ...montserratStyle, fontWeight: 700, fontSize: "0.7rem" }}>Unified Course</Typography>
+                  <Typography sx={{ ...montserratStyle, fontWeight: 700, fontSize: "0.7rem" }}>Course Module</Typography>
                 </ToggleButton>
               </ToggleButtonGroup>
             </Stack>

@@ -23,6 +23,7 @@ import Facultyrouter from "./routes/Faculty.route.js";
 import CourseCategoryrouter from "./routes/CourseCategory.route.js";
 import Courserouter from "./routes/Course.route.js";
 import askOurStudentRouter from "./routes/AskOurStudent.route.js";
+import IntakeRouter from "./routes/Intake.route.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -76,7 +77,7 @@ app.use('/api/course', Courserouter);
 
 app.use('/api/AskOurStudent', askOurStudentRouter);
 
-app.use('/api/Intake', askOurStudentRouter);
+app.use('/api/Intake',IntakeRouter);
 
 // 7. Start server
 const port = 8001;

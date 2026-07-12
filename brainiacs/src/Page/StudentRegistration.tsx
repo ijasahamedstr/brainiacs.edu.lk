@@ -25,6 +25,7 @@ import {
 const THEME_COLOR = "#004d40"; 
 const API_URL = `${import.meta.env.VITE_API_URL}/api/students`;
 const COURSES_API_URL = `${import.meta.env.VITE_API_URL}/api/course`;
+const INTAKES_API_URL = `${import.meta.env.VITE_API_URL}/api/Intake`;
 const IMGBB_API_KEY = import.meta.env.VITE_IMGBB_API_KEY;
 const CAMPUS_NAME = "BRAINIACS";
 
@@ -49,6 +50,11 @@ interface Course {
   courseName: string;
 }
 
+interface Intake {
+  _id: string;
+  intakeYear: string;
+}
+
 const StudentRegistration = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -58,6 +64,10 @@ const StudentRegistration = () => {
   // State for fetched courses database integration
   const [courses, setCourses] = useState<Course[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
+
+  // State for fetched intakes database integration
+  const [intakes, setIntakes] = useState<Intake[]>([]);
+  const [isLoadingIntakes, setIsLoadingIntakes] = useState(true);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -66,7 +76,7 @@ const StudentRegistration = () => {
 
   const [formData, setFormData] = useState({
     programme: "",
-    intake: "2026 February",
+    intake: "",
     fullName: "",
     initials: "",
     gender: "male",
@@ -96,7 +106,7 @@ const StudentRegistration = () => {
   const [alRows, setAlRows] = useState(Array(4).fill(null).map(() => ({ subject: "", grade: "", year: "", attempt: "" })));
   const [otherQuals] = useState(Array(4).fill(null).map(() => ({ name: "", year: "", body: "", grade: "" })));
 
-  // Hook to fetch academic streams/courses from backend database api
+  // Hook to fetch academic streams/courses and intakes from backend database api
   useEffect(() => {
     const fetchCourses = async () => {
       try {
@@ -114,7 +124,36 @@ const StudentRegistration = () => {
       }
     };
 
+    const fetchIntakes = async () => {
+      try {
+        const response = await fetch(INTAKES_API_URL);
+        if (response.ok) {
+          const data = await response.json();
+          
+          // 1. Get the current year
+          const currentYear = new Date().getFullYear().toString();
+          
+          // 2. Filter to only include intakes from the current year
+          const filteredIntakes = data.filter((intake: Intake) => 
+            intake.intakeYear && intake.intakeYear.includes(currentYear)
+          );
+          
+          // 3. Apply LIFO (Last In, First Out)
+          const lifoIntakes = filteredIntakes.reverse();
+          
+          setIntakes(lifoIntakes);
+        } else {
+          console.error("Failed to fetch intakes");
+        }
+      } catch (error) {
+        console.error("Error fetching intakes:", error);
+      } finally {
+        setIsLoadingIntakes(false);
+      }
+    };
+
     fetchCourses();
+    fetchIntakes();
   }, []);
 
   const handleInputChange = (field: string, value: any) => {
@@ -281,8 +320,27 @@ const StudentRegistration = () => {
         )}
       </TextField>
 
-      <TextField select fullWidth label="Intake Period" value={formData.intake} onChange={(e) => handleInputChange("intake", e.target.value)} sx={inputSx}>
-        {["2026 February", "2026 June", "2026 October"].map(i => <MenuItem key={i} value={i} sx={GLOBAL_FONT}>{i}</MenuItem>)}
+      <TextField 
+        select 
+        fullWidth 
+        label="Intake Period" 
+        value={formData.intake} 
+        onChange={(e) => handleInputChange("intake", e.target.value)} 
+        sx={inputSx}
+        disabled={isLoadingIntakes}
+        InputProps={{
+          endAdornment: isLoadingIntakes ? <CircularProgress size={20} color="inherit" sx={{ mr: 2 }} /> : null
+        }}
+      >
+        {intakes.length === 0 && !isLoadingIntakes ? (
+          <MenuItem disabled sx={GLOBAL_FONT}>No current year intakes available</MenuItem>
+        ) : (
+          intakes.map(intake => (
+            <MenuItem key={intake._id} value={intake.intakeYear} sx={GLOBAL_FONT}>
+              {intake.intakeYear}
+            </MenuItem>
+          ))
+        )}
       </TextField>
     </Stack>
   );
@@ -491,7 +549,9 @@ const StudentRegistration = () => {
             boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.05)'
           }}>
             <Typography variant="caption" sx={{ ...GLOBAL_FONT, fontWeight: 800, color: THEME_COLOR, letterSpacing: 1 }}>CURRENT INTAKE</Typography>
-            <Typography variant="h6" sx={{ ...GLOBAL_FONT, fontWeight: 900, color: THEME_COLOR }}>OPEN: 2026 FEB</Typography>
+            <Typography variant="h6" sx={{ ...GLOBAL_FONT, fontWeight: 900, color: THEME_COLOR }}>
+              OPEN: {intakes.length > 0 ? intakes[0].intakeYear : "TBD"}
+            </Typography>
           </Box>
         </Stack>
 

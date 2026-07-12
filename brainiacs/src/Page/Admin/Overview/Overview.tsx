@@ -14,9 +14,21 @@ import {
   Diversity1Outlined, 
   HandshakeOutlined, 
   SettingsOutlined,
-  SchoolOutlined // Added for Courses
+  SchoolOutlined
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+
+// Import Recharts for the Graph
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
 
 // Constants
 const primaryTeal = "#004652";
@@ -28,7 +40,7 @@ const Overview = () => {
   const [counts, setCounts] = useState({
     slider: 0, 
     registration: 0, 
-    courses: 0, // Added
+    courses: 0, 
     certificates: 0, 
     offers: 0,
     students: 0, 
@@ -41,12 +53,13 @@ const Overview = () => {
     settings: "Active"
   });
 
+  // THIS IS YOUR CONNECTION TO THE BACKEND / DATABASE
   useEffect(() => {
-    const apiHost = import.meta.env.VITE_API_URL || "";
+    const apiHost = import.meta.env.VITE_API_URL || "http://localhost:5000"; // Fallback added for testing
     const endpoints = {
       slider: "/api/sliders",
       registration: "/api/students",
-      courses: "/api/course", // Added
+      courses: "/api/course", 
       certificates: "/api/certificates",
       offers: "/api/offers",
       students: "/api/guidance",
@@ -76,7 +89,7 @@ const Overview = () => {
   const services = [
     { id: "slider", title: "Home Slider", count: counts.slider, icon: <ViewCarouselOutlined />, color: "#3B82F6" },
     { id: "registration", title: "Registration", count: counts.registration, icon: <HowToRegOutlined />, color: "#10B981" },
-    { id: "courses", title: "Courses", count: counts.courses, icon: <SchoolOutlined />, color: "#F97316" }, // Added
+    { id: "courses", title: "Courses", count: counts.courses, icon: <SchoolOutlined />, color: "#F97316" }, 
     { id: "certificates", title: "Certificates", count: counts.certificates, icon: <VerifiedOutlined />, color: accentGold },
     { id: "offers", title: "Campus Offers", count: counts.offers, icon: <CampaignOutlined />, color: "#F43F5E" },
     { id: "students", title: "Student Queries", count: counts.students, icon: <QuestionAnswerOutlined />, color: "#8B5CF6" },
@@ -88,6 +101,15 @@ const Overview = () => {
     { id: "partners", title: "Our Partners", count: counts.partners, icon: <HandshakeOutlined />, color: "#2DD4BF" },
     { id: "settings", title: "Settings", count: "Active", icon: <SettingsOutlined />, color: "#64748B" }
   ];
+
+  // Prepare data for the Graph (Exclude "Settings" since it's just "Active")
+  const chartData = services
+    .filter(s => s.id !== "settings")
+    .map(s => ({
+      name: s.title,
+      Total: s.count,
+      color: s.color
+    }));
 
   return (
     <Box sx={{ 
@@ -116,13 +138,14 @@ const Overview = () => {
         </Typography>
       </Box>
 
-      {/* Grid Layout */}
+      {/* Grid Layout for Cards */}
       <Box 
         sx={{ 
           display: "flex", 
           flexWrap: "wrap", 
           gap: "20px", 
-          justifyContent: "flex-start"
+          justifyContent: "flex-start",
+          mb: 6 // Added margin below cards
         }}
       >
         {services.map((s) => (
@@ -220,6 +243,60 @@ const Overview = () => {
           </Box>
         ))}
       </Box>
+
+      {/* NEW: Graph Section */}
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: 4, 
+          borderRadius: "20px", 
+          border: "1px solid #E2E8F0",
+          bgcolor: "#FFFFFF" 
+        }}
+      >
+        <Typography 
+          variant="h6" 
+          fontWeight={700} 
+          color={primaryTeal} 
+          sx={{ fontFamily: primaryFont, mb: 4 }}
+        >
+          System Overview Graph
+        </Typography>
+        
+        <Box sx={{ width: '100%', height: 400 }}>
+          <ResponsiveContainer>
+            <BarChart
+              data={chartData}
+              margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#64748B', fontSize: 12 }} 
+                angle={-45} 
+                textAnchor="end"
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#64748B', fontSize: 12 }}
+              />
+              <Tooltip 
+                cursor={{ fill: '#F8FAFC' }}
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Bar dataKey="Total" radius={[4, 4, 0, 0]}>
+                {chartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Box>
+      </Paper>
+
     </Box>
   );
 };

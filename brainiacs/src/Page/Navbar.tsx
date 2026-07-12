@@ -31,7 +31,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseOutlined from '@mui/icons-material/CloseOutlined';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import LoginIcon from '@mui/icons-material/Login';
 import AppRegistrationIcon from '@mui/icons-material/AppRegistration';
 import HomeIcon from '@mui/icons-material/Home';
 import SchoolIcon from '@mui/icons-material/School';
@@ -42,6 +42,23 @@ import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 /* --- Environment Variables --- */
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+/* =====================================================================
+   MENU CONFIGURATION SETTINGS (MANUAL ON/OFF SWITCHES)
+   Change these to 'false' to manually hide a menu item globally.
+===================================================================== */
+const MENU_CONFIG = {
+  showHome: true,
+  showOurStory: true,
+  showFaculties: false, // Set to false to hide Faculties menu
+  showProgrammes: true,
+  showStudentLife: true,
+  showNews: true,
+  showContact: true,
+  showLoginBtn: true,
+  showRegisterBtn: true,
+};
+/* ===================================================================== */
 
 /* --- Helper Function --- */
 const generateSlug = (name: string) => {
@@ -175,6 +192,7 @@ export default function Navbar() {
 
   React.useEffect(() => {
     const fetchFaculties = async () => {
+      if (!MENU_CONFIG.showFaculties) return; // Skip fetch if disabled
       try {
         const response = await fetch(`${API_BASE_URL}/api/faculties`);
         if (!response.ok) throw new Error('Failed to fetch faculties');
@@ -190,6 +208,7 @@ export default function Navbar() {
     };
 
     const fetchProgrammes = async () => {
+      if (!MENU_CONFIG.showProgrammes) return; // Skip fetch if disabled
       try {
         const response = await fetch(`${API_BASE_URL}/api/course`);
         if (!response.ok) throw new Error('Failed to fetch courses');
@@ -251,13 +270,14 @@ export default function Navbar() {
     );
   };
 
+  // Filter Mobile Grid Menu based on Config
   const MOBILE_GRID_MENU = [
-    { text: 'Home', icon: <HomeIcon sx={{ fontSize: '22px' }} />, path: '/' },
-    { text: 'Faculties', icon: <SchoolIcon sx={{ fontSize: '22px' }} />, action: 'facs' },
-    { text: 'Programmes', icon: <MenuBookIcon sx={{ fontSize: '22px' }} />, action: 'prog' },
-    { text: 'Our Story', icon: <InfoIcon sx={{ fontSize: '22px' }} />, action: 'story' },
-    { text: 'Contact', icon: <PhoneIcon sx={{ fontSize: '22px' }} />, path: '/contact' },
-    { text: 'Portal', icon: <PersonOutlineIcon sx={{ fontSize: '22px' }} />, path: '/login' },
+    ...(MENU_CONFIG.showHome ? [{ text: 'Home', icon: <HomeIcon sx={{ fontSize: '22px' }} />, path: '/' }] : []),
+    ...(MENU_CONFIG.showFaculties ? [{ text: 'Faculties', icon: <SchoolIcon sx={{ fontSize: '22px' }} />, action: 'facs' }] : []),
+    ...(MENU_CONFIG.showProgrammes ? [{ text: 'Programmes', icon: <MenuBookIcon sx={{ fontSize: '22px' }} />, action: 'prog' }] : []),
+    ...(MENU_CONFIG.showOurStory ? [{ text: 'Our Story', icon: <InfoIcon sx={{ fontSize: '22px' }} />, action: 'story' }] : []),
+    ...(MENU_CONFIG.showContact ? [{ text: 'Contact', icon: <PhoneIcon sx={{ fontSize: '22px' }} />, path: '/contact' }] : []),
+    ...(MENU_CONFIG.showLoginBtn ? [{ text: 'Login', icon: <LoginIcon sx={{ fontSize: '22px' }} />, path: '/login' }] : []),
   ];
 
   return (
@@ -266,7 +286,7 @@ export default function Navbar() {
         <Container maxWidth="xl" sx={{ pointerEvents: 'auto' }}>
           <StyledToolbar isScrolled={isScrolled}>
 
-            {/* UPDATED LOGO CONTAINER */}
+            {/* LOGO CONTAINER */}
             <Box
               onClick={() => handleNavigate('/')}
               sx={{
@@ -290,7 +310,7 @@ export default function Navbar() {
                 component="img"
                 src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
                 sx={{
-                  height: { xs: '26px', md: '45px' }, // Increased desktop size to 45px
+                  height: { xs: '26px', md: '45px' },
                   objectFit: 'contain',
                   filter: 'drop-shadow(0px 2px 6px rgba(0,0,0,0.6))'
                 }}
@@ -299,14 +319,15 @@ export default function Navbar() {
 
             {isDesktop ? (
               <Box sx={{ display: 'flex', flexGrow: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
-                <NavButton active={location.pathname === '/'} onClick={() => handleNavigate('/')}>Home</NavButton>
-                <NavButton active={isDropdownActive(ourStoryLinks)} onClick={(e) => handleOpenMenu(e, 'story')} endIcon={<ArrowDropDownIcon />}>Our Story</NavButton>
-                <NavButton active={isDropdownActive(dynamicFacultyLinks)} onClick={(e) => handleOpenMenu(e, 'facs')} endIcon={<ArrowDropDownIcon />}>Faculties</NavButton>
-                <NavButton active={isMegaMenuActive()} onClick={(e) => handleOpenMenu(e, 'prog')} endIcon={<ArrowDropDownIcon />}>Programmes</NavButton>
-                <NavButton active={location.pathname === '/student-life'} onClick={() => handleNavigate('/student-life')}>Student Life</NavButton>
-                <NavButton active={location.pathname === '/News'} onClick={() => handleNavigate('/News')}>News</NavButton>
-                <NavButton active={location.pathname === '/contact'} onClick={() => handleNavigate('/contact')}>Contact</NavButton>
+                {MENU_CONFIG.showHome && <NavButton active={location.pathname === '/'} onClick={() => handleNavigate('/')}>Home</NavButton>}
+                {MENU_CONFIG.showOurStory && <NavButton active={isDropdownActive(ourStoryLinks)} onClick={(e) => handleOpenMenu(e, 'story')} endIcon={<ArrowDropDownIcon />}>Our Story</NavButton>}
+                {MENU_CONFIG.showFaculties && <NavButton active={isDropdownActive(dynamicFacultyLinks)} onClick={(e) => handleOpenMenu(e, 'facs')} endIcon={<ArrowDropDownIcon />}>Faculties</NavButton>}
+                {MENU_CONFIG.showProgrammes && <NavButton active={isMegaMenuActive()} onClick={(e) => handleOpenMenu(e, 'prog')} endIcon={<ArrowDropDownIcon />}>Programmes</NavButton>}
+                {MENU_CONFIG.showStudentLife && <NavButton active={location.pathname === '/student-life'} onClick={() => handleNavigate('/student-life')}>Student Life</NavButton>}
+                {MENU_CONFIG.showNews && <NavButton active={location.pathname === '/News'} onClick={() => handleNavigate('/News')}>News</NavButton>}
+                {MENU_CONFIG.showContact && <NavButton active={location.pathname === '/contact'} onClick={() => handleNavigate('/contact')}>Contact</NavButton>}
 
+                {/* Dropdown Menu (Our Story, Faculties) */}
                 <Menu
                   anchorEl={anchorEl} open={activeMenu === 'story' || activeMenu === 'facs'} onClose={handleCloseMenu} sx={{ zIndex: 1600 }}
                   PaperProps={{
@@ -333,87 +354,122 @@ export default function Navbar() {
                   ))}
                 </Menu>
 
-                <Popper open={activeMenu === 'prog'} anchorEl={anchorEl} transition placement="bottom-end" sx={{ zIndex: 1600 }}>
-                  {({ TransitionProps }) => (
-                    <Grow {...TransitionProps}>
-                      <Paper sx={{
-                        mt: 2, p: 3.5, bgcolor: 'rgba(15,15,15,0.95)', backdropFilter: 'blur(20px)', color: '#fff',
-                        borderRadius: '20px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: 4,
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.8)', maxHeight: '70vh', overflowY: 'auto'
-                      }}>
-                        <ClickAwayListener onClickAway={(e) => {
-                          if (anchorEl && anchorEl.contains(e.target as Node)) return;
-                          handleCloseMenu();
+                {/* MEGA MENU: Programmes (RIGHT ALIGNED TEXT) */}
+                {MENU_CONFIG.showProgrammes && (
+                  <Popper 
+                    open={activeMenu === 'prog'} 
+                    anchorEl={anchorEl} 
+                    transition 
+                    placement="bottom" 
+                    sx={{ zIndex: 1600 }}
+                  >
+                    {({ TransitionProps }) => (
+                      <Grow {...TransitionProps}>
+                        <Paper sx={{
+                          mt: 2, 
+                          p: 3.5, 
+                          bgcolor: 'rgba(15,15,15,0.95)', 
+                          backdropFilter: 'blur(20px)', 
+                          color: '#fff',
+                          borderRadius: '20px', 
+                          border: '1px solid rgba(255,255,255,0.1)', 
+                          display: 'flex', 
+                          justifyContent: 'center', 
+                          boxShadow: '0 20px 50px rgba(0,0,0,0.8)', 
+                          maxHeight: '70vh', 
+                          overflowY: 'auto'
                         }}>
-                          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', maxWidth: '850px' }}>
-                            {dynamicProgrammeGroups.length > 0 ? (
-                              dynamicProgrammeGroups.map((group) => (
-                                <Box key={group.title} sx={{ minWidth: 220, mb: 1 }}>
-                                  <Typography sx={{
-                                    color: '#fff', fontWeight: 800, fontSize: '0.7rem', mb: 1.5, textTransform: 'uppercase',
-                                    letterSpacing: '1px', pb: 1, borderBottom: '1px solid rgba(255,255,255,0.1)'
-                                  }}>
-                                    {group.title}
-                                  </Typography>
-                                  {group.items.map((item) => (
-                                    <ListItemButton
-                                      key={item.label} onClick={() => handleNavigate(item.path)}
-                                      sx={{
-                                        p: 1, borderRadius: '8px', mb: 0.5, transition: 'all 0.2s',
-                                        '&:hover': { bgcolor: alpha('#4caf50', 0.1), transform: 'translateX(4px)' }
-                                      }}
-                                    >
-                                      <ListItemText
-                                        primary={item.label}
-                                        primaryTypographyProps={{
-                                          fontSize: '0.8rem', fontWeight: 500, fontFamily: 'Montserrat',
-                                          color: location.pathname === item.path ? '#4caf50' : '#a1a1aa'
+                          <ClickAwayListener onClickAway={(e) => {
+                            if (anchorEl && anchorEl.contains(e.target as Node)) return;
+                            handleCloseMenu();
+                          }}>
+                            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', maxWidth: '1000px', justifyContent: 'center' }}>
+                              {dynamicProgrammeGroups.length > 0 ? (
+                                dynamicProgrammeGroups.map((group) => (
+                                  <Box key={group.title} sx={{ minWidth: 220, mb: 1 }}>
+                                    <Typography sx={{
+                                      color: '#fff', fontWeight: 800, fontSize: '0.7rem', mb: 1.5, textTransform: 'uppercase',
+                                      letterSpacing: '1px', pb: 1, borderBottom: '1px solid rgba(255,255,255,0.1)',
+                                      textAlign: 'right'
+                                    }}>
+                                      {group.title}
+                                    </Typography>
+                                    {group.items.map((item) => (
+                                      <ListItemButton
+                                        key={item.label} onClick={() => handleNavigate(item.path)}
+                                        sx={{
+                                          p: 1, borderRadius: '8px', mb: 0.5, transition: 'all 0.2s',
+                                          textAlign: 'right', 
+                                          justifyContent: 'flex-end', 
+                                          '&:hover': { bgcolor: alpha('#4caf50', 0.1), transform: 'translateX(-4px)' } 
                                         }}
-                                      />
-                                    </ListItemButton>
-                                  ))}
-                                </Box>
-                              ))
-                            ) : (
-                              <Typography sx={{ color: '#71717a', fontSize: '0.8rem', p: 1 }}>Loading modules...</Typography>
-                            )}
-                          </Box>
-                        </ClickAwayListener>
-                      </Paper>
-                    </Grow>
-                  )}
-                </Popper>
+                                      >
+                                        <ListItemText
+                                          primary={item.label}
+                                          primaryTypographyProps={{
+                                            fontSize: '0.8rem', fontWeight: 500, fontFamily: 'Montserrat',
+                                            color: location.pathname === item.path ? '#4caf50' : '#a1a1aa',
+                                          }}
+                                        />
+                                        <FiberManualRecordIcon sx={{ 
+                                          fontSize: '5px', 
+                                          color: location.pathname === item.path ? '#4caf50' : '#444', 
+                                          ml: 2, 
+                                          filter: location.pathname === item.path ? 'drop-shadow(0 0 4px #4caf50)' : 'none' 
+                                        }} />
+                                      </ListItemButton>
+                                    ))}
+                                  </Box>
+                                ))
+                              ) : (
+                                <Typography sx={{ color: '#71717a', fontSize: '0.8rem', p: 1 }}>Loading modules...</Typography>
+                              )}
+                            </Box>
+                          </ClickAwayListener>
+                        </Paper>
+                      </Grow>
+                    )}
+                  </Popper>
+                )}
 
                 <Box sx={{ ml: 2.5, display: 'flex', gap: 1.5 }}>
-                  <Button
-                    onClick={() => handleNavigate('/login')}
-                    sx={{
-                      borderRadius: '12px', textTransform: 'none', fontSize: '0.78rem', fontWeight: 700,
-                      fontFamily: '"Montserrat", sans-serif', padding: '8px 18px', height: '40px',
-                      bgcolor: 'rgba(255,255,255,0.03)', color: '#d4d4d8', border: '1px solid rgba(255,255,255,0.1)',
-                      transition: 'all 0.3s', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', color: '#fff', transform: 'translateY(-2px)' }
-                    }}
-                  >
-                    Portal
-                  </Button>
-                  <GradientBtn onClick={() => handleNavigate('/register-online')}>Register Now</GradientBtn>
+                  {MENU_CONFIG.showLoginBtn && (
+                    <Button
+                      onClick={() => handleNavigate('/login')}
+                      sx={{
+                        borderRadius: '12px', textTransform: 'none', fontSize: '0.78rem', fontWeight: 700,
+                        fontFamily: '"Montserrat", sans-serif', padding: '8px 18px', height: '40px',
+                        bgcolor: 'rgba(255,255,255,0.03)', color: '#d4d4d8', border: '1px solid rgba(255,255,255,0.1)',
+                        transition: 'all 0.3s', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', color: '#fff', transform: 'translateY(-2px)' }
+                      }}
+                    >
+                      Login
+                    </Button>
+                  )}
+                  {MENU_CONFIG.showRegisterBtn && (
+                    <GradientBtn onClick={() => handleNavigate('/register-online')}>Register Now</GradientBtn>
+                  )}
                 </Box>
               </Box>
             ) : (
               <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
-                <IconButton onClick={() => handleNavigate('/register-online')} sx={{ background: 'linear-gradient(135deg, rgba(76,175,80,0.2) 0%, rgba(46,125,50,0.2) 100%)', color: '#4caf50', border: '1px solid rgba(76,175,80,0.3)', borderRadius: '12px', p: 1 }}>
-                  <AppRegistrationIcon sx={{ fontSize: '20px' }} />
-                </IconButton>
-                <IconButton onClick={() => handleNavigate('/login')} sx={{ color: '#d4d4d8', bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', p: 1 }}>
-                  <PersonOutlineIcon sx={{ fontSize: '20px' }} />
-                </IconButton>
+                {MENU_CONFIG.showRegisterBtn && (
+                  <IconButton onClick={() => handleNavigate('/register-online')} sx={{ background: 'linear-gradient(135deg, rgba(76,175,80,0.2) 0%, rgba(46,125,50,0.2) 100%)', color: '#4caf50', border: '1px solid rgba(76,175,80,0.3)', borderRadius: '12px', p: 1 }}>
+                    <AppRegistrationIcon sx={{ fontSize: '20px' }} />
+                  </IconButton>
+                )}
+                {MENU_CONFIG.showLoginBtn && (
+                  <IconButton onClick={() => handleNavigate('/login')} sx={{ color: '#d4d4d8', bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', p: 1 }}>
+                    <LoginIcon sx={{ fontSize: '20px' }} />
+                  </IconButton>
+                )}
               </Box>
             )}
           </StyledToolbar>
         </Container>
       </AppBar>
 
-      {/* --- Stunning Mobile App Floating Bottom Navigation --- */}
+      {/* --- Mobile App Floating Bottom Navigation --- */}
       <FloatingBottomNav elevation={0}>
         <BottomNavigation
           showLabels
@@ -430,14 +486,14 @@ export default function Navbar() {
             '& .MuiBottomNavigationAction-label': { fontFamily: 'Montserrat', fontWeight: 700, fontSize: '0.65rem', letterSpacing: '0.2px', marginTop: '4px' }
           }}
         >
-          <BottomNavigationAction label="Home" value="/" icon={<HomeIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => handleNavigate('/')} />
-          <BottomNavigationAction label="Faculties" value="/faculties" icon={<SchoolIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('facs')} />
-          <BottomNavigationAction label="Modules" value="/programmes" icon={<MenuBookIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('prog')} />
+          {MENU_CONFIG.showHome && <BottomNavigationAction label="Home" value="/" icon={<HomeIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => handleNavigate('/')} />}
+          {MENU_CONFIG.showFaculties && <BottomNavigationAction label="Faculties" value="/faculties" icon={<SchoolIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('facs')} />}
+          {MENU_CONFIG.showProgrammes && <BottomNavigationAction label="Modules" value="/programmes" icon={<MenuBookIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => openDrawerWithSection('prog')} />}
           <BottomNavigationAction label="Menu" value="menu" icon={<MenuIcon sx={{ fontSize: '22px', transition: 'all 0.3s' }} />} onClick={() => setDrawerOpen(true)} />
         </BottomNavigation>
       </FloatingBottomNav>
 
-      {/* 🚀 Ultimate Premium Mobile Grid Menu Drawer 🚀 */}
+      {/* Grid Menu Drawer */}
       <Drawer
         anchor="bottom" open={drawerOpen} onClose={() => setDrawerOpen(false)} sx={{ zIndex: 1600 }}
         PaperProps={{
@@ -469,7 +525,7 @@ export default function Navbar() {
             </IconButton>
           </Stack>
 
-          {/* Premium Glassmorphic Grid Layout */}
+          {/* Grid Layout */}
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5, mb: 2 }}>
             {MOBILE_GRID_MENU.map((item) => {
               const isActive = (item.path && location.pathname === item.path) || (item.action && activeMobileTab === item.action);
@@ -506,50 +562,74 @@ export default function Navbar() {
 
         {/* Dynamic Lists View with Animations */}
         <Box sx={{ overflowY: 'auto', px: 3, pb: 8, flexGrow: 1 }}>
-          <Collapse in={activeMobileTab === 'facs'} timeout="auto" unmountOnExit>
-            <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Faculties</Typography>
-            <List disablePadding sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
-              {dynamicFacultyLinks.map(link => (
-                <ListItemButton key={link.path} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(255,255,255,0.03)', '&:last-child': { borderBottom: 'none' } }}>
-                  <FiberManualRecordIcon sx={{ fontSize: '6px', color: location.pathname === link.path ? '#4caf50' : '#444', mr: 2, filter: location.pathname === link.path ? 'drop-shadow(0 0 4px #4caf50)' : 'none' }} />
-                  <ListItemText primary={link.label} primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === link.path ? '#fff' : '#d4d4d8' }} />
-                  <ChevronRightIcon sx={{ fontSize: '16px', color: '#444' }} />
-                </ListItemButton>
-              ))}
-            </List>
-          </Collapse>
+          {MENU_CONFIG.showFaculties && (
+            <Collapse in={activeMobileTab === 'facs'} timeout="auto" unmountOnExit>
+              <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Faculties</Typography>
+              <List disablePadding sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
+                {dynamicFacultyLinks.map(link => (
+                  <ListItemButton key={link.path} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(255,255,255,0.03)', '&:last-child': { borderBottom: 'none' } }}>
+                    <FiberManualRecordIcon sx={{ fontSize: '6px', color: location.pathname === link.path ? '#4caf50' : '#444', mr: 2, filter: location.pathname === link.path ? 'drop-shadow(0 0 4px #4caf50)' : 'none' }} />
+                    <ListItemText primary={link.label} primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === link.path ? '#fff' : '#d4d4d8' }} />
+                    <ChevronRightIcon sx={{ fontSize: '16px', color: '#444' }} />
+                  </ListItemButton>
+                ))}
+              </List>
+            </Collapse>
+          )}
 
-          <Collapse in={activeMobileTab === 'prog'} timeout="auto" unmountOnExit>
-            <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Programmes</Typography>
-            <Box sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', p: 1.5, border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
-              {dynamicProgrammeGroups.map(group => (
-                <Box key={group.title} sx={{ mb: 2, '&:last-child': { mb: 0 } }}>
-                  <Typography sx={{ color: '#4caf50', fontSize: '0.65rem', fontWeight: 800, px: 1, mb: 0.8, textTransform: 'uppercase', letterSpacing: '0.8px' }}>{group.title}</Typography>
-                  {group.items.map(item => (
-                    <ListItemButton key={item.label} onClick={() => handleNavigate(item.path)} sx={{ borderRadius: '10px', py: 1, px: 1.5, mb: 0.2 }}>
-                      <FiberManualRecordIcon sx={{ fontSize: '5px', color: location.pathname === item.path ? '#4caf50' : '#444', mr: 2, filter: location.pathname === item.path ? 'drop-shadow(0 0 4px #4caf50)' : 'none' }} />
-                      <ListItemText primary={item.label} primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === item.path ? '#fff' : '#a1a1aa' }} />
-                      <ChevronRightIcon sx={{ fontSize: '14px', color: '#333' }} />
-                    </ListItemButton>
-                  ))}
-                </Box>
-              ))}
-            </Box>
-          </Collapse>
+          {MENU_CONFIG.showProgrammes && (
+            <Collapse in={activeMobileTab === 'prog'} timeout="auto" unmountOnExit>
+              <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Programmes</Typography>
+              <Box sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', p: 1.5, border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
+                {dynamicProgrammeGroups.map(group => (
+                  <Box key={group.title} sx={{ mb: 2, '&:last-child': { mb: 0 } }}>
+                    <Typography sx={{ 
+                      color: '#4caf50', fontSize: '0.65rem', fontWeight: 800, px: 1, mb: 0.8, 
+                      textTransform: 'uppercase', letterSpacing: '0.8px',
+                      textAlign: 'right' 
+                    }}>
+                      {group.title}
+                    </Typography>
+                    {group.items.map(item => (
+                      <ListItemButton key={item.label} onClick={() => handleNavigate(item.path)} sx={{ 
+                        borderRadius: '10px', py: 1, px: 1.5, mb: 0.2, 
+                        textAlign: 'right', 
+                        justifyContent: 'flex-end'
+                      }}>
+                        <ListItemText 
+                          primary={item.label} 
+                          primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} 
+                          sx={{ color: location.pathname === item.path ? '#fff' : '#a1a1aa' }} 
+                        />
+                        <FiberManualRecordIcon sx={{ 
+                          fontSize: '5px', 
+                          color: location.pathname === item.path ? '#4caf50' : '#444', 
+                          ml: 2, 
+                          filter: location.pathname === item.path ? 'drop-shadow(0 0 4px #4caf50)' : 'none' 
+                        }} />
+                      </ListItemButton>
+                    ))}
+                  </Box>
+                ))}
+              </Box>
+            </Collapse>
+          )}
 
-          <Collapse in={activeMobileTab === 'story'} timeout="auto" unmountOnExit>
-            <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Overview</Typography>
-            <List disablePadding sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
-              {ourStoryLinks.map(link => (
-                <ListItemButton key={link.label} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(255,255,255,0.03)', '&:last-child': { borderBottom: 'none' } }}>
-                  <ListItemText primary={link.label} primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === link.path ? '#fff' : '#d4d4d8' }} />
-                  <ChevronRightIcon sx={{ fontSize: '16px', color: '#444' }} />
-                </ListItemButton>
-              ))}
-            </List>
-          </Collapse>
+          {MENU_CONFIG.showOurStory && (
+            <Collapse in={activeMobileTab === 'story'} timeout="auto" unmountOnExit>
+              <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Overview</Typography>
+              <List disablePadding sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
+                {ourStoryLinks.map(link => (
+                  <ListItemButton key={link.label} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(255,255,255,0.03)', '&:last-child': { borderBottom: 'none' } }}>
+                    <ListItemText primary={link.label} primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === link.path ? '#fff' : '#d4d4d8' }} />
+                    <ChevronRightIcon sx={{ fontSize: '16px', color: '#444' }} />
+                  </ListItemButton>
+                ))}
+              </List>
+            </Collapse>
+          )}
 
-          {!activeMobileTab && (
+          {!activeMobileTab && MENU_CONFIG.showRegisterBtn && (
             <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <Button
                 fullWidth variant="contained" startIcon={<AppRegistrationIcon sx={{ fontSize: '20px' }} />}
