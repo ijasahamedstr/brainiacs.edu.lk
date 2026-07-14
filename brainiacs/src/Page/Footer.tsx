@@ -176,7 +176,7 @@ const Footer: React.FC = () => {
                 <br />
                 Tel: +94 76 095 93 85,
                 <br />
-                No. 100, Alivanniyar Road, Sammanthurai,
+                No. 29, Ampara Road, Sammanthurai,
                 <br />
                 Office Sammanthurai - SriLanka
               </Typography>
