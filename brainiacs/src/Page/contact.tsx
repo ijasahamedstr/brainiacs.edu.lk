@@ -152,11 +152,13 @@ const Contactus: React.FC = () => {
           }}
         >
           <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d11540.909987823437!2d51.48831968853685!3d25.2854359747585!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3e45c478d10619a9%3A0x608e9a111a68e826!2sDoha%2C%20Qatar!5e0!3m2!1sen!2ssa!4v1678284567890"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31654.85944097561!2d81.76772117614749!3d7.369872508325106!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae53f7ba4dbf747%3A0x7f72f3443a3ceb19!2sBrainiacs%20Campus!5e0!3m2!1sen!2slk!4v1784025375369!5m2!1sen!2slk"
+            width="600"
+            height="450"
             style={{ border: 0, width: "100%", height: "100%" }}
             allowFullScreen
             loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
+            referrerPolicy="strict-origin-when-cross-origin"
             title="Google Map Location"
           ></iframe>
         </Box>
@@ -181,7 +183,7 @@ const Contactus: React.FC = () => {
                 animation: `${fadeInUp} 0.8s ease-out forwards`, // Slide up animation
               }}
             >
-              <SectionTitle>WELCOME TO Brainiacs Campus</SectionTitle>
+              <SectionTitle>WELCOME TO BRAINIACS CAMPUS</SectionTitle>
               
               {/* Reduced font sizes here */}
               <Typography
