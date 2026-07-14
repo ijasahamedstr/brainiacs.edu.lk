@@ -286,21 +286,21 @@ export default function Navbar() {
         <Container maxWidth="xl" sx={{ pointerEvents: 'auto' }}>
           <StyledToolbar isScrolled={isScrolled}>
 
-            {/* LOGO CONTAINER */}
+            {/* LOGO CONTAINER - Updated with white background */}
             <Box
               onClick={() => handleNavigate('/')}
               sx={{
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                bgcolor: 'rgba(255, 255, 255, 0.03)',
+                bgcolor: '#ffffff', // Changed to solid white
                 padding: '6px 12px',
                 borderRadius: '12px',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.08)',
+                  bgcolor: '#f5f5f5', // Slight light-gray tint on hover
                   transform: 'translateY(-2px)',
                   boxShadow: '0 6px 25px rgba(0, 0, 0, 0.25)',
                 }
@@ -312,7 +312,6 @@ export default function Navbar() {
                 sx={{
                   height: { xs: '26px', md: '45px' },
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0px 2px 6px rgba(0,0,0,0.6))'
                 }}
               />
             </Box>
