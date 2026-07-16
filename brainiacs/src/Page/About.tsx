@@ -1,12 +1,70 @@
-import React from "react";
-import { Box, Container, Typography } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, Container, Typography, CircularProgress } from "@mui/material";
+
+// Initialize your environment variable
+// The fallback || "" ensures the app doesn't break if the .env file is missing
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
+// 1. Define the shape of the data coming from your Mongoose schema
+interface DBStat {
+  _id: string;
+  title: string;
+  count: number;
+  suffix: string;
+  isActive: boolean;
+}
+
+// 2. Define the shape of the data your UI expects
+interface StepUI {
+  number: string;
+  label: string;
+}
 
 const About: React.FC = () => {
-  const steps = [
+  // Fallback data just in case the API goes down
+  const defaultSteps: StepUI[] = [
     { number: "1700+", label: "current students" },
     { number: "800+", label: "alumni" },
     { number: "1000+", label: "annual enrollments" },
   ];
+
+  const [steps, setSteps] = useState<StepUI[]>(defaultSteps);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch from your Express backend using the environment variable
+        // Added a timestamp query parameter to strictly bypass browser caching
+        const response = await fetch(`${API_BASE_URL}/api/member-count?t=${new Date().getTime()}`); 
+        
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const data: DBStat[] = await response.json();
+
+        // Filter out inactive stats and format them for the UI
+        const formattedData = data
+          .filter(stat => stat.isActive)
+          .map(stat => ({
+            number: `${stat.count}${stat.suffix || ''}`,
+            label: stat.title
+          }));
+
+        // Only override the defaults if the database actually returned active stats
+        if (formattedData.length > 0) {
+          setSteps(formattedData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats, using default data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   return (
     <Container
@@ -17,7 +75,6 @@ const About: React.FC = () => {
       <Box
         sx={{
           width: "100%",
-          // Fluid vertical padding
           py: { xs: 6, sm: 8, md: 12, lg: 15 },
           backgroundColor: { xs: "#FAFAFA", md: "transparent" },
           backgroundImage: {
@@ -35,8 +92,6 @@ const About: React.FC = () => {
         <Box
           sx={{
             width: "100%",
-            // Fluid horizontal padding using clamp for perfect scaling
-            // clamp(minimum, preferred, maximum)
             px: {
               xs: 2,
               sm: 4,
@@ -64,7 +119,6 @@ const About: React.FC = () => {
                 fontWeight: 800,
                 color: "#1a2b3c",
                 mb: 1,
-                // Fluid font size for header
                 fontSize: {
                   xs: "clamp(1.8rem, 5vw, 2.2rem)",
                   md: "clamp(2.2rem, 4vw, 3.2rem)"
@@ -119,78 +173,85 @@ const About: React.FC = () => {
               </Typography>
             </Box>
 
-            {/* Stats Cards - Optimized for Stacking */}
+            {/* Stats Cards */}
             <Box sx={{
               display: "flex",
               gap: { xs: 2, md: 2.5 },
-              flexDirection: { xs: "column", sm: "row" }, // Stack on small mobile
+              flexDirection: { xs: "column", sm: "row" },
               width: "100%",
+              minHeight: "80px", // Prevents layout shift while loading
             }}>
-              {steps.map((step, index) => (
-                <Box
-                  key={step.number}
-                  sx={{
-                    display: "flex",
-                    flexDirection: "column",
-                    p: { xs: 2, md: 2.5 },
-                    pl: { xs: 3, md: 3 },
-                    flex: 1,
-                    borderRadius: "16px",
-                    background: "rgba(255, 255, 255, 0.98)",
-                    border: "1px solid #e0e0e0",
-                    position: "relative",
-                    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                    animation: `fadeInUp 0.6s ease forwards ${index * 0.15}s`,
-                    opacity: 0,
-                    "&:hover": {
-                      borderColor: "#35b74b",
-                      transform: { xs: "translateY(-5px)", md: "translateX(12px)" },
-                      boxShadow: "0 15px 35px rgba(0,0,0,0.08)",
-                      "& .left-accent": { height: "100%", background: "#35b74b" }
-                    },
-                  }}
-                >
-                  <Box
-                    className="left-accent"
-                    sx={{
-                      position: "absolute",
-                      left: 0,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      width: "6px",
-                      height: "45%",
-                      bgcolor: "#0a5397",
-                      transition: "0.4s ease",
-                    }}
-                  />
-                  <Typography
-                    sx={{
-                      fontFamily: '"Montserrat", sans-serif',
-                      fontSize: { xs: "1.3rem", md: "1.5rem" },
-                      fontWeight: 900,
-                      color: "#0a5397",
-                      mb: 0.2,
-                    }}
-                  >
-                    {step.number}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontFamily: '"Montserrat", sans-serif',
-                      fontSize: { xs: "0.75rem", md: "0.85rem" },
-                      fontWeight: 700,
-                      color: "#1a2b3c",
-                      textTransform: "capitalize",
-                    }}
-                  >
-                    {step.label}
-                  </Typography>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', py: 2 }}>
+                  <CircularProgress size={30} sx={{ color: "#0a5397" }} />
                 </Box>
-              ))}
+              ) : (
+                steps.map((step, index) => (
+                  <Box
+                    key={index} 
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      p: { xs: 2, md: 2.5 },
+                      pl: { xs: 3, md: 3 },
+                      flex: 1,
+                      borderRadius: "16px",
+                      background: "rgba(255, 255, 255, 0.98)",
+                      border: "1px solid #e0e0e0",
+                      position: "relative",
+                      transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                      animation: `fadeInUp 0.6s ease forwards ${index * 0.15}s`,
+                      opacity: 0,
+                      "&:hover": {
+                        borderColor: "#35b74b",
+                        transform: { xs: "translateY(-5px)", md: "translateX(12px)" },
+                        boxShadow: "0 15px 35px rgba(0,0,0,0.08)",
+                        "& .left-accent": { height: "100%", background: "#35b74b" }
+                      },
+                    }}
+                  >
+                    <Box
+                      className="left-accent"
+                      sx={{
+                        position: "absolute",
+                        left: 0,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        width: "6px",
+                        height: "45%",
+                        bgcolor: "#0a5397",
+                        transition: "0.4s ease",
+                      }}
+                    />
+                    <Typography
+                      sx={{
+                        fontFamily: '"Montserrat", sans-serif',
+                        fontSize: { xs: "1.3rem", md: "1.5rem" },
+                        fontWeight: 900,
+                        color: "#0a5397",
+                        mb: 0.2,
+                      }}
+                    >
+                      {step.number}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: '"Montserrat", sans-serif',
+                        fontSize: { xs: "0.75rem", md: "0.85rem" },
+                        fontWeight: 700,
+                        color: "#1a2b3c",
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {step.label}
+                    </Typography>
+                  </Box>
+                ))
+              )}
             </Box>
           </Box>
 
-          {/* RIGHT COLUMN: Hidden on mobile, visible on LG+ */}
+          {/* RIGHT COLUMN */}
           <Box
             sx={{
               flex: { lg: "0 1 40%" },
@@ -198,7 +259,6 @@ const About: React.FC = () => {
               justifyContent: "center",
             }}
           >
-            {/* You can place an image or illustration here */}
           </Box>
         </Box>
       </Box>

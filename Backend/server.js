@@ -24,9 +24,13 @@ import CourseCategoryrouter from "./routes/CourseCategory.route.js";
 import Courserouter from "./routes/Course.route.js";
 import askOurStudentRouter from "./routes/AskOurStudent.route.js";
 import IntakeRouter from "./routes/Intake.route.js";
+import MemberCountRouter from "./routes/membercount.route.js";
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+app.set('etag', false);
+
 // 3. CORS setup
 app.use(cors({
   origin: ["https://brainiacs-edu-lk-cyan.vercel.app"],
@@ -78,6 +82,8 @@ app.use('/api/course', Courserouter);
 app.use('/api/AskOurStudent', askOurStudentRouter);
 
 app.use('/api/Intake',IntakeRouter);
+
+app.use('/api/member-count', MemberCountRouter);
 
 // 7. Start server
 const port = 8001;

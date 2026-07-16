@@ -6,6 +6,7 @@ import { Box, Typography } from "@mui/material";
 interface StudentLifeEvent {
   _id: string;
   name: string;
+  date?: string; // <-- Added custom date field to the interface
   descriptions: string[];
   imageUrls: string[];
   createdAt: string;
@@ -71,7 +72,8 @@ const Studentlife: React.FC = () => {
     }
   }, [isLoading]);
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "No date";
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-US', options);
   };
@@ -331,7 +333,8 @@ const Studentlife: React.FC = () => {
                               d="M8 7V3m8 4V3m-9 8h10m-12 8h14a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
                             />
                           </svg>
-                          {formatDate(event.createdAt)}
+                          {/* Prefer the custom date, fallback to createdAt if custom date isn't set yet */}
+                          {formatDate(event.date || event.createdAt)}
                         </p>
                       </div>
                     </div>

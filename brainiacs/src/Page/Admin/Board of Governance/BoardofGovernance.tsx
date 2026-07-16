@@ -13,7 +13,7 @@ import {
   VisibilityOutlined, PersonAddOutlined, 
   BadgeOutlined, NavigateNext, HistoryToggleOffOutlined, 
   GridViewOutlined, ViewListOutlined, CheckCircleOutline, FileDownloadOutlined, 
-  CloseOutlined, WorkOutline
+  CloseOutlined, WorkOutline, ArrowUpward, ArrowDownward
 } from "@mui/icons-material";
 
 import CreateGovernance from "./CreateBoardofGovernance";
@@ -51,10 +51,11 @@ interface BoardMember {
   detailedBio: string;
   imageUrl: string; 
   createdAt: string;
+  order: number; // Added for custom sorting
 }
 
 const BoardGovernanceManager = () => {
-  // 1. STATE MANAGEMENT (HYDRATED INSTANTLY FROM CACHE)
+  // 1. STATE MANAGEMENT
   const [data, setData] = useState<BoardMember[]>(() => {
     const cached = localStorage.getItem(CACHE_KEY);
     return cached ? JSON.parse(cached) : [];
@@ -75,9 +76,9 @@ const BoardGovernanceManager = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" as "success" | "error" });
-  const rowsPerPage = viewMode === "grid" ? 8 : 8; 
+  const rowsPerPage = 8; 
 
-  // 2. SILENT BACKGROUND FETCH LOGIC (NO LOADING SPINNERS)
+  // 2. BACKGROUND FETCH LOGIC
   const fetchData = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/board-governance`);
@@ -87,7 +88,6 @@ const BoardGovernanceManager = () => {
       const newDataString = JSON.stringify(fetchedData);
       const currentCache = localStorage.getItem(CACHE_KEY);
 
-      // ONLY update state and trigger a re-render if database differs from cache
       if (currentCache !== newDataString) {
         setData(fetchedData);
         localStorage.setItem(CACHE_KEY, newDataString);
@@ -99,8 +99,7 @@ const BoardGovernanceManager = () => {
   }, []);
 
   useEffect(() => {
-    fetchData(); // Fetch immediately on mount
-    // Aggressive silent polling every 3 seconds
+    fetchData(); 
     const interval = setInterval(() => fetchData(), 3000); 
     return () => clearInterval(interval);
   }, [fetchData]);
@@ -109,16 +108,54 @@ const BoardGovernanceManager = () => {
     setPage(1);
   }, [viewMode, searchQuery]);
 
-  // 3. OPTIMISTIC ACTION HANDLERS
+  // 3. ACTION HANDLERS
   const triggerSnackbar = (message: string, severity: "success" | "error") => {
     setSnackbar({ open: true, message, severity });
+  };
+
+  const handleReorder = async (currentIndex: number, direction: 'up' | 'down') => {
+    if (searchQuery) {
+        triggerSnackbar("Please clear search to reorder items.", "error");
+        return;
+    }
+
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= data.length) return;
+
+    const newData = [...filteredData];
+    
+    // Swap elements
+    const temp = newData[currentIndex];
+    newData[currentIndex] = newData[newIndex];
+    newData[newIndex] = temp;
+
+    // Update order property
+    const updatedItems = newData.map((item, index) => ({ ...item, order: index }));
+
+    // Optimistic Update
+    setData(updatedItems);
+    localStorage.setItem(CACHE_KEY, JSON.stringify(updatedItems));
+
+    // Server Sync
+    try {
+        const payload = updatedItems.map(item => ({ id: item._id, order: item.order }));
+        const res = await fetch(`${API_BASE_URL}/api/student-life/reorder`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ items: payload })
+        });
+        if (!res.ok) throw new Error();
+        setHistory(prev => [`Reordered Profile Directory`, ...prev].slice(0, 8));
+    } catch {
+        fetchData(); 
+        triggerSnackbar("Server sync failed. Restoring original order.", "error");
+    }
   };
 
   const handleDelete = async () => {
     const targetId = deleteDialog.id;
     if (!targetId) return;
 
-    // Optimistically update UI instantly
     const updated = data.filter(s => s._id !== targetId);
     setData(updated);
     localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
@@ -131,13 +168,12 @@ const BoardGovernanceManager = () => {
       triggerSnackbar("Board member successfully purged", "success");
       setHistory(prev => [`Deleted Record ${targetId.substring(0,6)}`, ...prev].slice(0, 8));
     } catch {
-      fetchData(); // Revert if failed
+      fetchData(); 
       triggerSnackbar("Deletion failed on server. Restoring.", "error");
     }
   };
 
   const handleBulkDelete = async () => {
-    // Optimistically update UI instantly
     const updated = data.filter(s => !selected.includes(s._id));
     setData(updated);
     localStorage.setItem(CACHE_KEY, JSON.stringify(updated));
@@ -148,7 +184,6 @@ const BoardGovernanceManager = () => {
     triggerSnackbar(`Purging ${count} board members...`, "success");
     setHistory(prev => [`Bulk deleted ${count} records`, ...prev].slice(0, 8));
 
-    // Map through and delete on server
     deletedIds.forEach(async (id) => {
         try {
             await fetch(`${API_BASE_URL}/api/board-governance/${id}`, { method: "DELETE" });
@@ -182,6 +217,7 @@ const BoardGovernanceManager = () => {
     setSelected(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
+  // UPDATED: Sort by order instead of createdAt
   const filteredData = useMemo(() => {
     return data.filter((item) => {
       const searchLower = searchQuery.toLowerCase();
@@ -189,7 +225,7 @@ const BoardGovernanceManager = () => {
         item.name.toLowerCase().includes(searchLower) ||
         item.jobDescription.toLowerCase().includes(searchLower)
       );
-    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }).sort((a, b) => (a.order || 0) - (b.order || 0));
   }, [data, searchQuery]);
 
   const paginatedData = useMemo(() => {
@@ -310,54 +346,89 @@ const BoardGovernanceManager = () => {
                             </TableRow>
                             </TableHead>
                             <TableBody>
-                                {paginatedData.map((item) => (
-                                <TableRow key={item._id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <TableCell padding="checkbox">
-                                    <Checkbox size="small" checked={selected.includes(item._id)} onChange={() => handleSelectOne(item._id)} />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Avatar src={item.imageUrl} variant="rounded" sx={{ width: 50, height: 50, borderRadius: "10px", border: '1px solid #E2E8F0', bgcolor: "#F1F5F9" }}>
-                                           {item.name.charAt(0)}
-                                        </Avatar>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography sx={{ fontWeight: 800, color: PRIMARY_TEAL, fontSize: "0.85rem", lineHeight: 1.2 }}>{item.name}</Typography>
-                                        <Typography variant="caption" sx={{ color: "#94A3B8", fontWeight: 600 }}>ID: {item._id.slice(-6).toUpperCase()}</Typography>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Stack direction="row" spacing={1} alignItems="center">
-                                            <WorkOutline sx={{ fontSize: 16, color: "#64748B" }} />
-                                            <Typography sx={{ fontSize: "0.8rem", color: "#475569", fontWeight: 600 }}>
-                                                {item.jobDescription}
+                                {paginatedData.map((item, index) => {
+                                  // Calculate absolute index for reordering logic
+                                  const absoluteIndex = (page - 1) * rowsPerPage + index;
+
+                                  return (
+                                    <TableRow key={item._id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                        <TableCell padding="checkbox">
+                                        <Checkbox size="small" checked={selected.includes(item._id)} onChange={() => handleSelectOne(item._id)} />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Avatar src={item.imageUrl} variant="rounded" sx={{ width: 50, height: 50, borderRadius: "10px", border: '1px solid #E2E8F0', bgcolor: "#F1F5F9" }}>
+                                                {item.name.charAt(0)}
+                                            </Avatar>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography sx={{ fontWeight: 800, color: PRIMARY_TEAL, fontSize: "0.85rem", lineHeight: 1.2 }}>{item.name}</Typography>
+                                            <Typography variant="caption" sx={{ color: "#94A3B8", fontWeight: 600 }}>ID: {item._id.slice(-6).toUpperCase()}</Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Stack direction="row" spacing={1} alignItems="center">
+                                                <WorkOutline sx={{ fontSize: 16, color: "#64748B" }} />
+                                                <Typography sx={{ fontSize: "0.8rem", color: "#475569", fontWeight: 600 }}>
+                                                    {item.jobDescription}
+                                                </Typography>
+                                            </Stack>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography sx={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 600 }}>
+                                                {new Date(item.createdAt).toLocaleDateString()}
                                             </Typography>
+                                        </TableCell>
+                                        
+                                        {/* UPDATED: Reordering and Action Controls */}
+                                        <TableCell align="right" sx={{ pr: 2 }}>
+                                        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                                            
+                                            <Tooltip title="Move Up">
+                                                <span>
+                                                    <IconButton 
+                                                        size="small" 
+                                                        disabled={searchQuery.length > 0 || absoluteIndex === 0}
+                                                        onClick={() => handleReorder(absoluteIndex, 'up')} 
+                                                        sx={{ color: PRIMARY_TEAL }}
+                                                    >
+                                                        <ArrowUpward fontSize="small" />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+                                            <Tooltip title="Move Down">
+                                                <span>
+                                                    <IconButton 
+                                                        size="small" 
+                                                        disabled={searchQuery.length > 0 || absoluteIndex === filteredData.length - 1}
+                                                        onClick={() => handleReorder(absoluteIndex, 'down')} 
+                                                        sx={{ color: PRIMARY_TEAL }}
+                                                    >
+                                                        <ArrowDownward fontSize="small" />
+                                                    </IconButton>
+                                                </span>
+                                            </Tooltip>
+
+                                            <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
+
+                                            <Tooltip title="Preview Bio">
+                                                <IconButton size="small" onClick={() => setViewingItem(item)} sx={{ color: PRIMARY_TEAL, bgcolor: '#F1F5F9', '&:hover': { bgcolor: '#E2E8F0' } }}>
+                                                <VisibilityOutlined fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Edit Profile">
+                                                <IconButton size="small" onClick={() => setEditingItem(item)} sx={{ color: "#475569", bgcolor: '#F1F5F9', '&:hover': { bgcolor: '#E2E8F0' } }}>
+                                                <EditOutlined fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
+                                            <Tooltip title="Delete Record">
+                                                <IconButton size="small" onClick={() => setDeleteDialog({ open: true, id: item._id })} sx={{ color: "#EF4444", bgcolor: '#FEF2F2', '&:hover': { bgcolor: '#FEE2E2' } }}>
+                                                <DeleteOutline fontSize="small" />
+                                                </IconButton>
+                                            </Tooltip>
                                         </Stack>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Typography sx={{ fontSize: "0.75rem", color: "#64748B", fontWeight: 600 }}>
-                                            {new Date(item.createdAt).toLocaleDateString()}
-                                        </Typography>
-                                    </TableCell>
-                                    <TableCell align="right" sx={{ pr: 2 }}>
-                                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                        <Tooltip title="Preview Bio">
-                                            <IconButton size="small" onClick={() => setViewingItem(item)} sx={{ color: PRIMARY_TEAL, bgcolor: '#F1F5F9', '&:hover': { bgcolor: '#E2E8F0' } }}>
-                                            <VisibilityOutlined fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Edit Profile">
-                                            <IconButton size="small" onClick={() => setEditingItem(item)} sx={{ color: "#475569", bgcolor: '#F1F5F9', '&:hover': { bgcolor: '#E2E8F0' } }}>
-                                            <EditOutlined fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                        <Tooltip title="Delete Record">
-                                            <IconButton size="small" onClick={() => setDeleteDialog({ open: true, id: item._id })} sx={{ color: "#EF4444", bgcolor: '#FEF2F2', '&:hover': { bgcolor: '#FEE2E2' } }}>
-                                            <DeleteOutline fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Stack>
-                                    </TableCell>
-                                </TableRow>
-                                ))}
+                                        </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
                             </TableBody>
                         </Table>
                         </TableContainer>
@@ -416,7 +487,7 @@ const BoardGovernanceManager = () => {
             </AnimatePresence>
         </Box>
 
-        {/* --- FOOTER & PAGINATION (Unified for both views) --- */}
+        {/* --- FOOTER & PAGINATION --- */}
         <Paper elevation={0} sx={{ mt: 3, p: 2, borderRadius: "12px", border: "1px solid #E2E8F0", display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
             <Stack direction="row" spacing={3} alignItems="center">
                 <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: "#64748B" }}>

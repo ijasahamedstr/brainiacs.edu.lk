@@ -43,6 +43,7 @@ import CourseCategoryManager from "../Academic courses/Course Category/CourseCat
 import CourseManager from "../Academic courses/All Courses/All Courses";
 import AskOurStudent from "../Ask Our Student/AskOurStudent";
 import IntakePeriod from "../Intake Period/IntakePeriod";
+import MemberCountDirectory from "../MemberCount/MemberCount";
 
 // CONSTANTS
 const DRAWER_WIDTH = 290;
@@ -131,6 +132,7 @@ const Dashboard: React.FC = () => {
         { text: "Our Team", icon: <GroupsOutlined /> },
         { text: "Partners", icon: <HandshakeOutlined /> },
         { text: "Intake Period", icon: <IntakePeriod /> },
+        { text: "Member Count", icon: <MemberCountDirectory /> },
       ]
     },
     { text: "Home Slider", icon: <ViewCarouselOutlined /> },
@@ -180,6 +182,7 @@ const Dashboard: React.FC = () => {
       case "Course Category": return <CourseCategoryManager />;
       case "Ask Our Student": return <AskOurStudent />;
       case "Intake Period": return <IntakePeriod />;
+      case "Member Count": return <MemberCountDirectory />;
       
       // ACADEMIC STAFFS MODULE
         return (

@@ -10,7 +10,7 @@ import {
   PhotoSizeSelectActualOutlined, SaveOutlined,
   DeleteOutline, AddOutlined, DescriptionOutlined,
   InfoOutlined, CollectionsOutlined, HideImageOutlined,
-  CloudUploadOutlined
+  CloudUploadOutlined, EventOutlined 
 } from "@mui/icons-material";
 
 // Configuration
@@ -80,6 +80,7 @@ const compressImage = (file: File): Promise<File> => {
 interface StudentLife {
   _id: string;
   name: string;
+  date?: string; 
   descriptions: string[];
   imageUrls: string[];
 }
@@ -89,9 +90,24 @@ interface UpdateProps {
   onBack: () => void;
 }
 
+// Helper function to strip MongoDB ISO timestamp down to YYYY-MM-DD
+const formatDateForInput = (dateString?: string) => {
+  if (!dateString) return "";
+  try {
+    const dateObj = new Date(dateString);
+    // Ensure it's a valid date before slicing
+    if (isNaN(dateObj.getTime())) return dateString.substring(0, 10); 
+    return dateObj.toISOString().split('T')[0];
+  } catch (error) {
+    return dateString.substring(0, 10);
+  }
+};
+
 const UpdateStudentLife = ({ itemData, onBack }: UpdateProps) => {
   // --- STATE ---
   const [name, setName] = useState(itemData.name);
+  // Safely format the date so the HTML input doesn't break
+  const [date, setDate] = useState(formatDateForInput(itemData.date)); 
   const [descriptions, setDescriptions] = useState<string[]>(itemData.descriptions.length ? itemData.descriptions : [""]);
   const [imageUrls, setImageUrls] = useState<string[]>(itemData.imageUrls.length ? itemData.imageUrls : [""]);
   
@@ -209,8 +225,8 @@ const UpdateStudentLife = ({ itemData, onBack }: UpdateProps) => {
     const validDescs = descriptions.filter(d => d.trim() !== "");
     const validUrls = imageUrls.filter(u => u.trim() !== "");
 
-    if (!name || validDescs.length === 0 || validUrls.length === 0) {
-      setSnackbar({ open: true, message: "Please ensure the name, at least one description, and one image are provided.", type: "error" });
+    if (!name || !date || validDescs.length === 0 || validUrls.length === 0) {
+      setSnackbar({ open: true, message: "Please ensure the name, date, at least one description, and one image are provided.", type: "error" });
       return;
     }
     setConfirmDialogOpen(true);
@@ -225,6 +241,7 @@ const UpdateStudentLife = ({ itemData, onBack }: UpdateProps) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           name, 
+          date, 
           descriptions: descriptions.filter(d => d.trim() !== ""), 
           imageUrls: imageUrls.filter(u => u.trim() !== "") 
         }),
@@ -251,7 +268,7 @@ const UpdateStudentLife = ({ itemData, onBack }: UpdateProps) => {
       bgcolor: "#FFF",
       "& fieldset": { borderColor: borderColor },
       "&:hover fieldset": { borderColor: primaryTeal },
-      "&.Mui-focused fieldset": { borderColor: primaryTeal },
+      "&.Mui-focused fieldset": { borderColor: primaryTeal }
     },
     "& .MuiInputBase-input": {
       fontFamily: primaryFont, // Real-time typing font
@@ -298,6 +315,19 @@ const UpdateStudentLife = ({ itemData, onBack }: UpdateProps) => {
             <TextField 
               fullWidth value={name} onChange={(e) => setName(e.target.value)} 
               InputProps={{ startAdornment: <TitleOutlined sx={{ mr: 1, color: "#94A3B8" }} /> }}
+              sx={inputStyle}
+            />
+          </Box>
+
+          {/* DATE (Now properly formatted and editable!) */}
+          <Box>
+            <InputLabel sx={labelStyle}>DATE</InputLabel>
+            <TextField 
+              fullWidth 
+              type="date"
+              value={date} 
+              onChange={(e) => setDate(e.target.value)} 
+              InputProps={{ startAdornment: <EventOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} /> }}
               sx={inputStyle}
             />
           </Box>

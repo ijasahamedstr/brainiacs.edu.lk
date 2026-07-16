@@ -1,14 +1,25 @@
 import express from 'express';
-import { createStudentLife, deleteStudentLife, getStudentLife, updateStudentLife } from '../controller/StudentLife.Controller.js';
+import { 
+  createStudentLife, 
+  deleteStudentLife, 
+  getStudentLife, 
+  updateStudentLife,
+  reorderStudentLife,
+  importStudentLife
+} from '../controller/StudentLife.Controller.js';
 
 const StudentLiferouter = express.Router();
 
-// Base path: /api/student-life
+// Base paths
 StudentLiferouter.route('/')
   .get(getStudentLife)
   .post(createStudentLife);
 
-// ID specific path: /api/student-life/:id
+// Bulk Operations (Must be placed before ID routes)
+StudentLiferouter.post('/import', importStudentLife);
+StudentLiferouter.put('/reorder', reorderStudentLife);
+
+// ID specific paths
 StudentLiferouter.route('/:id')
   .put(updateStudentLife)
   .delete(deleteStudentLife);

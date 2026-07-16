@@ -38,7 +38,6 @@ import SchoolIcon from '@mui/icons-material/School';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import InfoIcon from '@mui/icons-material/Info';
 import PhoneIcon from '@mui/icons-material/Phone';
-import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 /* --- Environment Variables --- */
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -181,7 +180,6 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [activeMenu, setActiveMenu] = React.useState<string | null>(null);
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [activeMobileTab, setActiveMobileTab] = React.useState<string | null>(null);
   const [dynamicFacultyLinks, setDynamicFacultyLinks] = React.useState<NavLink[]>([]);
   const [dynamicProgrammeGroups, setDynamicProgrammeGroups] = React.useState<ProgrammeGroup[]>([]);
@@ -189,6 +187,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const isDesktop = useMediaQuery('(min-width:1200px)');
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   React.useEffect(() => {
     const fetchFaculties = async () => {
@@ -286,7 +285,7 @@ export default function Navbar() {
         <Container maxWidth="xl" sx={{ pointerEvents: 'auto' }}>
           <StyledToolbar isScrolled={isScrolled}>
 
-            {/* LOGO CONTAINER - Updated with white background */}
+            {/* LOGO CONTAINER */}
             <Box
               onClick={() => handleNavigate('/')}
               sx={{
@@ -353,7 +352,7 @@ export default function Navbar() {
                   ))}
                 </Menu>
 
-                {/* MEGA MENU: Programmes (RIGHT ALIGNED TEXT) */}
+                {/* MEGA MENU: Programmes (LEFT ALIGNED TEXT) */}
                 {MENU_CONFIG.showProgrammes && (
                   <Popper 
                     open={activeMenu === 'prog'} 
@@ -373,7 +372,7 @@ export default function Navbar() {
                           borderRadius: '20px', 
                           border: '1px solid rgba(255,255,255,0.1)', 
                           display: 'flex', 
-                          justifyContent: 'center', 
+                          justifyContent: 'flex-start', // Justified to flex-start
                           boxShadow: '0 20px 50px rgba(0,0,0,0.8)', 
                           maxHeight: '70vh', 
                           overflowY: 'auto'
@@ -382,14 +381,14 @@ export default function Navbar() {
                             if (anchorEl && anchorEl.contains(e.target as Node)) return;
                             handleCloseMenu();
                           }}>
-                            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', maxWidth: '1000px', justifyContent: 'center' }}>
+                            <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', maxWidth: '1000px', justifyContent: 'flex-start' }}>
                               {dynamicProgrammeGroups.length > 0 ? (
                                 dynamicProgrammeGroups.map((group) => (
                                   <Box key={group.title} sx={{ minWidth: 220, mb: 1 }}>
                                     <Typography sx={{
                                       color: '#fff', fontWeight: 800, fontSize: '0.7rem', mb: 1.5, textTransform: 'uppercase',
                                       letterSpacing: '1px', pb: 1, borderBottom: '1px solid rgba(255,255,255,0.1)',
-                                      textAlign: 'right'
+                                      textAlign: 'left' // Aligned left
                                     }}>
                                       {group.title}
                                     </Typography>
@@ -398,9 +397,9 @@ export default function Navbar() {
                                         key={item.label} onClick={() => handleNavigate(item.path)}
                                         sx={{
                                           p: 1, borderRadius: '8px', mb: 0.5, transition: 'all 0.2s',
-                                          textAlign: 'right', 
-                                          justifyContent: 'flex-end', 
-                                          '&:hover': { bgcolor: alpha('#4caf50', 0.1), transform: 'translateX(-4px)' } 
+                                          textAlign: 'left', // Aligned left
+                                          justifyContent: 'flex-start', // Aligned left
+                                          '&:hover': { bgcolor: alpha('#4caf50', 0.1), transform: 'translateX(4px)' } 
                                         }}
                                       >
                                         <ListItemText
@@ -410,12 +409,7 @@ export default function Navbar() {
                                             color: location.pathname === item.path ? '#4caf50' : '#a1a1aa',
                                           }}
                                         />
-                                        <FiberManualRecordIcon sx={{ 
-                                          fontSize: '5px', 
-                                          color: location.pathname === item.path ? '#4caf50' : '#444', 
-                                          ml: 2, 
-                                          filter: location.pathname === item.path ? 'drop-shadow(0 0 4px #4caf50)' : 'none' 
-                                        }} />
+                                        {/* Removed FiberManualRecordIcon bullet point completely */}
                                       </ListItemButton>
                                     ))}
                                   </Box>
@@ -567,7 +561,6 @@ export default function Navbar() {
               <List disablePadding sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
                 {dynamicFacultyLinks.map(link => (
                   <ListItemButton key={link.path} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(255,255,255,0.03)', '&:last-child': { borderBottom: 'none' } }}>
-                    <FiberManualRecordIcon sx={{ fontSize: '6px', color: location.pathname === link.path ? '#4caf50' : '#444', mr: 2, filter: location.pathname === link.path ? 'drop-shadow(0 0 4px #4caf50)' : 'none' }} />
                     <ListItemText primary={link.label} primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === link.path ? '#fff' : '#d4d4d8' }} />
                     <ChevronRightIcon sx={{ fontSize: '16px', color: '#444' }} />
                   </ListItemButton>
@@ -585,27 +578,22 @@ export default function Navbar() {
                     <Typography sx={{ 
                       color: '#4caf50', fontSize: '0.65rem', fontWeight: 800, px: 1, mb: 0.8, 
                       textTransform: 'uppercase', letterSpacing: '0.8px',
-                      textAlign: 'right' 
+                      textAlign: 'left' // Aligned left
                     }}>
                       {group.title}
                     </Typography>
                     {group.items.map(item => (
                       <ListItemButton key={item.label} onClick={() => handleNavigate(item.path)} sx={{ 
                         borderRadius: '10px', py: 1, px: 1.5, mb: 0.2, 
-                        textAlign: 'right', 
-                        justifyContent: 'flex-end'
+                        textAlign: 'left', // Aligned left
+                        justifyContent: 'flex-start' // Aligned left
                       }}>
                         <ListItemText 
                           primary={item.label} 
                           primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} 
                           sx={{ color: location.pathname === item.path ? '#fff' : '#a1a1aa' }} 
                         />
-                        <FiberManualRecordIcon sx={{ 
-                          fontSize: '5px', 
-                          color: location.pathname === item.path ? '#4caf50' : '#444', 
-                          ml: 2, 
-                          filter: location.pathname === item.path ? 'drop-shadow(0 0 4px #4caf50)' : 'none' 
-                        }} />
+                        {/* Removed FiberManualRecordIcon bullet point completely */}
                       </ListItemButton>
                     ))}
                   </Box>

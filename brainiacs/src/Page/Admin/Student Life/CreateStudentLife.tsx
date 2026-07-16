@@ -10,7 +10,7 @@ import {
   PhotoSizeSelectActualOutlined,
   DeleteOutline, AddOutlined, DescriptionOutlined,
   CollectionsOutlined, HideImageOutlined,
-  CloudUploadOutlined
+  CloudUploadOutlined, EventOutlined // Added EventOutlined for the date field
 } from "@mui/icons-material";
 
 // Configuration
@@ -84,6 +84,7 @@ interface AddProps {
 const CreateStudentLife = ({ onBack }: AddProps) => {
   // --- STATE ---
   const [name, setName] = useState("");
+  const [date, setDate] = useState(""); // <-- Added Date State
   const [descriptions, setDescriptions] = useState<string[]>([""]); 
   const [imageUrls, setImageUrls] = useState<string[]>([""]);       
   
@@ -200,8 +201,9 @@ const CreateStudentLife = ({ onBack }: AddProps) => {
     const validDescs = descriptions.filter(d => d.trim() !== "");
     const validUrls = imageUrls.filter(u => u.trim() !== "");
 
-    if (!name || validDescs.length === 0 || validUrls.length === 0) {
-      setSnackbar({ open: true, message: "Please fill in Name, at least one Description, and one Image.", type: "error" });
+    // <-- Added check for 'date'
+    if (!name || !date || validDescs.length === 0 || validUrls.length === 0) {
+      setSnackbar({ open: true, message: "Please fill in Name, Date, at least one Description, and one Image.", type: "error" });
       return;
     }
     setConfirmDialogOpen(true);
@@ -216,6 +218,7 @@ const CreateStudentLife = ({ onBack }: AddProps) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           name, 
+          date, // <-- Added date to API payload
           descriptions: descriptions.filter(d => d.trim() !== ""), 
           imageUrls: imageUrls.filter(u => u.trim() !== "") 
         }),
@@ -238,7 +241,7 @@ const CreateStudentLife = ({ onBack }: AddProps) => {
       fontWeight: 500,
       bgcolor: "#FFF",
       "& fieldset": { borderColor: borderColor },
-      "&:hover fieldset": { borderColor: primaryTeal },
+      "& :hover fieldset": { borderColor: primaryTeal },
       "&.Mui-focused fieldset": { borderColor: primaryTeal },
     },
     "& .MuiInputBase-input::placeholder": { fontFamily: primaryFont, fontSize: "0.8rem" }
@@ -279,6 +282,19 @@ const CreateStudentLife = ({ onBack }: AddProps) => {
               fullWidth value={name} onChange={(e) => setName(e.target.value)} 
               placeholder="e.g. Student Clubs & Governance" 
               InputProps={{ startAdornment: <TitleOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} /> }}
+              sx={inputStyle}
+            />
+          </Box>
+
+          {/* DATE */}
+          <Box>
+            <InputLabel sx={labelStyle}>DATE</InputLabel>
+            <TextField 
+              fullWidth 
+              type="date"
+              value={date} 
+              onChange={(e) => setDate(e.target.value)} 
+              InputProps={{ startAdornment: <EventOutlined sx={{ mr: 1, color: "#94A3B8", fontSize: 20 }} /> }}
               sx={inputStyle}
             />
           </Box>
