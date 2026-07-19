@@ -14,6 +14,8 @@ import {
   Email, 
   Phone, 
   WhatsApp,
+  LinkedIn,
+  YouTube
 } from "@mui/icons-material";
 
 const Footer: React.FC = () => {
@@ -21,11 +23,13 @@ const Footer: React.FC = () => {
   const brandBlue = "#0a5397"; 
 
   const socialLinks = [
-    { icon: <Phone fontSize="small" />, link: "tel:+974502260200", color: "#4caf50" },
-    { icon: <WhatsApp fontSize="small" />, link: "https://wa.me/974502260200", color: "#25D366" },
-    { icon: <Email fontSize="small" />, link: "mailto:info@almtcqatar.com", color: "#EA4335" },
-    { icon: <Facebook fontSize="small" />, link: "https://facebook.com", color: "#1877F2" },
-    { icon: <Instagram fontSize="small" />, link: "https://instagram.com", color: "#E4405F" },
+    { icon: <Phone fontSize="small" />, link: "tel:+94760959385", color: "#4caf50" },
+    { icon: <WhatsApp fontSize="small" />, link: "https://wa.me/94760959385", color: "#25D366" },
+    { icon: <Email fontSize="small" />, link: "mailto:info@brainiacs.edu.lk", color: "#EA4335" },
+    { icon: <Facebook fontSize="small" />, link: "https://www.facebook.com/profile.php?id=61564872388676", color: "#1877F2" },
+    { icon: <Instagram fontSize="small" />, link: "https://www.instagram.com/brainiacs_campus", color: "#E4405F" },
+    { icon: <LinkedIn fontSize="small" />, link: "https://www.linkedin.com/company/brainiacs-campus/?lipi=urn%3Ali%3Apage%3Ad_flagship3_search_srp_all%3BQiHcjGfBQU6Bs6h05dssPA%3D%3D", color: "#0A66C2" },
+    { icon: <YouTube fontSize="small" />, link: "https://www.youtube.com/@BrainiacsCampus", color: "#FF0000" },
   ];
 
   return (
@@ -74,7 +78,7 @@ const Footer: React.FC = () => {
               <Box
                 component="img"
                 src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
-                alt="MTC Logo"
+                alt="Brainiacs Campus Logo"
                 sx={{
                   width: 180,
                   height: "auto",
@@ -111,7 +115,12 @@ const Footer: React.FC = () => {
                 Connect with us
               </Typography>
 
-              <Stack direction="row" spacing={2}>
+              {/* Reduced size for icons and spacing */}
+              <Stack 
+                direction="row" 
+                spacing={{ xs: 0.5, sm: 1 }} 
+                sx={{ justifyContent: { xs: "center", md: "flex-start" } }}
+              >
                 {socialLinks.map((item, index) => (
                   <IconButton
                     key={index}
@@ -121,9 +130,9 @@ const Footer: React.FC = () => {
                       color: "#333",
                       backgroundColor: "rgba(255,255,255,0.6)",
                       backdropFilter: "blur(4px)",
-                      borderRadius: "14px",
-                      width: 44,
-                      height: 44,
+                      borderRadius: { xs: "8px", sm: "12px" }, // Adjusted border radius for smaller icons
+                      width: { xs: 28, sm: 32 }, // Distinctly smaller icon diameters
+                      height: { xs: 28, sm: 32 },
                       boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                       border: "1px solid rgba(255,255,255,0.8)",
                       transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
