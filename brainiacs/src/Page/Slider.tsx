@@ -17,13 +17,12 @@ function Slider() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  // 1. Unified Breakpoint Logic
+  // 1. Mobile cutoff strictly set at 768px (Standard iPad/Tablet breakpoint)
   useEffect(() => {
     const handleResize = () => {
-      // Logic covering mobile & small tablets based on your list
       setIsMobile(window.innerWidth <= 768); 
     };
-    handleResize();
+    handleResize(); 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -43,7 +42,7 @@ function Slider() {
     fetchData();
   }, [fetchData]);
 
-  // 2. Preload Logic
+  // 2. Preload Logic to prevent flickering when switching slides
   useEffect(() => {
     if (data.length > 0) {
       data.forEach((item) => {
@@ -60,9 +59,9 @@ function Slider() {
       <style>
         {`
           :root {
-            /* Fluid height using aspect ratio is better for 4K/TVs and Mobile */
-            --slider-aspect-ratio: 21 / 9; 
-            --slider-mobile-aspect-ratio: 4 / 5;
+            /* EXACT ASPECT RATIOS MATCHING YOUR IMAGE SIZES */
+            --slider-ratio-mobile: 1080 / 1350; /* Mobile image: 1080px by 1350px */
+            --slider-ratio-desktop: 1920 / 820; /* Desktop image: 1920px by 820px */
           }
 
           .slider-wrapper {
@@ -71,42 +70,56 @@ function Slider() {
             background-color: #000;
           }
 
-          .carousel-item {
-            /* This ensures the slider grows perfectly with screen width */
-            width: 100%;
-            aspect-ratio: var(--slider-aspect-ratio);
-            min-height: 300px; /* Prevents it from disappearing */
-            max-height: 85vh;   /* Prevents it from being too tall on huge monitors */
-          }
-
           .slide-image-container {
             width: 100%;
             height: 100%;
-            background-size: cover;
-            background-position: center;
+            background-size: cover; 
+            background-position: center center;
             background-repeat: no-repeat;
             transition: transform 0.5s ease;
           }
 
-          /* Handle Mobile Resolutions (iPhone 16, Samsung S series, etc) */
-          @media (max-width: 768px) {
+          /* -------------------------------------------
+             ALL DEVICE RESPONSIVE CSS
+             ------------------------------------------- */
+             
+          /* 1. Mobile Phones (Up to 768px) */
+          .carousel-item {
+            width: 100%;
+            aspect-ratio: var(--slider-ratio-mobile);
+            max-height: 85vh; /* Prevents the image from being taller than the screen on long phones */
+          }
+
+          /* 2. Tablets & Laptops (769px to 1439px) */
+          @media (min-width: 769px) {
             .carousel-item {
-              aspect-ratio: var(--slider-mobile-aspect-ratio);
-              max-height: 70vh;
+              aspect-ratio: var(--slider-ratio-desktop);
+              min-height: 350px; /* Prevents the ultra-wide banner from looking too thin on iPads */
             }
           }
 
-          /* Custom Arrows & Indicators */
+          /* 3. Large Monitors & 4K Displays (1440px and up) */
+          @media (min-width: 1440px) {
+            .carousel-item {
+              aspect-ratio: var(--slider-ratio-desktop);
+              max-height: 820px; /* Hard caps the height at your image's exact pixel height (820px) so it doesn't get pixelated */
+            }
+          }
+
+          /* -------------------------------------------
+             CONTROLS & INDICATORS 
+             ------------------------------------------- */
+             
           .carousel-control-prev, .carousel-control-next {
             width: 5%;
             opacity: 0.8;
           }
 
           .nav-circle {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.4);
             backdrop-filter: blur(4px);
             border-radius: 50%;
-            padding: 10px;
+            padding: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -114,21 +127,27 @@ function Slider() {
           }
 
           .nav-circle:hover {
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.8);
             transform: scale(1.1);
           }
 
+          .carousel-indicators {
+            margin-bottom: 1.5rem;
+          }
+
           .carousel-indicators [data-bs-target] {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border-radius: 50%;
             margin: 0 6px;
             border: 2px solid #fff;
             background-color: transparent;
+            transition: background-color 0.3s ease;
           }
 
           .carousel-indicators .active {
             background-color: #fff;
+            transform: scale(1.2);
           }
         `}
       </style>
@@ -152,15 +171,16 @@ function Slider() {
         }
       >
         {data.map((slide) => {
+          // Serves correct image dynamically based on screen size
           const activeImage = isMobile && slide.mobileImageUrl ? slide.mobileImageUrl : slide.imageUrl;
 
           return (
             <Carousel.Item key={slide._id}>
               <a 
                 href={slide.redirectLink || '#'} 
-                target={slide.redirectLink ? "_blank" : "_self"} 
+                target={slide.redirectLink && slide.redirectLink !== '#' ? "_blank" : "_self"} 
                 rel="noreferrer"
-                style={{ textDecoration: 'none' }}
+                style={{ textDecoration: 'none', display: 'block', width: '100%', height: '100%' }}
               >
                 <div 
                   className="slide-image-container"
