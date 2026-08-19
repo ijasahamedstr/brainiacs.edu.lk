@@ -71,7 +71,7 @@ const Aboutus: React.FC = () => {
       >
         <Box
           component="img"
-          src="https://lyceumcampus.lk/assets/website/about/about-us-lyceum-campus.webp"
+          src="https://i.ibb.co/Ldv8ML63/Chat-GPT-Image-Aug-19-2026-01-14-07-PM.png"
           alt="Brainiacs Campus About Us Banner"
           sx={{
             width: "100%",

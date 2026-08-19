@@ -21,7 +21,9 @@ import {
   BottomNavigation,
   BottomNavigationAction,
   Stack,
-  Collapse
+  Collapse,
+  LinearProgress,
+  Fade
 } from '@mui/material';
 import { styled, alpha } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -44,18 +46,29 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 /* =====================================================================
    MENU CONFIGURATION SETTINGS (MANUAL ON/OFF SWITCHES)
-   Change these to 'false' to manually hide a menu item globally.
 ===================================================================== */
 const MENU_CONFIG = {
   showHome: true,
   showOurStory: true,
-  showFaculties: false, // Set to false to hide Faculties menu
+  showFaculties: false, 
   showProgrammes: true,
   showStudentLife: true,
   showNews: true,
   showContact: true,
   showLoginBtn: true,
   showRegisterBtn: true,
+};
+
+/* =====================================================================
+   HEADER COLOR CONFIGURATION (CLEAN & CLEAR THEME)
+===================================================================== */
+const HEADER_COLORS = {
+  topBg: 'transparent',
+  scrolledBg: 'rgba(255, 255, 255, 0.95)', // Clear frosted white glass on scroll
+  topText: '#000000',                      // Black text on load
+  scrolledText: '#1a1a1a',                 // Dark text on scroll
+  activeText: '#4caf50',                   // Green active indicator
+  border: 'rgba(0, 0, 0, 0.08)'            // Clean subtle borders
 };
 /* ===================================================================== */
 
@@ -87,29 +100,41 @@ interface ProgrammeGroup {
 }
 
 /* --- Styled Components --- */
-const StyledToolbar = styled(Toolbar)<{ isScrolled?: boolean }>(({ theme, isScrolled }) => ({
-  backgroundColor: isScrolled ? 'rgba(10, 10, 10, 0.85)' : 'rgba(18, 18, 18, 0.4)',
-  borderRadius: '20px',
-  marginTop: isScrolled ? '12px' : '20px',
-  padding: '6px 16px 6px 24px !important',
-  backdropFilter: 'blur(30px)',
-  WebkitBackdropFilter: 'blur(30px)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  boxShadow: isScrolled ? '0 10px 40px rgba(0,0,0,0.5)' : 'none',
-  transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-  [theme.breakpoints.down('lg')]: { borderRadius: '16px', marginTop: '10px' },
+
+// Fixed Header Island/Pill with Color Transition & Increased Width & More Top Space
+const StyledToolbar = styled(Toolbar, {
+  shouldForwardProp: (prop) => prop !== 'isScrolled',
+})<{ isScrolled?: boolean }>(({ theme, isScrolled }) => ({
+  backgroundColor: isScrolled ? HEADER_COLORS.scrolledBg : HEADER_COLORS.topBg,
+  borderRadius: isScrolled ? '50px' : '0px',
+  marginTop: isScrolled ? '32px' : '0px', // <--- INCREASED TOP SPACE HERE (was 16px)
+  padding: isScrolled ? '8px 30px !important' : '20px 24px !important',
+  backdropFilter: isScrolled ? 'blur(20px)' : 'none',
+  WebkitBackdropFilter: isScrolled ? 'blur(20px)' : 'none',
+  border: isScrolled ? `1px solid ${HEADER_COLORS.border}` : '1px solid transparent',
+  boxShadow: isScrolled ? '0 10px 30px rgba(0,0,0,0.05)' : 'none',
+  transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+  maxWidth: isScrolled ? '1450px' : '100%',
+  margin: '0 auto',
+  [theme.breakpoints.down('lg')]: { 
+    borderRadius: isScrolled ? '30px' : '0px', 
+    maxWidth: isScrolled ? '98%' : '100%',
+    marginTop: isScrolled ? '24px' : '0px', // <--- INCREASED TOP SPACE FOR LAPTOP/TABLET (was 12px)
+  },
   [theme.breakpoints.down('sm')]: {
-    borderRadius: isScrolled ? '16px' : '20px',
-    marginTop: isScrolled ? '8px' : '12px',
-    backgroundColor: isScrolled ? 'rgba(10, 10, 10, 0.95)' : 'rgba(18, 18, 18, 0.6)',
+    padding: isScrolled ? '6px 16px !important' : '12px 16px !important',
+    backgroundColor: isScrolled ? 'rgba(255, 255, 255, 0.98)' : 'transparent',
+    marginTop: isScrolled ? '16px' : '0px', // Added extra spacing for mobile scrolling
   }
 }));
 
-const NavButton = styled(Button)<{ active?: boolean }>(({ active }) => ({
-  color: active ? '#4caf50' : '#e4e4e7',
+const NavButton = styled(Button, {
+  shouldForwardProp: (prop) => prop !== 'active' && prop !== 'isScrolled',
+})<{ active?: boolean; isScrolled?: boolean }>(({ active, isScrolled }) => ({
+  color: active ? HEADER_COLORS.activeText : (isScrolled ? HEADER_COLORS.scrolledText : HEADER_COLORS.topText),
   textTransform: 'none',
   fontSize: '0.82rem',
-  fontWeight: 600,
+  fontWeight: 700,
   fontFamily: '"Montserrat", sans-serif',
   margin: '0 4px',
   padding: '8px 14px',
@@ -123,13 +148,13 @@ const NavButton = styled(Button)<{ active?: boolean }>(({ active }) => ({
     transform: active ? 'translateX(-50%) scaleX(1)' : 'translateX(-50%) scaleX(0)',
     width: '40%',
     height: '3px',
-    backgroundColor: '#4caf50',
+    backgroundColor: HEADER_COLORS.activeText,
     borderRadius: '4px',
     transition: 'transform 0.3s ease',
-    boxShadow: active ? '0 0 10px rgba(76, 175, 80, 0.6)' : 'none',
+    boxShadow: active ? `0 2px 8px ${alpha(HEADER_COLORS.activeText, 0.4)}` : 'none',
   },
   '&:hover': {
-    color: '#4caf50',
+    color: HEADER_COLORS.activeText,
     backgroundColor: 'transparent',
     transform: 'translateY(-2px)',
     '&::after': { transform: 'translateX(-50%) scaleX(1)' }
@@ -137,7 +162,7 @@ const NavButton = styled(Button)<{ active?: boolean }>(({ active }) => ({
 }));
 
 const GradientBtn = styled(Button)(() => ({
-  borderRadius: '12px',
+  borderRadius: '24px', 
   textTransform: 'none',
   fontSize: '0.78rem',
   fontWeight: 700,
@@ -148,7 +173,7 @@ const GradientBtn = styled(Button)(() => ({
   color: '#fff',
   boxShadow: '0 4px 15px rgba(76, 175, 80, 0.3)',
   transition: 'all 0.3s ease',
-  border: '1px solid rgba(255,255,255,0.1)',
+  border: 'none',
   '&:hover': {
     background: 'linear-gradient(135deg, #66bb6a 0%, #388e3c 100%)',
     boxShadow: '0 6px 20px rgba(76, 175, 80, 0.5)',
@@ -162,13 +187,13 @@ const FloatingBottomNav = styled(Paper)(({ theme }) => ({
   left: 16,
   right: 16,
   zIndex: 1400,
-  borderRadius: '20px',
+  borderRadius: '24px',
   overflow: 'hidden',
-  backgroundColor: 'rgba(15, 15, 15, 0.85)',
+  backgroundColor: 'rgba(255, 255, 255, 0.95)',
   backdropFilter: 'blur(30px)',
   WebkitBackdropFilter: 'blur(30px)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+  border: `1px solid ${HEADER_COLORS.border}`,
+  boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
   paddingBottom: 'env(safe-area-inset-bottom)',
   display: 'block',
   [theme.breakpoints.up('lg')]: {
@@ -184,14 +209,36 @@ export default function Navbar() {
   const [dynamicFacultyLinks, setDynamicFacultyLinks] = React.useState<NavLink[]>([]);
   const [dynamicProgrammeGroups, setDynamicProgrammeGroups] = React.useState<ProgrammeGroup[]>([]);
 
+  const [loadProgress, setLoadProgress] = React.useState(0);
+  const [isLoading, setIsLoading] = React.useState(true);
+
   const navigate = useNavigate();
   const location = useLocation();
   const isDesktop = useMediaQuery('(min-width:1200px)');
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   React.useEffect(() => {
+    setIsLoading(true);
+    setLoadProgress(0);
+    
+    const timer = setInterval(() => {
+      setLoadProgress((oldProgress) => {
+        if (oldProgress === 100) {
+          clearInterval(timer);
+          setTimeout(() => setIsLoading(false), 400); 
+          return 100;
+        }
+        const diff = Math.random() * 25;
+        return Math.min(oldProgress + diff, 100);
+      });
+    }, 200);
+
+    return () => clearInterval(timer);
+  }, [location.pathname]);
+
+  React.useEffect(() => {
     const fetchFaculties = async () => {
-      if (!MENU_CONFIG.showFaculties) return; // Skip fetch if disabled
+      if (!MENU_CONFIG.showFaculties) return; 
       try {
         const response = await fetch(`${API_BASE_URL}/api/faculties`);
         if (!response.ok) throw new Error('Failed to fetch faculties');
@@ -207,7 +254,7 @@ export default function Navbar() {
     };
 
     const fetchProgrammes = async () => {
-      if (!MENU_CONFIG.showProgrammes) return; // Skip fetch if disabled
+      if (!MENU_CONFIG.showProgrammes) return; 
       try {
         const response = await fetch(`${API_BASE_URL}/api/course`);
         if (!response.ok) throw new Error('Failed to fetch courses');
@@ -269,39 +316,56 @@ export default function Navbar() {
     );
   };
 
-  // Filter Mobile Grid Menu based on Config
-  const MOBILE_GRID_MENU = [
-    ...(MENU_CONFIG.showHome ? [{ text: 'Home', icon: <HomeIcon sx={{ fontSize: '22px' }} />, path: '/' }] : []),
-    ...(MENU_CONFIG.showFaculties ? [{ text: 'Faculties', icon: <SchoolIcon sx={{ fontSize: '22px' }} />, action: 'facs' }] : []),
-    ...(MENU_CONFIG.showProgrammes ? [{ text: 'Programmes', icon: <MenuBookIcon sx={{ fontSize: '22px' }} />, action: 'prog' }] : []),
-    ...(MENU_CONFIG.showOurStory ? [{ text: 'Our Story', icon: <InfoIcon sx={{ fontSize: '22px' }} />, action: 'story' }] : []),
-    ...(MENU_CONFIG.showContact ? [{ text: 'Contact', icon: <PhoneIcon sx={{ fontSize: '22px' }} />, path: '/contact' }] : []),
-    ...(MENU_CONFIG.showLoginBtn ? [{ text: 'Login', icon: <LoginIcon sx={{ fontSize: '22px' }} />, path: '/login' }] : []),
+  const MOBILE_QUICK_LINKS = [
+    ...(MENU_CONFIG.showHome ? [{ text: 'Home', icon: <HomeIcon sx={{ fontSize: '18px' }} />, path: '/' }] : []),
+    ...(MENU_CONFIG.showFaculties ? [{ text: 'Faculties', icon: <SchoolIcon sx={{ fontSize: '18px' }} />, action: 'facs' }] : []),
+    ...(MENU_CONFIG.showProgrammes ? [{ text: 'Programmes', icon: <MenuBookIcon sx={{ fontSize: '18px' }} />, action: 'prog' }] : []),
+    ...(MENU_CONFIG.showOurStory ? [{ text: 'Our Story', icon: <InfoIcon sx={{ fontSize: '18px' }} />, action: 'story' }] : []),
+    ...(MENU_CONFIG.showContact ? [{ text: 'Contact', icon: <PhoneIcon sx={{ fontSize: '18px' }} />, path: '/contact' }] : []),
+    ...(MENU_CONFIG.showLoginBtn ? [{ text: 'Login', icon: <LoginIcon sx={{ fontSize: '18px' }} />, path: '/login' }] : []),
   ];
 
   return (
     <React.Fragment>
+      {/* Top Page Loading Bar */}
+      <Fade in={isLoading} unmountOnExit>
+        <LinearProgress 
+          variant="determinate" 
+          value={loadProgress} 
+          sx={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            height: '3px',
+            backgroundColor: 'transparent',
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: '#4caf50',
+              boxShadow: '0 0 12px #4caf50',
+            }
+          }}
+        />
+      </Fade>
+
       <AppBar position="fixed" sx={{ bgcolor: 'transparent', boxShadow: 'none', zIndex: 1300, pointerEvents: 'none' }}>
         <Container maxWidth="xl" sx={{ pointerEvents: 'auto' }}>
           <StyledToolbar isScrolled={isScrolled}>
 
-            {/* LOGO CONTAINER */}
+            {/* LOGO CONTAINER - Clear Style */}
             <Box
               onClick={() => handleNavigate('/')}
               sx={{
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                bgcolor: '#ffffff', // Changed to solid white
-                padding: '6px 12px',
-                borderRadius: '12px',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                padding: '6px 14px',
+                borderRadius: '20px', 
+                bgcolor: isScrolled ? 'transparent' : 'rgba(255, 255, 255, 0.4)',
+                backdropFilter: isScrolled ? 'none' : 'blur(10px)',
                 transition: 'all 0.3s ease',
                 '&:hover': {
-                  bgcolor: '#f5f5f5', // Slight light-gray tint on hover
                   transform: 'translateY(-2px)',
-                  boxShadow: '0 6px 25px rgba(0, 0, 0, 0.25)',
                 }
               }}
             >
@@ -309,7 +373,7 @@ export default function Navbar() {
                 component="img"
                 src="https://i.ibb.co/6RkH7J3r/Small-scaled.webp"
                 sx={{
-                  height: { xs: '26px', md: '45px' },
+                  height: { xs: '26px', md: '40px' },
                   objectFit: 'contain',
                 }}
               />
@@ -317,22 +381,22 @@ export default function Navbar() {
 
             {isDesktop ? (
               <Box sx={{ display: 'flex', flexGrow: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
-                {MENU_CONFIG.showHome && <NavButton active={location.pathname === '/'} onClick={() => handleNavigate('/')}>Home</NavButton>}
-                {MENU_CONFIG.showOurStory && <NavButton active={isDropdownActive(ourStoryLinks)} onClick={(e) => handleOpenMenu(e, 'story')} endIcon={<ArrowDropDownIcon />}>Our Story</NavButton>}
-                {MENU_CONFIG.showFaculties && <NavButton active={isDropdownActive(dynamicFacultyLinks)} onClick={(e) => handleOpenMenu(e, 'facs')} endIcon={<ArrowDropDownIcon />}>Faculties</NavButton>}
-                {MENU_CONFIG.showProgrammes && <NavButton active={isMegaMenuActive()} onClick={(e) => handleOpenMenu(e, 'prog')} endIcon={<ArrowDropDownIcon />}>Programmes</NavButton>}
-                {MENU_CONFIG.showStudentLife && <NavButton active={location.pathname === '/student-life'} onClick={() => handleNavigate('/student-life')}>Student Life</NavButton>}
-                {MENU_CONFIG.showNews && <NavButton active={location.pathname === '/News'} onClick={() => handleNavigate('/News')}>News</NavButton>}
-                {MENU_CONFIG.showContact && <NavButton active={location.pathname === '/contact'} onClick={() => handleNavigate('/contact')}>Contact</NavButton>}
+                {MENU_CONFIG.showHome && <NavButton isScrolled={isScrolled} active={location.pathname === '/'} onClick={() => handleNavigate('/')}>Home</NavButton>}
+                {MENU_CONFIG.showOurStory && <NavButton isScrolled={isScrolled} active={isDropdownActive(ourStoryLinks)} onClick={(e) => handleOpenMenu(e, 'story')} endIcon={<ArrowDropDownIcon />}>Our Story</NavButton>}
+                {MENU_CONFIG.showFaculties && <NavButton isScrolled={isScrolled} active={isDropdownActive(dynamicFacultyLinks)} onClick={(e) => handleOpenMenu(e, 'facs')} endIcon={<ArrowDropDownIcon />}>Faculties</NavButton>}
+                {MENU_CONFIG.showProgrammes && <NavButton isScrolled={isScrolled} active={isMegaMenuActive()} onClick={(e) => handleOpenMenu(e, 'prog')} endIcon={<ArrowDropDownIcon />}>Programmes</NavButton>}
+                {MENU_CONFIG.showStudentLife && <NavButton isScrolled={isScrolled} active={location.pathname === '/student-life'} onClick={() => handleNavigate('/student-life')}>Student Life</NavButton>}
+                {MENU_CONFIG.showNews && <NavButton isScrolled={isScrolled} active={location.pathname === '/News'} onClick={() => handleNavigate('/News')}>News</NavButton>}
+                {MENU_CONFIG.showContact && <NavButton isScrolled={isScrolled} active={location.pathname === '/contact'} onClick={() => handleNavigate('/contact')}>Contact</NavButton>}
 
-                {/* Dropdown Menu (Our Story, Faculties) */}
+                {/* Dropdown Menu - Clear White Glass Style */}
                 <Menu
                   anchorEl={anchorEl} open={activeMenu === 'story' || activeMenu === 'facs'} onClose={handleCloseMenu} sx={{ zIndex: 1600 }}
                   PaperProps={{
                     sx: {
-                      bgcolor: 'rgba(15,15,15,0.95)', backdropFilter: 'blur(20px)', color: '#fff', mt: 2,
-                      borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', minWidth: 220,
-                      boxShadow: '0 20px 40px rgba(0,0,0,0.8)'
+                      bgcolor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(20px)', color: '#1a1a1a', mt: 2,
+                      borderRadius: '16px', border: `1px solid ${HEADER_COLORS.border}`, minWidth: 220,
+                      boxShadow: '0 15px 35px rgba(0,0,0,0.1)'
                     }
                   }}
                 >
@@ -341,10 +405,10 @@ export default function Navbar() {
                       key={link.path} onClick={() => handleNavigate(link.path)}
                       sx={{
                         fontSize: '0.85rem', py: 1.4, px: 3, my: 0.5, mx: 1, borderRadius: '8px',
-                        color: location.pathname === link.path ? '#4caf50' : '#e4e4e7', fontFamily: 'Montserrat', fontWeight: 600,
-                        borderLeft: location.pathname === link.path ? '3px solid #4caf50' : '3px solid transparent',
+                        color: location.pathname === link.path ? HEADER_COLORS.activeText : '#333333', fontFamily: 'Montserrat', fontWeight: 600,
+                        borderLeft: location.pathname === link.path ? `3px solid ${HEADER_COLORS.activeText}` : '3px solid transparent',
                         transition: 'all 0.2s',
-                        '&:hover': { color: '#4caf50', bgcolor: alpha('#4caf50', 0.1), borderLeft: '3px solid #4caf50', transform: 'translateX(4px)' }
+                        '&:hover': { color: HEADER_COLORS.activeText, bgcolor: alpha(HEADER_COLORS.activeText, 0.08), borderLeft: `3px solid ${HEADER_COLORS.activeText}`, transform: 'translateX(4px)' }
                       }}
                     >
                       {link.label}
@@ -352,7 +416,7 @@ export default function Navbar() {
                   ))}
                 </Menu>
 
-                {/* MEGA MENU: Programmes (LEFT ALIGNED TEXT) */}
+                {/* MEGA MENU: Programmes - Clear White Glass Style */}
                 {MENU_CONFIG.showProgrammes && (
                   <Popper 
                     open={activeMenu === 'prog'} 
@@ -366,14 +430,14 @@ export default function Navbar() {
                         <Paper sx={{
                           mt: 2, 
                           p: 3.5, 
-                          bgcolor: 'rgba(15,15,15,0.95)', 
+                          bgcolor: 'rgba(255,255,255,0.98)', 
                           backdropFilter: 'blur(20px)', 
-                          color: '#fff',
+                          color: '#1a1a1a',
                           borderRadius: '20px', 
-                          border: '1px solid rgba(255,255,255,0.1)', 
+                          border: `1px solid ${HEADER_COLORS.border}`, 
                           display: 'flex', 
-                          justifyContent: 'flex-start', // Justified to flex-start
-                          boxShadow: '0 20px 50px rgba(0,0,0,0.8)', 
+                          justifyContent: 'flex-start',
+                          boxShadow: '0 20px 40px rgba(0,0,0,0.1)', 
                           maxHeight: '70vh', 
                           overflowY: 'auto'
                         }}>
@@ -386,9 +450,8 @@ export default function Navbar() {
                                 dynamicProgrammeGroups.map((group) => (
                                   <Box key={group.title} sx={{ minWidth: 220, mb: 1 }}>
                                     <Typography sx={{
-                                      color: '#fff', fontWeight: 800, fontSize: '0.7rem', mb: 1.5, textTransform: 'uppercase',
-                                      letterSpacing: '1px', pb: 1, borderBottom: '1px solid rgba(255,255,255,0.1)',
-                                      textAlign: 'left' // Aligned left
+                                      color: '#1a1a1a', fontWeight: 800, fontSize: '0.7rem', mb: 1.5, textTransform: 'uppercase',
+                                      letterSpacing: '1px', pb: 1, borderBottom: '1px solid rgba(0,0,0,0.06)', textAlign: 'left'
                                     }}>
                                       {group.title}
                                     </Typography>
@@ -396,26 +459,23 @@ export default function Navbar() {
                                       <ListItemButton
                                         key={item.label} onClick={() => handleNavigate(item.path)}
                                         sx={{
-                                          p: 1, borderRadius: '8px', mb: 0.5, transition: 'all 0.2s',
-                                          textAlign: 'left', // Aligned left
-                                          justifyContent: 'flex-start', // Aligned left
-                                          '&:hover': { bgcolor: alpha('#4caf50', 0.1), transform: 'translateX(4px)' } 
+                                          p: 1, borderRadius: '8px', mb: 0.5, transition: 'all 0.2s', textAlign: 'left', justifyContent: 'flex-start',
+                                          '&:hover': { bgcolor: alpha(HEADER_COLORS.activeText, 0.08), transform: 'translateX(4px)' } 
                                         }}
                                       >
                                         <ListItemText
                                           primary={item.label}
                                           primaryTypographyProps={{
-                                            fontSize: '0.8rem', fontWeight: 500, fontFamily: 'Montserrat',
-                                            color: location.pathname === item.path ? '#4caf50' : '#a1a1aa',
+                                            fontSize: '0.8rem', fontWeight: 600, fontFamily: 'Montserrat',
+                                            color: location.pathname === item.path ? HEADER_COLORS.activeText : '#555555',
                                           }}
                                         />
-                                        {/* Removed FiberManualRecordIcon bullet point completely */}
                                       </ListItemButton>
                                     ))}
                                   </Box>
                                 ))
                               ) : (
-                                <Typography sx={{ color: '#71717a', fontSize: '0.8rem', p: 1 }}>Loading modules...</Typography>
+                                <Typography sx={{ color: '#777', fontSize: '0.8rem', p: 1 }}>Loading modules...</Typography>
                               )}
                             </Box>
                           </ClickAwayListener>
@@ -430,10 +490,17 @@ export default function Navbar() {
                     <Button
                       onClick={() => handleNavigate('/login')}
                       sx={{
-                        borderRadius: '12px', textTransform: 'none', fontSize: '0.78rem', fontWeight: 700,
+                        borderRadius: '24px', textTransform: 'none', fontSize: '0.78rem', fontWeight: 700,
                         fontFamily: '"Montserrat", sans-serif', padding: '8px 18px', height: '40px',
-                        bgcolor: 'rgba(255,255,255,0.03)', color: '#d4d4d8', border: '1px solid rgba(255,255,255,0.1)',
-                        transition: 'all 0.3s', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)', color: '#fff', transform: 'translateY(-2px)' }
+                        bgcolor: isScrolled ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.4)', 
+                        color: HEADER_COLORS.topText, 
+                        border: `1px solid ${isScrolled ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.15)'}`,
+                        backdropFilter: isScrolled ? 'none' : 'blur(5px)',
+                        transition: 'all 0.3s', 
+                        '&:hover': { 
+                          bgcolor: 'rgba(0,0,0,0.08)', 
+                          transform: 'translateY(-2px)' 
+                        }
                       }}
                     >
                       Login
@@ -447,12 +514,12 @@ export default function Navbar() {
             ) : (
               <Box sx={{ ml: 'auto', display: 'flex', gap: 1 }}>
                 {MENU_CONFIG.showRegisterBtn && (
-                  <IconButton onClick={() => handleNavigate('/register-online')} sx={{ background: 'linear-gradient(135deg, rgba(76,175,80,0.2) 0%, rgba(46,125,50,0.2) 100%)', color: '#4caf50', border: '1px solid rgba(76,175,80,0.3)', borderRadius: '12px', p: 1 }}>
+                  <IconButton onClick={() => handleNavigate('/register-online')} sx={{ background: 'linear-gradient(135deg, rgba(76,175,80,0.15) 0%, rgba(46,125,50,0.15) 100%)', color: HEADER_COLORS.activeText, border: '1px solid rgba(76,175,80,0.3)', borderRadius: '14px', p: 1 }}>
                     <AppRegistrationIcon sx={{ fontSize: '20px' }} />
                   </IconButton>
                 )}
                 {MENU_CONFIG.showLoginBtn && (
-                  <IconButton onClick={() => handleNavigate('/login')} sx={{ color: '#d4d4d8', bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', p: 1 }}>
+                  <IconButton onClick={() => handleNavigate('/login')} sx={{ color: HEADER_COLORS.topText, bgcolor: isScrolled ? 'rgba(0,0,0,0.03)' : 'rgba(255,255,255,0.5)', border: `1px solid ${isScrolled ? 'rgba(0,0,0,0.08)' : 'rgba(0,0,0,0.15)'}`, borderRadius: '14px', p: 1 }}>
                     <LoginIcon sx={{ fontSize: '20px' }} />
                   </IconButton>
                 )}
@@ -462,7 +529,7 @@ export default function Navbar() {
         </Container>
       </AppBar>
 
-      {/* --- Mobile App Floating Bottom Navigation --- */}
+      {/* --- Mobile App Floating Bottom Navigation (Light Theme) --- */}
       <FloatingBottomNav elevation={0}>
         <BottomNavigation
           showLabels
@@ -470,11 +537,11 @@ export default function Navbar() {
           sx={{
             bgcolor: 'transparent',
             height: '66px',
-            '& .MuiBottomNavigationAction-root': { color: '#71717a', minWidth: 'auto', padding: '8px 0 6px', transition: 'all 0.3s ease' },
+            '& .MuiBottomNavigationAction-root': { color: '#888', minWidth: 'auto', padding: '8px 0 6px', transition: 'all 0.3s ease' },
             '& .Mui-selected': {
-              color: '#4caf50',
+              color: HEADER_COLORS.activeText,
               transform: 'translateY(-4px)',
-              '& .MuiSvgIcon-root': { filter: 'drop-shadow(0 2px 6px rgba(76, 175, 80, 0.5))' }
+              '& .MuiSvgIcon-root': { filter: 'drop-shadow(0 2px 4px rgba(76, 175, 80, 0.3))' }
             },
             '& .MuiBottomNavigationAction-label': { fontFamily: 'Montserrat', fontWeight: 700, fontSize: '0.65rem', letterSpacing: '0.2px', marginTop: '4px' }
           }}
@@ -486,17 +553,16 @@ export default function Navbar() {
         </BottomNavigation>
       </FloatingBottomNav>
 
-      {/* Grid Menu Drawer */}
+      {/* Drawer - Clear Light Theme */}
       <Drawer
         anchor="bottom" open={drawerOpen} onClose={() => setDrawerOpen(false)} sx={{ zIndex: 1600 }}
         PaperProps={{
           sx: {
-            bgcolor: '#0a0a0a',
-            backgroundImage: 'radial-gradient(circle at 50% 0%, rgba(76, 175, 80, 0.1) 0%, transparent 50%)',
-            color: '#ffffff',
+            bgcolor: '#ffffff',
+            color: '#1a1a1a',
             borderTopLeftRadius: '28px', borderTopRightRadius: '28px',
-            borderTop: '1px solid rgba(255,255,255,0.1)',
-            boxShadow: '0 -15px 50px rgba(0,0,0,0.9)',
+            borderTop: `1px solid ${HEADER_COLORS.border}`,
+            boxShadow: '0 -15px 40px rgba(0,0,0,0.1)',
             maxHeight: '85vh',
             display: 'flex', flexDirection: 'column',
             pb: 'env(safe-area-inset-bottom)'
@@ -504,23 +570,30 @@ export default function Navbar() {
         }}
       >
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', pt: 2, pb: 1.5 }}>
-          <Box sx={{ width: 40, height: 5, bgcolor: '#333', borderRadius: '10px' }} />
+          <Box sx={{ width: 40, height: 5, bgcolor: '#e0e0e0', borderRadius: '10px' }} />
         </Box>
 
         <Box sx={{ px: 3, pb: 2, display: 'flex', flexDirection: 'column' }}>
           <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2.5}>
             <Box>
-              <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.3px', color: '#fff' }}>Navigation Center</Typography>
-              <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 600, fontSize: '0.7rem', color: '#4caf50', textTransform: 'uppercase', letterSpacing: '1px' }}>Brainiacs Digital</Typography>
+              <Typography sx={{ fontFamily: 'Montserrat', fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.3px', color: '#1a1a1a' }}>Navigation</Typography>
             </Box>
-            <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: '#a1a1aa', bgcolor: 'rgba(255,255,255,0.06)', width: 34, height: 34, borderRadius: '10px', backdropFilter: 'blur(10px)', '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' } }}>
+            <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: '#666', bgcolor: 'rgba(0,0,0,0.04)', width: 34, height: 34, borderRadius: '10px', '&:hover': { bgcolor: 'rgba(0,0,0,0.08)' } }}>
               <CloseOutlined sx={{ fontSize: '18px' }} />
             </IconButton>
           </Stack>
 
-          {/* Grid Layout */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1.5, mb: 2 }}>
-            {MOBILE_GRID_MENU.map((item) => {
+          {/* Flex Row Scrollable Chips - Light Theme */}
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1.5, 
+            mb: 2, 
+            overflowX: 'auto', 
+            pb: 1.5, 
+            WebkitOverflowScrolling: 'touch',
+            '&::-webkit-scrollbar': { display: 'none' } 
+          }}>
+            {MOBILE_QUICK_LINKS.map((item) => {
               const isActive = (item.path && location.pathname === item.path) || (item.action && activeMobileTab === item.action);
 
               return (
@@ -531,20 +604,20 @@ export default function Navbar() {
                     if (item.action) setActiveMobileTab(activeMobileTab === item.action ? null : item.action);
                   }}
                   sx={{
-                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                    p: 1.8, borderRadius: "14px", cursor: "pointer", textAlign: "center",
-                    background: isActive ? 'linear-gradient(145deg, rgba(76,175,80,0.15) 0%, rgba(76,175,80,0.02) 100%)' : 'rgba(20,20,20,0.6)',
-                    border: isActive ? `1px solid rgba(76,175,80,0.4)` : '1px solid rgba(255,255,255,0.04)',
-                    boxShadow: isActive ? '0 8px 20px rgba(76,175,80,0.1)' : 'none',
-                    backdropFilter: 'blur(10px)',
+                    display: "flex", alignItems: "center", gap: 1,
+                    px: 2, py: 1.2, borderRadius: "20px", cursor: "pointer", 
+                    whiteSpace: 'nowrap',
+                    background: isActive ? 'linear-gradient(145deg, rgba(76,175,80,0.12) 0%, rgba(76,175,80,0.04) 100%)' : '#f5f5f5',
+                    border: isActive ? `1px solid rgba(76,175,80,0.3)` : '1px solid transparent',
+                    boxShadow: isActive ? '0 4px 12px rgba(76,175,80,0.1)' : 'none',
                     transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                    "&:active": { transform: "scale(0.94)" }
+                    "&:active": { transform: "scale(0.96)" }
                   }}
                 >
-                  <Box sx={{ mb: 1, color: isActive ? '#4caf50' : '#888', filter: isActive ? 'drop-shadow(0 2px 4px rgba(76,175,80,0.4))' : 'none', transition: 'all 0.2s' }}>
+                  <Box sx={{ display: 'flex', color: isActive ? HEADER_COLORS.activeText : '#777', transition: 'all 0.2s' }}>
                     {item.icon}
                   </Box>
-                  <Typography sx={{ fontFamily: 'Montserrat', fontWeight: isActive ? 800 : 600, fontSize: "0.7rem", color: isActive ? "#fff" : "#a1a1aa", transition: 'all 0.2s' }}>
+                  <Typography sx={{ fontFamily: 'Montserrat', fontWeight: isActive ? 700 : 600, fontSize: "0.8rem", color: isActive ? HEADER_COLORS.activeText : "#555", transition: 'all 0.2s' }}>
                     {item.text}
                   </Typography>
                 </Paper>
@@ -553,16 +626,16 @@ export default function Navbar() {
           </Box>
         </Box>
 
-        {/* Dynamic Lists View with Animations */}
+        {/* Dynamic Lists View with Animations - Light Theme */}
         <Box sx={{ overflowY: 'auto', px: 3, pb: 8, flexGrow: 1 }}>
           {MENU_CONFIG.showFaculties && (
             <Collapse in={activeMobileTab === 'facs'} timeout="auto" unmountOnExit>
-              <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Faculties</Typography>
-              <List disablePadding sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
+              <Typography sx={{ color: '#888', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Faculties</Typography>
+              <List disablePadding sx={{ bgcolor: '#f9f9f9', borderRadius: '16px', border: `1px solid ${HEADER_COLORS.border}`, mb: 3 }}>
                 {dynamicFacultyLinks.map(link => (
-                  <ListItemButton key={link.path} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(255,255,255,0.03)', '&:last-child': { borderBottom: 'none' } }}>
-                    <ListItemText primary={link.label} primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === link.path ? '#fff' : '#d4d4d8' }} />
-                    <ChevronRightIcon sx={{ fontSize: '16px', color: '#444' }} />
+                  <ListItemButton key={link.path} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(0,0,0,0.04)', '&:last-child': { borderBottom: 'none' } }}>
+                    <ListItemText primary={link.label} primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === link.path ? HEADER_COLORS.activeText : '#333' }} />
+                    <ChevronRightIcon sx={{ fontSize: '16px', color: '#999' }} />
                   </ListItemButton>
                 ))}
               </List>
@@ -571,29 +644,25 @@ export default function Navbar() {
 
           {MENU_CONFIG.showProgrammes && (
             <Collapse in={activeMobileTab === 'prog'} timeout="auto" unmountOnExit>
-              <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Programmes</Typography>
-              <Box sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', p: 1.5, border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
+              <Typography sx={{ color: '#888', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Programmes</Typography>
+              <Box sx={{ bgcolor: '#f9f9f9', borderRadius: '16px', p: 1.5, border: `1px solid ${HEADER_COLORS.border}`, mb: 3 }}>
                 {dynamicProgrammeGroups.map(group => (
                   <Box key={group.title} sx={{ mb: 2, '&:last-child': { mb: 0 } }}>
                     <Typography sx={{ 
-                      color: '#4caf50', fontSize: '0.65rem', fontWeight: 800, px: 1, mb: 0.8, 
-                      textTransform: 'uppercase', letterSpacing: '0.8px',
-                      textAlign: 'left' // Aligned left
+                      color: HEADER_COLORS.activeText, fontSize: '0.65rem', fontWeight: 800, px: 1, mb: 0.8, 
+                      textTransform: 'uppercase', letterSpacing: '0.8px', textAlign: 'left' 
                     }}>
                       {group.title}
                     </Typography>
                     {group.items.map(item => (
                       <ListItemButton key={item.label} onClick={() => handleNavigate(item.path)} sx={{ 
-                        borderRadius: '10px', py: 1, px: 1.5, mb: 0.2, 
-                        textAlign: 'left', // Aligned left
-                        justifyContent: 'flex-start' // Aligned left
+                        borderRadius: '10px', py: 1, px: 1.5, mb: 0.2, textAlign: 'left', justifyContent: 'flex-start' 
                       }}>
                         <ListItemText 
                           primary={item.label} 
-                          primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} 
-                          sx={{ color: location.pathname === item.path ? '#fff' : '#a1a1aa' }} 
+                          primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 600, fontFamily: 'Montserrat' }} 
+                          sx={{ color: location.pathname === item.path ? HEADER_COLORS.activeText : '#444' }} 
                         />
-                        {/* Removed FiberManualRecordIcon bullet point completely */}
                       </ListItemButton>
                     ))}
                   </Box>
@@ -604,12 +673,12 @@ export default function Navbar() {
 
           {MENU_CONFIG.showOurStory && (
             <Collapse in={activeMobileTab === 'story'} timeout="auto" unmountOnExit>
-              <Typography sx={{ color: '#71717a', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Overview</Typography>
-              <List disablePadding sx={{ bgcolor: 'rgba(20,20,20,0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.04)', mb: 3 }}>
+              <Typography sx={{ color: '#888', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', mb: 1.5, letterSpacing: '1px' }}>Browse &gt; Overview</Typography>
+              <List disablePadding sx={{ bgcolor: '#f9f9f9', borderRadius: '16px', border: `1px solid ${HEADER_COLORS.border}`, mb: 3 }}>
                 {ourStoryLinks.map(link => (
-                  <ListItemButton key={link.label} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(255,255,255,0.03)', '&:last-child': { borderBottom: 'none' } }}>
-                    <ListItemText primary={link.label} primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === link.path ? '#fff' : '#d4d4d8' }} />
-                    <ChevronRightIcon sx={{ fontSize: '16px', color: '#444' }} />
+                  <ListItemButton key={link.label} onClick={() => handleNavigate(link.path)} sx={{ py: 1.5, px: 2.5, borderBottom: '1px solid rgba(0,0,0,0.04)', '&:last-child': { borderBottom: 'none' } }}>
+                    <ListItemText primary={link.label} primaryTypographyProps={{ fontSize: '0.85rem', fontWeight: 600, fontFamily: 'Montserrat' }} sx={{ color: location.pathname === link.path ? HEADER_COLORS.activeText : '#333' }} />
+                    <ChevronRightIcon sx={{ fontSize: '16px', color: '#999' }} />
                   </ListItemButton>
                 ))}
               </List>
@@ -622,9 +691,9 @@ export default function Navbar() {
                 fullWidth variant="contained" startIcon={<AppRegistrationIcon sx={{ fontSize: '20px' }} />}
                 sx={{
                   background: 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)', color: '#fff', py: 1.6,
-                  borderRadius: '14px', fontWeight: 800, fontFamily: 'Montserrat', fontSize: '0.9rem',
+                  borderRadius: '16px', fontWeight: 800, fontFamily: 'Montserrat', fontSize: '0.9rem',
                   boxShadow: '0 8px 25px rgba(76, 175, 80, 0.4)', textTransform: 'none',
-                  border: '1px solid rgba(255,255,255,0.1)', '&:hover': { transform: 'translateY(-2px)' }
+                  border: 'none', '&:hover': { transform: 'translateY(-2px)' }
                 }}
                 onClick={() => handleNavigate('/register-online')}
               >

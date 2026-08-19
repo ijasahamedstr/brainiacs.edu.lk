@@ -187,7 +187,6 @@ const Footer: React.FC = () => {
                 <br />
                 No. 29, Ampara Road, Sammanthurai,
                 <br />
-                Office Sammanthurai - SriLanka
               </Typography>
             </Box>
 
@@ -274,7 +273,7 @@ const Footer: React.FC = () => {
                     variant="body2"
                     sx={{ lineHeight: 1.8, color: "#444", fontFamily: primaryFont }}
                 >
-                    <strong>Sat - Thu:</strong>
+                    <strong>Mon - Sun:</strong>
                     <br />
                     8:00 AM - 6:00 PM
                     <br />
