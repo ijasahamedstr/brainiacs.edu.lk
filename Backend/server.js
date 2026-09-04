@@ -2,6 +2,7 @@ import express from "express";
 import connectDB from "./lib/db.js";
 import cors from "cors";
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
@@ -27,7 +28,8 @@ import IntakeRouter from "./routes/Intake.route.js";
 import MemberCountRouter from "./routes/membercount.route.js";
 
 const app = express();
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 app.set('etag', false);
 
@@ -42,13 +44,31 @@ app.use(express.json());
 // Serve the uploads folder statically so you can view images via URL
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-
 // 5. Connect Database
 connectDB();
 
 // 6. Routes
 app.get("/", (req, res) => {
   res.send("Server is running");
+});
+
+// Build Time API Route
+app.get('/api/build-time', (req, res) => {
+  try {
+    // Checks the build output folder (or falls back to package.json for deployment time)
+    const targetPath = fs.existsSync(path.join(__dirname, 'dist'))
+      ? path.join(__dirname, 'dist')
+      : path.join(__dirname, 'package.json');
+
+    const stats = fs.statSync(targetPath);
+
+    res.json({
+      status: 'ok',
+      lastBuilt: stats.mtime
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Could not fetch build time' });
+  }
 });
 
 app.use('/api', Adminrouter);
@@ -81,7 +101,7 @@ app.use('/api/course', Courserouter);
 
 app.use('/api/AskOurStudent', askOurStudentRouter);
 
-app.use('/api/Intake',IntakeRouter);
+app.use('/api/Intake', IntakeRouter);
 
 app.use('/api/member-count', MemberCountRouter);
 
