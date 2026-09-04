@@ -64,13 +64,8 @@ const AppContent = () => {
       {!shouldHideLayout && <Navbar />}
       
       <Routes>
-        {/* --- MODIFIED: Redirect main index (/) to /login --- */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        {/* Moved Home to /home so it's still accessible if needed */}
-        <Route path="/home" element={<Home />} />
-        
         {/* Public Routes */}
+        <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/inquiries" element={<Inquiries />} />
         <Route path="/aboutus" element={<Aboutus />} />
