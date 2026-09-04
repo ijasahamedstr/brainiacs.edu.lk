@@ -33,7 +33,7 @@ app.set('etag', false);
 
 // 3. CORS setup
 app.use(cors({
-  origin: ["https://www.brainiacs.edu.lk"],
+  origin: ["https://brainiacs-edu-lk-cyan.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
